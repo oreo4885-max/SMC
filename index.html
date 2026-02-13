@@ -1459,7 +1459,7 @@ async function saveAsPDF() {
     // PDF 전용 페이지 조립 (폼/텍스트 절단 방지)
     const pdfRoot = document.createElement('div');
     pdfRoot.id = 'pdfRootTemp';
-    pdfRoot.style.cssText = 'position:fixed; left:0; top:0; width:780px; background:#fff; z-index:-1; opacity:1; pointer-events:none;';
+    pdfRoot.style.cssText = 'position:fixed; left:0; top:0; width:780px; background:#fff; z-index:99999; opacity:1; pointer-events:none;';
     document.body.appendChild(pdfRoot);
 
     const pageContentMax = 1020;
