@@ -1,1878 +1,1868 @@
- (cd "$(git rev-parse --show-toplevel)" && git apply --3way <<'EOF' 
-diff --git a/index_export.html b/index_export.html
-new file mode 100644
-index 0000000000000000000000000000000000000000..6696aa4847b6ae50b19f6ca314c66791c36beeb3
---- /dev/null
-+++ b/index_export.html
-@@ -0,0 +1,1868 @@
-+<!DOCTYPE html>
-+<html lang="ko">
-+<head>
-+    <meta charset="UTF-8">
-+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-+    <title>점포 관리 컨설팅 리포트</title>
-+    
-+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-+    <link href="https://cdn.jsdelivr.net/npm/suneditor@latest/dist/css/suneditor.min.css" rel="stylesheet">
-+    <script src="https://cdn.jsdelivr.net/npm/suneditor@latest/dist/suneditor.min.js"></script>
-+
-+    <style>
-+        /* 폰트 및 컬러 변수 정의 */
-+        :root {
-+            --brand-green: #00782b;
-+            --brand-choco: #604c3e;
-+            --brand-cream: #f7f3e8;
-+            --brand-red: #ce1126;
-+            --brand-blue: #005eb8;
-+            --white: #ffffff;
-+            --border-radius: 12px;
-+        }
-+
-+        body {
-+            font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
-+            background-color: var(--brand-cream);
-+            color: var(--brand-choco);
-+            margin: 0;
-+            padding: 20px;
-+            padding-bottom: 120px; /* 버튼 공간 확보 */
-+            line-height: 1.5;
-+        }
-+
-+        .container {
-+            max-width: 800px;
-+            margin: 0 auto;
-+        }
-+
-+        /* 헤더 스타일 */
-+        .header-logo {
-+            text-align: center;
-+            background-color: var(--brand-green);
-+            color: var(--white);
-+            padding: 20px;
-+            border-radius: var(--border-radius);
-+            margin-bottom: 30px;
-+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-+            border-bottom: 5px solid #005a20;
-+        }
-+
-+        .header-logo h1 {
-+            margin: 0;
-+            font-size: 1.6rem;
-+            letter-spacing: -1px;
-+            line-height: 1.2;
-+        }
-+
-+        /* 섹션(STEP) 스타일 */
-+        .step-section {
-+            background: var(--white);
-+            border: 2px solid var(--brand-green);
-+            border-radius: var(--border-radius);
-+            margin-bottom: 25px;
-+            overflow: hidden;
-+            box-shadow: 4px 4px 0px rgba(0, 120, 43, 0.1);
-+        }
-+
-+        .step-header {
-+            background-color: var(--brand-green);
-+            color: var(--white);
-+            padding: 12px 20px;
-+            font-size: 1.1em;
-+            font-weight: bold;
-+            display: flex;
-+            align-items: center;
-+        }
-+        
-+        .step-header::before {
-+            content: '🍩';
-+            margin-right: 10px;
-+            font-size: 1.2em;
-+        }
-+
-+        .step-content {
-+            padding: 20px;
-+        }
-+
-+        /* 입력 폼 스타일 */
-+        .form-item {
-+            margin-bottom: 25px;
-+            border-bottom: 1px dashed #ddd;
-+            padding-bottom: 20px;
-+        }
-+
-+        .form-item:last-child {
-+            border-bottom: none;
-+            padding-bottom: 0;
-+        }
-+
-+        label.item-title {
-+            display: block;
-+            font-weight: 700;
-+            margin-bottom: 8px;
-+            color: var(--brand-green);
-+            font-size: 1.05em;
-+        }
-+
-+        .sub-desc {
-+            font-size: 0.85em;
-+            color: #888;
-+            margin-bottom: 12px;
-+            background: #f9f9f9;
-+            padding: 5px 10px;
-+            border-radius: 5px;
-+            display: inline-block;
-+        }
-+
-+        /* 텍스트 입력창 및 셀렉트 박스 */
-+        input[type="text"], 
-+        input[type="number"],
-+        input[type="date"],
-+        select,
-+        textarea {
-+            width: 100%;
-+            padding: 12px;
-+            border: 2px solid #ddd;
-+            border-radius: 8px;
-+            box-sizing: border-box;
-+            font-size: 14px;
-+            background-color: #fdfdfd;
-+            transition: border-color 0.3s;
-+        }
-+
-+        /* 숫자 입력용 스타일(콤마) */
-+        input.comma-input {
-+            text-align: right;
-+            font-weight: bold;
-+            color: var(--black);
-+        }
-+
-+        input:focus, textarea:focus, select:focus {
-+            outline: none;
-+            border-color: var(--black);
-+            background-color: #fff;
-+        }
-+
-+        textarea {
-+            min-height: 80px;
-+            resize: vertical;
-+        }
-+        
-+        select {
-+            appearance: none;
-+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2300782b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-+            background-repeat: no-repeat;
-+            background-position: right 10px center;
-+            background-size: 16px;
-+        }
-+
-+        /* 입체적 디자인 테이블 스타일 */
-+        .data-table {
-+            width: 100%;
-+            border-collapse: separate;
-+            border-spacing: 0;
-+            margin-bottom: 15px;
-+            font-size: 0.85em;
-+            border-radius: 10px;
-+            overflow: hidden;
-+            box-shadow: 0 6px 15px rgba(0,0,0,0.1); 
-+            border: 1px solid var(--brand-green);
-+        }
-+        .data-table th { 
-+            background: linear-gradient(180deg, var(--brand-green) 0%, #005a20 100%);
-+            color: var(--white); 
-+            padding: 15px 10px; /* 여유 공간 확보 */
-+            font-weight: 600;
-+            text-shadow: 1px 1px 1px rgba(0,0,0,0.2);
-+            border: none;
-+            white-space: nowrap;
-+        }
-+        .data-table td {
-+            border-bottom: 1px solid #edf2f0;
-+            border-right: 1px solid #edf2f0;
-+            padding: 12px 8px; /* 여유 공간 확보 */
-+            text-align: center;
-+            background-color: #fff;
-+        }
-+        .data-table td:last-child { border-right: none; }
-+        .data-table tr:last-child td { border-bottom: none; }
-+        .data-table input { 
-+            border: 1px solid #e2e8e4 !important; 
-+            width: 95%; 
-+            text-align: right; 
-+            background: #fdfdfd; 
-+            padding: 6px !important;
-+            border-radius: 5px;
-+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
-+        }
-+        .bg-gray { background-color: #f9fbf9 !important; font-weight: bold; color: var(--brand-green); }
-+
-+        /* 공통 라디오/체크박스 래퍼 스타일 */
-+        .option-wrapper {
-+            display: flex;
-+            gap: 20px;
-+            align-items: center;
-+            background: #f0f7f2;
-+            padding: 10px 15px;
-+            border-radius: 8px;
-+            margin-bottom: 10px;
-+            border: 1px solid #e0e0e0;
-+        }
-+
-+        .radio-label {
-+            display: flex;
-+            align-items: center;
-+            cursor: pointer;
-+            font-weight: bold;
-+            color: var(--brand-choco);
-+        }
-+        
-+        .radio-label input {
-+            margin-right: 8px;
-+            width: 18px;
-+            height: 18px;
-+            accent-color: var(--brand-green);
-+        }
-+
-+        /* 점수 선택 라디오 버튼 */
-+        .rating-wrapper {
-+            display: flex;
-+            justify-content: space-between;
-+            background: #f0f7f2;
-+            padding: 10px 15px;
-+            border-radius: 30px;
-+            margin-bottom: 10px;
-+            border: 1px solid var(--brand-green);
-+        }
-+
-+        .rating-item {
-+            display: flex;
-+            flex-direction: column;
-+            align-items: center;
-+            font-size: 0.85em;
-+            cursor: pointer;
-+            font-weight: bold;
-+            color: var(--brand-green);
-+        }
-+
-+        .rating-item input {
-+            margin-bottom: 5px;
-+            width: 18px; 
-+            height: 18px;
-+            accent-color: var(--brand-green);
-+        }
-+
-+        /* 숫자 입력 그룹 */
-+        .input-group-row {
-+            display: flex;
-+            gap: 15px;
-+            flex-wrap: wrap;
-+            margin-bottom: 10px;
-+        }
-+
-+        .input-box {
-+            flex: 1;
-+            min-width: 140px;
-+        }
-+        
-+        .input-box label {
-+            display: block;
-+            font-size: 0.85em;
-+            margin-bottom: 5px;
-+            color: var(--brand-choco);
-+            font-weight: bold;
-+        }
-+
-+        .input-with-unit {
-+            position: relative;
-+        }
-+        
-+        .input-with-unit input {
-+            padding-right: 45px; 
-+            text-align: right;
-+            font-weight: bold;
-+            color: var(--brand-green);
-+        }
-+        
-+        .input-with-unit span {
-+            position: absolute;
-+            right: 12px;
-+            top: 14px;
-+            color: #999;
-+            font-size: 0.9em;
-+            font-weight: bold;
-+        }
-+
-+        /* 파일 업로드 모바일 최적화 수정 */
-+        .file-upload-box {
-+            background: #fff;
-+            padding: 8px;
-+            border: 1px solid #ddd;
-+            border-radius: 8px;
-+            margin-top: 5px;
-+        }
-+        .file-input-group {
-+            display: flex;
-+            flex-wrap: nowrap;
-+            gap: 8px;
-+            justify-content: space-between;
-+        }
-+        .file-input-item {
-+            flex: 1;
-+            display: flex;
-+            flex-direction: column;
-+            gap: 4px;
-+            font-size: 0.8em;
-+            background: #f8f9fa;
-+            padding: 6px;
-+            border-radius: 6px;
-+            border: 1px solid #eee;
-+        }
-+        .file-input-item span {
-+            font-weight: bold;
-+            color: var(--brand-choco);
-+            margin-bottom: 2px;
-+        }
-+        .file-input-item input[type="file"] {
-+            width: 100%;
-+            font-size: 11px; 
-+        }
-+
-+        /* 체크박스 디자인 */
-+        .checkbox-wrapper {
-+            display: flex;
-+            align-items: center;
-+            background: #fff;
-+            padding: 10px;
-+            border: 2px solid #eee;
-+            border-radius: 8px;
-+            margin-bottom: 10px;
-+            cursor: pointer;
-+            transition: all 0.2s;
-+        }
-+        .checkbox-wrapper:hover {
-+            border-color: var(--brand-green);
-+        }
-+        .checkbox-wrapper input[type="checkbox"] {
-+            width: 20px;
-+            height: 20px;
-+            margin-right: 10px;
-+            accent-color: var(--brand-green);
-+        }
-+        .checkbox-wrapper label {
-+            font-weight: bold;
-+            cursor: pointer;
-+            width: 100%;
-+        }
-+
-+        /* 숨김 영역 */
-+        .hidden-area {
-+            display: none;
-+            background: #f9f9f9;
-+            padding: 15px;
-+            border-radius: 8px;
-+            border: 1px solid #ddd;
-+            margin-top: 10px;
-+        }
-+
-+        /* 하단 고정 버튼 그룹 */
-+        .btn-group {
-+            position: fixed;
-+            bottom: 20px;
-+            right: 20px;
-+            display: flex;
-+            flex-direction: row;
-+            gap: 10px;
-+            z-index: 1000;
-+        }
-+
-+        .icon-btn {
-+            width: 50px;
-+            height: 50px;
-+            border-radius: 50%;
-+            border: none;
-+            color: white;
-+            font-size: 18px;
-+            display: flex;
-+            flex-direction: column;
-+            align-items: center;
-+            justify-content: center;
-+            cursor: pointer;
-+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-+            transition: transform 0.2s;
-+        }
-+        .icon-btn span { font-size: 8px; margin-top: 2px; font-weight: bold; }
-+        .icon-btn:active { transform: scale(0.9); }
-+
-+        .btn-reset { background-color: var(--brand-red); }
-+        .btn-save { background-color: var(--brand-choco); }
-+        .btn-email { background-color: var(--brand-blue); }
-+        .btn-history { background-color: var(--brand-green); }
-+        .btn-cloud { background-color: #f39c12; } 
-+
-+        #historyModal {
-+            display: none;
-+            position: fixed;
-+            top: 0; left: 0; width: 100%; height: 100%;
-+            background: rgba(0,0,0,0.6);
-+            z-index: 2000;
-+            align-items: center;
-+            justify-content: center;
-+            padding: 20px;
-+        }
-+        .modal-content {
-+            background: white;
-+            width: 100%;
-+            max-width: 400px;
-+            border-radius: 15px;
-+            overflow: hidden;
-+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-+        }
-+        .modal-header {
-+            background: var(--brand-green);
-+            color: white;
-+            padding: 15px;
-+            font-weight: bold;
-+            display: flex;
-+            justify-content: space-between;
-+        }
-+        .modal-body { padding: 20px; max-height: 60vh; overflow-y: auto; font-size: 14px; }
-+        .history-card { background: #f8f9fa; padding: 12px; border-radius: 8px; border-left: 5px solid var(--brand-choco); }
-+
-+        @media (max-width: 600px) {
-+            .input-group-row { flex-direction: column; gap: 10px; }
-+            .rating-wrapper { padding: 8px; }
-+            .rating-item { font-size: 0.75em; }
-+            .file-input-group { gap: 5px; } 
-+            .file-input-item { padding: 4px; }
-+            .btn-group { bottom: 10px; right: 10px; gap: 8px; }
-+            .icon-btn { width: 45px; height: 45px; font-size: 16px; }
-+            .data-table { font-size: 0.75em; }
-+        }
-+/* 섹션 숨김 상태 스타일 */
-+.section-hidden .step-content {
-+    display: none !important;
-+}
-+.section-hidden .step-header {
-+    opacity: 0.65;
-+}
-+.section-hidden .step-header::after {
-+    content: ' 〔숨김〕';
-+    font-size: 0.85em;
-+    opacity: 0.9;
-+    font-weight: normal;
-+}
-+
-+/* 공유/발송 모달 스타일 */
-+#shareModal {
-+    display: none;
-+    position: fixed;
-+    top: 0; left: 0; width: 100%; height: 100%;
-+    background: rgba(0,0,0,0.6);
-+    z-index: 3000;
-+    align-items: center;
-+    justify-content: center;
-+    padding: 20px;
-+    box-sizing: border-box;
-+}
-+#shareModal.open, #prevConsultingModal.open { display: flex; }
-+#prevConsultingModal {
-+    display: none;
-+    position: fixed;
-+    top: 0; left: 0; width: 100%; height: 100%;
-+    background: rgba(0,0,0,0.6);
-+    z-index: 3000;
-+    align-items: center;
-+    justify-content: center;
-+    padding: 20px;
-+    box-sizing: border-box;
-+}
-+.share-modal-content {
-+    background: white;
-+    width: 100%;
-+    max-width: 420px;
-+    border-radius: 15px;
-+    overflow: hidden;
-+    box-shadow: 0 10px 25px rgba(0,0,0,0.25);
-+}
-+.share-modal-header {
-+    background: var(--brand-blue);
-+    color: white;
-+    padding: 15px 20px;
-+    font-weight: bold;
-+    display: flex;
-+    justify-content: space-between;
-+    align-items: center;
-+}
-+.share-modal-body {
-+    padding: 20px;
-+    font-size: 14px;
-+}
-+.share-modal-body label {
-+    display: block;
-+    font-weight: bold;
-+    margin-bottom: 5px;
-+    color: var(--brand-choco);
-+}
-+.share-modal-body input,
-+.share-modal-body textarea {
-+    width: 100%;
-+    margin-bottom: 12px;
-+    box-sizing: border-box;
-+}
-+.share-modal-body .attach-hint {
-+    font-size: 0.8em;
-+    color: #888;
-+    background: #f5f5f5;
-+    padding: 6px 10px;
-+    border-radius: 6px;
-+    margin-bottom: 12px;
-+}
-+.share-btn-row {
-+    display: flex;
-+    gap: 10px;
-+    margin-top: 5px;
-+}
-+.share-btn-row button {
-+    flex: 1;
-+    padding: 12px;
-+    border: none;
-+    border-radius: 8px;
-+    font-weight: bold;
-+    cursor: pointer;
-+    font-size: 14px;
-+}
-+.btn-share-email { background: var(--brand-blue); color: white; }
-+.btn-share-native { background: var(--brand-green); color: white; }
-+.btn-share-cancel { background: #eee; color: #555; }
-+
-+/* 사진 미리보기 스타일 (유지) */
-+.img-preview-container {
-+    margin-top: 10px;
-+    display: flex;
-+    flex-wrap: wrap;
-+    gap: 10px;
-+}
-+.img-preview-container img {
-+    width: 120px;
-+    height: 120px;
-+    object-fit: cover;
-+    border-radius: 8px;
-+    border: 1px solid #ddd;
-+}
-+
-+/* PDF 출력용 설정 */
-+@media print {
-+    body {
-+        background-color: #ffffff !important;
-+        margin: 0 !important;
-+        padding: 0 !important;
-+    }
-+    .container {
-+        width: 100% !important;
-+        max-width: 100% !important;
-+        margin: 0 !important;
-+        padding: 5px !important;
-+        border: none !important;
-+    }
-+    .pdf-text-replacement {
-+        display: block !important;
-+        visibility: visible !important;
-+        color: #333 !important;
-+    }
-+    textarea {
-+        width: 100% !important;
-+        height: auto !important;
-+        overflow: visible !important;
-+        white-space: pre-wrap !important;
-+        word-break: break-all !important;
-+        border: 1px solid #eee !important;
-+        display: block !important;
-+        line-height: 1.6 !important;
-+    }
-+    .data-table, table, .step-section { width: 100% !important; }
-+    /* 섹션 및 폼 아이템 잘림 방지 */
-+    .step-section {
-+        page-break-inside: avoid !important;
-+        break-inside: avoid !important;
-+        margin-bottom: 15px !important;
-+    }
-+    .form-item {
-+        page-break-inside: avoid !important;
-+        break-inside: avoid !important;
-+    }
-+    /* 불필요한 요소 제거 */
-+    .btn-group, .icon-btn, #historyModal, #shareModal, .suneditor .se-resizing-bar {
-+        display: none !important;
-+        visibility: hidden !important;
-+    }
-+    /* PDF 출력 시 숨김 체크박스 라벨 숨김 */
-+    .step-header label {
-+        display: none !important;
-+    }
-+    /* 숨김 섹션 제외 */
-+    .step-section.no-print {
-+        display: none !important;
-+    }
-+    .pdf-text-replacement, td, th, input {
-+        color: #000000 !important;
-+    }
-+}
-+    </style>
-+</head>
-+<body>
-+
-+<div id="historyModal">
-+    <div class="modal-content">
-+        <div class="modal-header">
-+            <span>가장 최근 점검 기록</span>
-+            <span style="cursor:pointer" onclick="closeHistory()">✖</span>
-+        </div>
-+        <div class="modal-body" id="modalContent">
-+            점포명을 입력하고 조회 버튼을 눌러주세요.
-+        </div>
-+    </div>
-+</div>
-+
-+<div class="container">
-+    <div class="header-logo">
-+        <h1>STORE MANAGEMENT<br>CONSULTING REPORT</h1>
-+        <div style="font-size: 0.9em; opacity: 0.9; margin-top:5px;">점포 관리 컨설팅 리포트</div>
-+    </div>
-+
-+    <form id="inspectionForm">
-+
-+        <div class="step-section">
-+            <div class="step-header">Step 0. 담당 지점 및 SC</div>
-+            <div class="step-content">
-+                <div class="input-group-row">
-+                    <div class="input-box">
-+                        <label>📅 점검일자</label>
-+                        <input type="date" name="inspection_date" id="inspectionDate">
-+                    </div>
-+                    <div class="input-box">
-+                        <label>🏠 점검 점포</label>
-+                        <input type="text" name="inspection_store_name" id="storeNameInput" placeholder="점포명 입력">
-+                    </div>
-+                    <div class="input-box">
-+                        <label>🏷️ 점포 유형</label>
-+                        <select id="storeTypeSelect" name="store_type" onchange="toggleStoreMode()">
-+                            <option value="">유형 선택</option>
-+                            <option value="제조출고점">제조출고점</option>
-+                            <option value="제조영업점">제조영업점</option>
-+                            <option value="영업점">영업점</option>
-+                            <option value="가맹점(영업점)">가맹점(영업점)</option>
-+                            <option value="외부활동(미점검)">외부활동(미점검)</option>
-+                        </select>
-+                    </div>
-+                </div>
-+                <div class="input-group-row">
-+                    <div class="input-box">
-+                        <label>🏢 담당 지점</label>
-+                        <select id="branchSelect" name="branch_name">
-+                            <option value="">지점 선택</option>
-+                            <option value="중부1지점">중부1지점</option>
-+                            <option value="중부2지점">중부2지점</option>
-+                            <option value="서부지점">서부지점</option>
-+                            <option value="동부지점">동부지점</option>
-+                        </select>
-+                    </div>
-+                    <div class="input-box">
-+                        <label>👤 담당 SC</label>
-+                        <select id="scSelect" name="sc_name">
-+                            <option value="">지점을 먼저 선택하세요</option>
-+                        </select>
-+                    </div>
-+                </div>
-+
-+                <div id="outsideArea" class="hidden-area" style="border: 2px solid var(--brand-red); margin-top:20px;">
-+                    <label class="item-title" style="color:var(--brand-red)">Out Step. 점포 컨설팅 미진행으로 인한 SC 업무간 특이사항 작성(상세)</label>
-+                    <div id="outsideEditor"></div>
-+                    <input type="hidden" name="outside_comment_html" id="outsideCommentHtml">
-+                </div>
-+            </div>
-+        </div>
-+
-+        <div id="mainSteps">
-+            <div class="step-section">
-+    <div class="step-header">Step 1. 점검 시작 전 (시설/환경)
-+<label style="margin-left: auto; font-size: 0.75em; color: white; cursor: pointer; display:flex; align-items:center; gap:4px; white-space:nowrap;">
-+        <input type="checkbox" class="section-hide-toggle" style="width:15px; height:15px; accent-color: #f39c12;"> 섹션 숨김
-+    </label></div>
-+    <div class="step-content">
-+        <p class="sub-desc" style="display:block; background:#fff3cd; color:#856404; border:1px solid #ffeeba;">
-+        ※ 시설물 불량 및 고지물 관리 상태 사진 등록</p>
-+        
-+        <div class="form-item">
-+            <label class="item-title" id="title_s1_3">1. 점포 내,외관, 고지물 점검</label>
-+            <textarea name="s1_3_add_comment" placeholder="점포 내,외관 확인 "></textarea>
-+                       <div class="file-upload-box">
-+                <div class="file-input-group">
-+                    <div class="file-input-item">
-+                        <span>📷 사진 삽입:</span>
-+                        <input type="file" name="file_s1_3_file" accept="image/*" onchange="previewImage(this, 'preview_s1_3')">
-+                    </div>
-+                </div>
-+                <div id="preview_s1_3" class="img-preview-container"></div>
-+            </div>
-+        </div>
-+
-+        <div class="form-item">
-+            <label class="item-title" id="title_s1_4">2. 기기 고장 및 교체 필요 사항</label>
-+           <textarea name="s1_4_add_comment" placeholder="기기 고장 사항 확인 "></textarea>
-+            <div class="file-upload-box">
-+                <div class="file-input-group">
-+                    <div class="file-input-item">
-+                        <span>📷 사진 삽입:</span>
-+                        <input type="file" name="file_s1_4_file" accept="image/*" onchange="previewImage(this, 'preview_s1_4')">
-+                    </div>
-+                </div>
-+                <div id="preview_s1_4" class="img-preview-container"></div>
-+            </div>
-+        </div>
-+
-+        <div class="form-item">
-+            <label class="item-title" id="title_s1_6">3. 점포상권 변화확인</label>
-+            <textarea name="s1_6_comment" placeholder="200M 내외 상권파악"></textarea>
-+            <div class="file-upload-box">
-+                <div class="file-input-group">
-+                    <div class="file-input-item">
-+                        <span>📷 사진 삽입:</span>
-+                        <input type="file" name="file_s1_6_file" accept="image/*" onchange="previewImage(this, 'preview_s1_6')">
-+                    </div>
-+                </div>
-+                <div id="preview_s1_6" class="img-preview-container"></div>
-+            </div>
-+        </div>
-+    </div>
-+</div>
-+                                       <div class="step-section">
-+                <div class="step-header">Step 2. 매출 관련<label style="margin-left: auto; font-size: 0.75em; color: white; cursor: pointer; display:flex; align-items:center; gap:4px; white-space:nowrap;">
-+        <input type="checkbox" class="section-hide-toggle" style="width:15px; height:15px; accent-color: #f39c12;"> 섹션 숨김
-+    </label></div>
-+                <div class="step-content">
-+                    
-+                    <div class="form-item">
-+                        <label class="item-title">1. 매출 실적 분석 (단위: 천원)</label>
-+                        <table class="data-table" id="salesTable">
-+                            <thead>
-+                                <tr><th>구분(천원)</th><th>매출</th><th>외부채널</th><th>배달</th><th>단체</th><th>순수래점</th></tr>
-+                            </thead>
-+                            <tbody>
-+                                <tr>
-+                                    <td>전년</td>
-+                                    <td><input type="text" name="s2_1_last_total" class="comma-input" oninput="calcS2_1()"></td>
-+                                    <td><input type="text" name="s2_1_last_ext" class="comma-input" oninput="calcS2_1()"></td>
-+                                    <td><input type="text" name="s2_1_last_del" class="comma-input" oninput="calcS2_1()"></td>
-+                                    <td><input type="text" name="s2_1_last_grp" class="comma-input" oninput="calcS2_1()"></td>
-+                                    <td class="bg-gray" id="s2_1_last_pure">0</td>
-+                                </tr>
-+                                <tr>
-+                                    <td>금년</td>
-+                                    <td><input type="text" name="s2_1_curr_total" class="comma-input" oninput="calcS2_1()"></td>
-+                                    <td><input type="text" name="s2_1_curr_ext" class="comma-input" oninput="calcS2_1()"></td>
-+                                    <td><input type="text" name="s2_1_curr_del" class="comma-input" oninput="calcS2_1()"></td>
-+                                    <td><input type="text" name="s2_1_curr_grp" class="comma-input" oninput="calcS2_1()"></td>
-+                                    <td class="bg-gray" id="s2_1_curr_pure">0</td>
-+                                </tr>
-+                                <tr class="bg-gray">
-+                                    <td>증감</td>
-+                                    <td id="s2_1_diff_total">0</td>
-+                                    <td colspan="4" style="text-align:right; padding-right:20px;">순수래점 증감: <span id="s2_1_diff_pure">0</span></td>
-+                                </tr>
-+                            </tbody>
-+                        </table>
-+                        <textarea name="s2_1_comment" placeholder="특이사항 및 분석 내용 입력"></textarea>
-+                    </div>
-+
-+                    <div class="form-item">
-+                        <label class="item-title">2. 블럭별 매출 분석</label>
-+                        <table class="data-table" id="blockAnalysisTable">
-+                            <thead>
-+                                <tr><th>구분</th><th>싱글</th><th>더즌</th><th>커피</th><th>프로즌</th><th>기타음료</th><th>베이크드</th><th>판매용품</th><th>기타</th></tr>
-+                            </thead>
-+                            <tbody>
-+                                <tr>
-+                                    <td>전년</td>
-+                                    <script>for(let i=1;i<=8;i++) document.write(`<td><input type="text" name="s2_2_l_${i}" class="comma-input" oninput="calcS2_2()"></td>`);</script>
-+                                </tr>
-+                                <tr>
-+                                    <td>금년</td>
-+                                    <script>for(let i=1;i<=8;i++) document.write(`<td><input type="text" name="s2_2_c_${i}" class="comma-input" oninput="calcS2_2()"></td>`);</script>
-+                                </tr>
-+                                <tr class="bg-gray" id="blockDiffRow">
-+                                    <td>증감</td><script>for(let i=1;i<=8;i++) document.write(`<td>0</td>`);</script>
-+                                </tr>
-+                            </tbody>
-+                        </table>
-+                        <textarea name="s2_2_comment" placeholder="증감 원인 및 상세 분석"></textarea>
-+                    </div>
-+
-+                    <div class="form-item">
-+                        <label class="item-title">3. 도넛 품절, 폐기 및 배달실적</label>
-+                        <div class="sub-desc" style="display:block; margin-bottom:10px;">■ 점포판매 제품품절 시간 확인</div>
-+                        <table class="data-table">
-+                            <tr>
-+                                <th>OG 품절</th>
-+                                <td colspan="2">
-+                                    <select name="s2_3_og_time">
-+                                        <option value="미발생">미발생</option>
-+                                        <script>for(let i=12; i<=21; i++) document.write(`<option value="${i}:00">${i}:00</option>`);</script>
-+                                    </select>
-+                                </td>
-+                            </tr>
-+                            <tr>
-+                                <th>어쏘티드1</th>
-+                                <td><select name="as_t1"><option>미발생</option><script>for(let i=12; i<=21; i++) document.write(`<option>${i}:00</option>`);</script></select></td>
-+                                <td><input type="text" name="as_n1" placeholder="제품명" style="width:120px; text-align:left;"></td>
-+                            </tr>
-+                            <tr>
-+                                <th>어쏘티드2</th>
-+                                <td><select name="as_t2"><option>미발생</option><script>for(let i=12; i<=21; i++) document.write(`<option>${i}:00</option>`);</script></select></td>
-+                                <td><input type="text" name="as_n2" placeholder="제품명" style="width:120px; text-align:left;"></td>
-+                            </tr>
-+                            <tr>
-+                                <th>어쏘티드3</th>
-+                                <td><select name="as_t3"><option>미발생</option><script>for(let i=12; i<=21; i++) document.write(`<option>${i}:00</option>`);</script></select></td>
-+                                <td><input type="text" name="as_n3" placeholder="제품명" style="width:120px; text-align:left;"></td>
-+                            </tr>
-+                        </table>
-+
-+                        <div class="sub-desc" style="display:block; margin-bottom:10px;">■ 품절시간 확인 및 폐기율</div>
-+                        <table class="data-table">
-+                            <tr>
-+                                <th style="width:25%;">배달 품절 시간</th>
-+                                <td style="width:25%;">
-+                                    <select name="s2_3_del_time">
-+                                        <option value="미발생">미발생</option>
-+                                        <script>for(let i=12; i<=21; i++) document.write(`<option value="${i}:00">${i}:00</option>`);</script>
-+                                    </select>
-+                                </td>
-+                                <th style="width:25%;">폐기율(%)</th>
-+                                <td style="width:25%;"><input type="number" name="s2_3_waste_rate" step="0.1" style="width:80%;"></td>
-+                            </tr>
-+                        </table>
-+                        <textarea name="s2_3_comment" placeholder="발주 적정성 및 품절 관련 코멘트"></textarea>
-+                    </div>
-+
-+                    <div class="form-item">
-+                        <label class="item-title">4. 판촉 운영 (점포판촉 / CRM / 외부채널)</label>
-+                        <table class="data-table">
-+                            <thead><tr><th>판촉명</th><th>추가매출</th><th>매출구성비(%)</th></tr></thead>
-+                            <tbody>
-+                                <tr><td><input type="text" name="s2_4_promo1"></td><td><input type="text" class="comma-input" name="s2_4_val1"></td><td><input type="number" name="s2_4_per1"></td></tr>
-+                                <tr><td><input type="text" name="s2_4_promo2"></td><td><input type="text" class="comma-input" name="s2_4_val2"></td><td><input type="number" name="s2_4_per2"></td></tr>
-+                            </tbody>
-+                        </table>
-+                        <textarea name="s2_4_comment" placeholder="판촉 성과 및 향후 운영 계획"></textarea>
-+                    </div>
-+
-+                    <div class="form-item">
-+                        <label class="item-title" id="title_s2_5">5. 단체주문(CR 활동)</label>
-+                        <textarea name="s2_5_comment" placeholder="단체고객 리스트 - DM발송 및 분기별 관리"></textarea>
-+                    </div>
-+                </div>
-+            </div>
-+
-+            <div>
-+                <div class="step-section" id="step3Section">
-+                    <div class="step-header">Step 3. 손익 관련
-+<label style="margin-left: auto; font-size: 0.75em; color: white; cursor: pointer; display:flex; align-items:center; gap:4px; white-space:nowrap;">
-+        <input type="checkbox" class="section-hide-toggle" style="width:15px; height:15px; accent-color: #f39c12;"> 섹션 숨김
-+    </label></div>
-+                    <div class="step-content">
-+                        <div class="form-item">
-+                            <label class="item-title">1. 계정과목별 분석 (최근 확인된 점포 손익계산서 기준)</label>
-+                            <div id="accountTableContainer"></div>
-+                            <button type="button" onclick="addAccountTable()" style="padding: 10px; background: var(--brand-blue); color: white; border: none; border-radius: 5px; cursor: pointer; margin-bottom: 15px;">+ 계정과목 선택하여 추가</button>
-+                            <textarea name="s3_1_comment" placeholder="손익 부진점 운영현황 및 활성화/절감 방안"></textarea>
-+                        </div>
-+                        <div class="form-item"><label class="item-title">2. 손익 분석 (영업이익 적자 원인)</label><textarea name="s3_2_comment"></textarea></div>
-+                        <div class="form-item"><label class="item-title">3. 자체 손익 (외부채널 제외) 개선 방안</label><textarea name="s3_3_comment"></textarea></div>
-+                    </div>
-+                </div>
-+
-+                <div class="step-section" id="step4Section">
-+                    <div class="step-header">Step 4. 인사 및 기타 점검<label style="margin-left: auto; font-size: 0.75em; color: white; cursor: pointer; display:flex; align-items:center; gap:4px; white-space:nowrap;">
-+        <input type="checkbox" class="section-hide-toggle" style="width:15px; height:15px; accent-color: #f39c12;"> 섹션 숨김
-+    </label></div>
-+                    <div class="step-content">
-+                        <div class="form-item">
-+                            <label class="item-title">1. 인력 운영 적정성 (52시간, 인건비 등)</label>
-+<table class="data-table">
-+    <thead>
-+        <tr>
-+            <th>구분</th>
-+            <th>메이트 인건비(천원)</th>
-+            <th>비용 증감(율)</th> <th>사용 시간(H)</th>
-+            <th>시간 증감(율)</th> </tr>
-+    </thead>
-+    <tbody>
-+        <tr>
-+            <td>전년</td>
-+            <td><input type="text" name="s4_1_last_cost" class="comma-input" oninput="calcS4_1()"></td>
-+            <td rowspan="2" id="s4_1_cost_diff" class="bg-gray">0<br>(0%)</td>
-+            <td><input type="text" name="s4_1_last_time" class="comma-input" oninput="calcS4_1()"></td>
-+            <td rowspan="2" id="s4_1_time_diff" class="bg-gray">0<br>(0%)</td>
-+        </tr>
-+        <tr>
-+            <td>금년</td>
-+            <td><input type="text" name="s4_1_curr_cost" class="comma-input" oninput="calcS4_1()"></td>
-+            <td><input type="text" name="s4_1_curr_time" class="comma-input" oninput="calcS4_1()"></td>
-+        </tr>
-+    </tbody>
-+</table>
-+                                                        <div class="option-wrapper">
-+                                <span style="font-weight:bold; font-size:0.9em; margin-right:10px;">52시간 미초과 준수 여부 :</span>
-+                                <label class="radio-label"><input type="radio" name="s4_overtime" value="예"> 예</label>
-+                                <label class="radio-label"><input type="radio" name="s4_overtime" value="아니오"> 아니오</label>
-+                            </div>
-+                            <textarea name="s4_1_comment" placeholder="인건비 분석 및 운영 적정성 코멘트"></textarea>
-+                        </div>
-+                        <div class="form-item">
-+                            <label class="item-title">2. 직원 면담 및 SHIFT 점검</label>
-+                            <div class="checkbox-wrapper"><input type="checkbox" id="interview_check" name="s4_interview_yn">
-+                            <label for="interview_check">직원 면담 진행 여부</label></div>
-+                            <div id="interview_area" class="hidden-area">
-+                                <div class="input-group-row">
-+                                    <div class="input-box"><label>점포명</label><input type="text" name="interview_store"></div>
-+                                    <div class="input-box"><label>이름</label><input type="text" name="interview_name"></div>
-+                                    <div class="input-box"><label>직책</label><input type="text" name="interview_position"></div>
-+                                </div>
-+                                <div class="file-upload-box">
-+                                    <div class="file-input-group">
-+                                        <div class="file-input-item"><span>카메라 실행:</span><input type="file" name="file_interview_cam" accept="image/*" capture="camera"></div>
-+                                        <div class="file-input-item"><span>파일 선택:</span><input type="file" name="file_interview_file" accept="image/*"></div>
-+                                    </div>
-+                                </div>
-+                            </div>
-+                            <textarea name="s4_2_comment" style="margin-top:15px;"></textarea>
-+                        </div>
-+                        <div class="form-item"><label class="item-title">3. 직영,가맹 업무간 특이사항 작성</label><textarea name="s4_3_special_comment"></textarea></div>
-+                        <div class="form-item" id="step4_4_area">
-+    <label class="item-title" id="title_s4_4">4. Store통합관리팀 점검 지적사항 관련 (정직원, 가맹점주에게 개선 여부만 확인)</label>
-+    
-+    <div class="checkbox-wrapper">
-+        <input type="checkbox" id="improvement_check" name="s4_improvement_yn">
-+        <label for="improvement_check">지적사항 개선 확인 완료</label>
-+    </div>
-+
-+    <textarea name="s4_4_comment" style="height:120px;" 
-+        placeholder="[대표 지적사항 예시]&#10;1. 유통기한 고지물 및 라벨 관리 상태&#10;2. 튀김기 및 배기 후드 청결도&#10;3. 원재료 보관 온도 및 선입선출 이행&#10;4. 법정 필수 서류(보건증 등) 비치 여부&#10;5. 개인 위생 용품 착용 및 관리 실태"></textarea>
-+</div>
-+                       <div class="form-item" id="step4_5_area">
-+    <label class="item-title" id="title_s4_5">5. 점포 컨설팅 결과에 따른 솔루션 전달(최종 권고안)</label>
-+    <textarea name="s4_5_solution_final" placeholder="최종 권고안 및 솔루션 내용 입력"></textarea>
-+</div>
-+                    </div>
-+                </div>
-+
-+                <div class="step-section" id="step5Section">
-+                    <div class="step-header">Step 5. 생산형 점포 수율 및 개당 인건비 확인<label style="margin-left: auto; font-size: 0.75em; color: white; cursor: pointer; display:flex; align-items:center; gap:4px; white-space:nowrap;">
-+        <input type="checkbox" class="section-hide-toggle" style="width:15px; height:15px; accent-color: #f39c12;"> 섹션 숨김
-+    </label></div>
-+                    <div class="step-content">
-+                        <div class="form-item">
-+                            <label class="item-title">1. 생산형 점포 수율 및 개당 인건비</label>
-+                            <div class="input-group-row">
-+                                <div class="input-box"><label>🥣 믹스 수율</label><div class="input-with-unit"><input type="number" name="s5_yield_mix"><span>%</span></div></div>
-+                                <div class="input-box"><label>🍩 6X 수율</label><div class="input-with-unit"><input type="number" name="s5_yield_6x"><span>%</span></div></div>
-+                            </div>
-+                            <div class="input-group-row">
-+                                <div class="input-box"><label>🍬 정백당 수율</label><div class="input-with-unit"><input type="number" name="s5_yield_sugar"><span>%</span></div></div>
-+                                <div class="input-box"><label>💰 개당 인건비</label><div class="input-with-unit"><input type="text" name="s5_labor_cost" class="comma-input"><span>원</span></div></div>
-+                            </div>
-+                            <textarea name="s5_1_comment"></textarea>
-+                        </div>
-+                        <div class="form-item">
-+                            <label class="item-title">2. 제조출고 영업점 기기 상태 및 수리 확인</label>
-+                            <div class="file-upload-box">
-+                                <div class="file-input-group">
-+                                    <div class="file-input-item"><span>카메라 실행:</span><input type="file" name="file_s5_machine_cam" accept="image/*" capture="camera"></div>
-+                                    <div class="file-input-item"><span>파일 선택:</span><input type="file" name="file_s5_machine_file" accept="image/*"></div>
-+                                </div>
-+                            </div>
-+                            <textarea name="s5_2_comment" style="margin-top:10px;"></textarea>
-+                        </div>
-+                        <div class="form-item">
-+                            <label class="item-title">3. 제조점 해섭(HACCP) 서류 확인</label>
-+                            <div class="checkbox-wrapper"><input type="checkbox" id="haccp_check" name="haccp_yn"><label for="haccp_check">HACCP 관련 서류 비치 및 작성 확인 완료</label></div>
-+                            <textarea name="s5_3_comment"></textarea>
-+                        </div>
-+                        <div class="form-item">
-+                            <label class="item-title">4. 제조출고,영업점 고충 및 건의사항</label>
-+                            <textarea name="s5_4_suggestion"></textarea>
-+                        </div>
-+                    </div>
-+                </div>
-+            </div>
-+        </div>
-+    </form>
-+<!-- 공유/발송 모달 -->
-+<div id="shareModal">
-+    <div class="share-modal-content">
-+        <div class="share-modal-header">
-+            <span>📤 공유 / 발송</span>
-+            <span style="cursor:pointer; font-size:1.1em;" onclick="closeShareModal()">✖</span>
-+        </div>
-+        <div class="share-modal-body">
-+            <label>받는 사람 (이메일)</label>
-+            <input type="email" id="shareEmail" placeholder="이메일 주소 입력 (선택)">
-+
-+            <label>제목</label>
-+            <input type="text" id="shareSubject" placeholder="메일 제목">
-+
-+            <label>메시지</label>
-+            <textarea id="shareMessage" style="height:80px;" placeholder="추가 메시지 입력 (선택)"></textarea>
-+
-+            <label>📎 파일 첨부</label>
-+            <div class="attach-hint">💡 첨부 파일을 선택하면 자동 다운로드 후 메일 앱에서 첨부하세요.</div>
-+            <input type="file" id="shareAttachFiles" multiple accept="*/*" style="margin-bottom:14px;">
-+
-+            <div style="font-size:0.8em; font-weight:bold; color:var(--brand-choco); margin-bottom:6px;">📬 메일 발송 방법 선택</div>
-+            <div class="share-btn-row">
-+                <button class="btn-share-email" style="background:#0078d4;" onclick="doEmailShare('outlook365')">
-+                    <span style="font-size:1.1em;">📧</span><br><small>Outlook 365</small>
-+                </button>
-+                <button class="btn-share-native" onclick="doNativeShare()">📱 앱으로 공유</button>
-+            </div>
-+            <div class="share-btn-row" style="margin-top:8px;">
-+                <button class="btn-share-cancel" onclick="closeShareModal()">취소</button>
-+            </div>
-+        </div>
-+    </div>
-+</div>
-+
-+<div id="prevConsultingModal">
-+    <div class="share-modal-content">
-+        <div class="share-modal-header">
-+            <span>🕘 이전 컨설팅 불러오기</span>
-+            <span style="cursor:pointer; font-size:1.1em;" onclick="closePrevConsultingModal()">✖</span>
-+        </div>
-+        <div class="share-modal-body">
-+            <div class="sub-desc" style="display:block; margin-bottom:12px;">점포명/지점/유형/SC가 동일하고, 현재 점검일 이전 데이터만 표시됩니다.</div>
-+            <div id="prevConsultingList" style="display:flex; flex-direction:column; gap:10px;"></div>
-+            <div class="share-btn-row" style="margin-top:8px;">
-+                <button class="btn-share-cancel" onclick="closePrevConsultingModal()">닫기</button>
-+            </div>
-+        </div>
-+    </div>
-+</div>
-+
-+<div class="btn-group">
-+    <button type="button" class="icon-btn" id="btnSaveTemp" style="background-color: #005eb8;" onclick="saveTempData()">
-+        💾<span>중간저장</span>
-+    </button>
-+    <button type="button" class="icon-btn" id="btnPdf" style="background-color: #e74c3c;" onclick="saveAsPDF()">
-+        📄<span>PDF저장</span>
-+    </button>
-+    <button type="button" class="icon-btn" id="btnShare" style="background-color: #f39c12;" onclick="openShareModal()">
-+        📤<span>공유/발송</span>
-+    </button>
-+    <button type="button" class="icon-btn" id="btnLoadPrev" style="background-color: #34495e;" onclick="openPrevConsultingModal()">
-+        🕘<span>이전불러오기</span>
-+    </button>
-+    <button type="button" class="icon-btn" id="btnFillData" style="background-color: #9b59b6;" onclick="fillTestData()">
-+        🧪<span>데이터입력</span>
-+    </button>
-+    <button type="button" class="icon-btn btn-reset" id="btnReset" onclick="resetForm()">
-+        🗑️<span>초기화</span>
-+    </button>
-+</div>
-+ <script>
-+function toggleStoreMode() {
-+    const val = document.getElementById("storeTypeSelect").value;
-+    const mainSteps = document.getElementById("mainSteps");
-+    const outsideArea = document.getElementById("outsideArea");
-+    const btnGroup = document.querySelector('.btn-group');
-+    const btnSaveTemp = document.getElementById('btnSaveTemp');
-+    const btnPdf = document.getElementById('btnPdf');
-+    const btnShare = document.getElementById('btnShare');
-+    const btnFillData = document.getElementById('btnFillData');
-+    const btnLoadPrev = document.getElementById('btnLoadPrev');
-+    const btnReset = document.getElementById('btnReset');
-+
-+    // 하위 섹션 참조
-+    const step3 = document.getElementById("step3Section");
-+    const step5 = document.getElementById("step5Section");
-+
-+    // 제목 요소 참조
-+    const titleS25 = document.getElementById("title_s2_5");
-+    const titleS44 = document.getElementById("title_s4_4");
-+    const titleS45 = document.getElementById("title_s4_5");
-+
-+    // 1. 기본 초기화 (모두 보임 상태로 시작)
-+    mainSteps.style.display = "block";
-+    outsideArea.style.display = "none";
-+    if (step3) step3.style.display = "block";
-+    if (step5) step5.style.display = "block";
-+
-+    // 2. 점포 유형별 분기 처리
-+    if (val === "외부활동(미점검)") {
-+        mainSteps.style.display = "none";
-+        outsideArea.style.display = "block";
-+        if (btnSaveTemp) btnSaveTemp.style.display = "none";
-+        if (btnFillData) btnFillData.style.display = "none";
-+        if (btnLoadPrev) btnLoadPrev.style.display = "none";
-+        if (btnPdf) btnPdf.style.display = "flex";
-+        if (btnShare) btnShare.style.display = "flex";
-+        if (btnReset) btnReset.style.display = "flex";
-+        if (editorInstance) editorInstance.refresh();
-+    } 
-+    else if (val === "가맹점(영업점)") {
-+        if (btnSaveTemp) btnSaveTemp.style.display = "flex";
-+        if (btnFillData) btnFillData.style.display = "flex";
-+        if (btnLoadPrev) btnLoadPrev.style.display = "flex";
-+        if (btnPdf) btnPdf.style.display = "flex";
-+        if (btnShare) btnShare.style.display = "flex";
-+        if (btnReset) btnReset.style.display = "flex";
-+        if (step3) step3.style.display = "none";
-+        if (step5) step5.style.display = "none";
-+        if (titleS25) titleS25.innerText = "5. 가맹점 도넛 수불 및 정량 정시 현황";
-+        if (titleS44) titleS44.innerText = "4. 가맹점 스토어담당 지적 개선 여부 확인";
-+        if (titleS45) titleS45.innerText = "5. 가맹점 최종 솔루션 및 권고안";
-+    } 
-+    else if (val === "영업점") {
-+        if (btnSaveTemp) btnSaveTemp.style.display = "flex";
-+        if (btnFillData) btnFillData.style.display = "flex";
-+        if (btnLoadPrev) btnLoadPrev.style.display = "flex";
-+        if (btnPdf) btnPdf.style.display = "flex";
-+        if (btnShare) btnShare.style.display = "flex";
-+        if (btnReset) btnReset.style.display = "flex";
-+        if (step5) step5.style.display = "none";
-+        if (titleS25) titleS25.innerText = "5. 단체주문(CR 활동)";
-+        if (titleS44) titleS44.innerText = "4. Store통합관리팀 점검 지적사항 관련";
-+        if (titleS45) titleS45.innerText = "5. 점포 컨설팅 결과에 따른 솔루션 전달(최종 권고안)";
-+    } else {
-+        if (btnSaveTemp) btnSaveTemp.style.display = "flex";
-+        if (btnFillData) btnFillData.style.display = "flex";
-+        if (btnLoadPrev) btnLoadPrev.style.display = "flex";
-+        if (btnPdf) btnPdf.style.display = "flex";
-+        if (btnShare) btnShare.style.display = "flex";
-+        if (btnReset) btnReset.style.display = "flex";
-+    }
-+
-+    // [핵심] 어떤 모드에서도 플로팅 버튼 항상 표시
-+    if (btnGroup) {
-+        btnGroup.style.removeProperty('display');
-+        btnGroup.style.setProperty('display', 'flex', 'important');
-+    }
-+}
-+    // 2. 수식 계산 로직 (유틸리티)
-+    function uncomma(str) {
-+        return Number(String(str || "0").replace(/,/g, ""));
-+    }
-+
-+    // Step 2.1 매출 실적 계산
-+    function calcS2_1() {
-+        const getVal = (name) => uncomma(document.getElementsByName(name)[0]?.value);
-+        
-+        const lastT = getVal('s2_1_last_total');
-+        const lastE = getVal('s2_1_last_ext');
-+        const lastD = getVal('s2_1_last_del');
-+        const lastG = getVal('s2_1_last_grp');
-+        
-+        const currT = getVal('s2_1_curr_total');
-+        const currE = getVal('s2_1_curr_ext');
-+        const currD = getVal('s2_1_curr_del');
-+        const currG = getVal('s2_1_curr_grp');
-+
-+        const lastPure = lastT - lastE - lastD - lastG;
-+        const currPure = currT - currE - currD - currG;
-+
-+        document.getElementById('s2_1_last_pure').innerText = lastPure.toLocaleString();
-+        document.getElementById('s2_1_curr_pure').innerText = currPure.toLocaleString();
-+
-+        const diffT = currT - lastT;
-+        const perT = lastT ? ((diffT / lastT) * 100).toFixed(1) : 0;
-+        document.getElementById('s2_1_diff_total').innerText = `${diffT.toLocaleString()} (${perT}%)`;
-+
-+        const diffP = currPure - lastPure;
-+        const perP = lastPure ? ((diffP / lastPure) * 100).toFixed(1) : 0;
-+        document.getElementById('s2_1_diff_pure').innerText = `${diffP.toLocaleString()} (${perP}%)`;
-+    }
-+
-+    // Step 2.2 블럭별 증감 계산
-+    function calcS2_2() {
-+        const row = document.getElementById('blockDiffRow');
-+        for(let i=1; i<=8; i++) {
-+            const last = uncomma(document.getElementsByName(`s2_2_l_${i}`)[0]?.value || 0);
-+            const curr = uncomma(document.getElementsByName(`s2_2_c_${i}`)[0]?.value || 0);
-+            const diff = curr - last;
-+            const per = last ? ((diff/last)*100).toFixed(1) : 0;
-+            row.cells[i].innerHTML = `${diff.toLocaleString()}<br>(${per}%)`;
-+        }
-+    }
-+
-+    // Step 3 계정과목 동적 추가 및 계산
-+    let accCount = 0;
-+    function addAccountTable() {
-+        accCount++;
-+        const container = document.getElementById("accountTableContainer");
-+        const tableHtml = `
-+            <div style="margin-bottom:20px; border:1px solid var(--brand-blue); padding:15px; border-radius:10px; background:#fff;">
-+                <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-+                    <strong style="color:var(--brand-blue)">■ 계정과목 분석 (#${accCount})</strong>
-+                    <span style="cursor:pointer; font-size:12px; border:1px solid #ff0000; padding:2px 6px; border-radius:4px; color:#ff0000;" onclick="this.parentElement.parentElement.remove()">항목삭제</span>
-+                </div>
-+                <table class="data-table">
-+                    <tr><th>계정과목 선택</th><th>전년실적</th><th>금년실적</th><th>증감율</th></tr>
-+                    <tr>
-+                        <td>
-+                            <select name="s3_acc_type_${accCount}">
-+                                <option>원가</option><option>인건비(메이트)</option><option>인건비(퇴직금)</option>
-+                                <option>복리후생비</option><option>수선유지비</option><option>직배송물류비</option>
-+                                <option>수도광열비</option><option>소모품비</option>
-+                            </select>
-+                        </td>
-+                        <td><input type="text" class="comma-input" id="s3_last_${accCount}" name="s3_last_${accCount}" oninput="calcS3(${accCount})"></td>
-+                        <td><input type="text" class="comma-input" id="s3_curr_${accCount}" name="s3_curr_${accCount}" oninput="calcS3(${accCount})"></td>
-+                        <td id="s3_res_${accCount}" class="bg-gray">0%</td>
-+                    </tr>
-+                </table>
-+                <textarea name="s3_comment_${accCount}" style="margin-top:5px; height:60px;" placeholder="분석 코멘트"></textarea>
-+            </div>`;
-+        container.insertAdjacentHTML('beforeend', tableHtml);
-+    }
-+
-+    function calcS3(idx) {
-+        const last = uncomma(document.getElementById(`s3_last_${idx}`).value);
-+        const curr = uncomma(document.getElementById(`s3_curr_${idx}`).value);
-+        const res = last ? (((curr - last) / last) * 100).toFixed(1) : 0;
-+        document.getElementById(`s3_res_${idx}`).innerText = res + '%';
-+    }
-+
-+    // Step 4.1 인건비 계산
-+    function calcS4_1() {
-+        const lastC = uncomma(document.getElementsByName('s4_1_last_cost')[0].value);
-+        const currC = uncomma(document.getElementsByName('s4_1_curr_cost')[0].value);
-+        const lastT = uncomma(document.getElementsByName('s4_1_last_time')[0].value);
-+        const currT = uncomma(document.getElementsByName('s4_1_curr_time')[0].value);
-+
-+        const costDiff = currC - lastC;
-+        const costPer = lastC ? ((costDiff / lastC) * 100).toFixed(1) : 0;
-+        document.getElementById('s4_1_cost_diff').innerHTML = `${costDiff.toLocaleString()}<br>(${costPer}%)`;
-+
-+        const timeDiff = currT - lastT;
-+        const timePer = lastT ? ((timeDiff / lastT) * 100).toFixed(1) : 0;
-+        document.getElementById('s4_1_time_diff').innerHTML = `${timeDiff.toLocaleString()}<br>(${timePer}%)`;
-+    }
-+
-+    // 3. 페이지 초기화 및 이벤트 바인딩
-+    let editorInstance;
-+    const scList = { "중부1지점": ["정지성 SC", "강미옥 SC"], "중부2지점": ["장문근 SC", "이종현 SC"], "서부지점": ["송정훈 SC", "강인구 SC"], "동부지점": ["성동연 SC", "채성우 SC"] };
-+
-+
-+    function autoGrowTextarea(el) {
-+        if (!el) return;
-+        el.style.height = 'auto';
-+        el.style.height = `${Math.max(el.scrollHeight, 90)}px`;
-+    }
-+
-+    function initAutoGrowTextareas() {
-+        document.querySelectorAll('textarea').forEach((ta) => {
-+            autoGrowTextarea(ta);
-+            ta.addEventListener('input', () => autoGrowTextarea(ta));
-+        });
-+    }
-+
-+    function getCurrentFormSnapshot() {
-+        const formData = new FormData(document.getElementById('inspectionForm'));
-+        const data = Object.fromEntries(formData.entries());
-+        data.outside_comment_html = editorInstance ? editorInstance.getContents() : '';
-+        return data;
-+    }
-+
-+    function saveConsultingHistory(data) {
-+        const historyKey = 'consulting_history';
-+        const history = JSON.parse(localStorage.getItem(historyKey) || '[]');
-+        const record = {
-+            savedAt: new Date().toISOString(),
-+            inspection_date: data.inspection_date || '',
-+            store_name: data.inspection_store_name || '',
-+            branch_name: data.branch_name || '',
-+            store_type: data.store_type || '',
-+            sc_name: data.sc_name || '',
-+            payload: data
-+        };
-+        history.unshift(record);
-+        localStorage.setItem(historyKey, JSON.stringify(history.slice(0, 50)));
-+    }
-+
-+    window.onload = function() {
-+        // 에디터 생성
-+        if(typeof SUNEDITOR !== 'undefined') {
-+            editorInstance = SUNEDITOR.create('outsideEditor', {
-+                buttonList: [['undo', 'redo', 'removeFormat'], ['font', 'fontSize', 'formatBlock'], ['bold', 'underline', 'italic', 'strike', 'subscript', 'superscript'], ['fontColor', 'hiliteColor'], ['align', 'list', 'lineHeight'], ['table', 'link', 'image', 'video'], ['fullScreen', 'showBlocks', 'codeView']],
-+                width: '100%',
-+                height: '380px',
-+                minHeight: '320px',
-+                resizingBar: true,
-+                imageUploadSizeLimit: 5242880
-+            });
-+        }
-+        
-+        // 실시간 콤마 적용 이벤트
-+        document.addEventListener('input', function(e) {
-+            if (e.target.classList.contains('comma-input')) {
-+                let value = e.target.value.replace(/[^0-9-]/g, '');
-+                e.target.value = value.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-+            }
-+        });
-+
-+        // 지점 선택 이벤트
-+        document.getElementById("branchSelect").addEventListener("change", function() {
-+            const scSelect = document.getElementById("scSelect");
-+            scSelect.innerHTML = '<option value="">SC 선택</option>'; 
-+            if (this.value && scList[this.value]) {
-+                scList[this.value].forEach(sc => {
-+                    const option = document.createElement("option");
-+                    option.value = sc; option.textContent = sc;
-+                    scSelect.appendChild(option);
-+                });
-+            }
-+        });
-+
-+        // 직원 면담 체크박스 연동 (정상화)
-+        document.getElementById("interview_check").addEventListener("change", function() {
-+            document.getElementById("interview_area").style.display = this.checked ? "block" : "none";
-+        });
-+
-+        // 섹션 숨김 토글 이벤트 바인딩
-+        document.querySelectorAll('.section-hide-toggle').forEach(function(cb) {
-+            cb.addEventListener('change', function() {
-+                const section = this.closest('.step-section');
-+                if (section) {
-+                    if (this.checked) {
-+                        section.classList.add('section-hidden');
-+                    } else {
-+                        section.classList.remove('section-hidden');
-+                    }
-+                }
-+            });
-+        });
-+        
-+        // 텍스트박스 자동 확장
-+        initAutoGrowTextareas();
-+
-+        // 임시저장 데이터 로드
-+        loadTempData();
-+    };
-+
-+    // 임시저장 로직
-+    function saveTempData() {
-+        const data = getCurrentFormSnapshot();
-+        localStorage.setItem('temp_report_data', JSON.stringify(data));
-+        saveConsultingHistory(data);
-+        alert("중간 저장되었습니다.");
-+    }
-+
-+    function loadTempData() {
-+        const savedData = localStorage.getItem('temp_report_data');
-+        if (savedData) {
-+            const data = JSON.parse(savedData);
-+            Object.keys(data).forEach(key => {
-+                const el = document.getElementsByName(key)[0];
-+                if (el) {
-+                    if (el.type === 'radio') {
-+                        const radio = document.querySelector(`input[name="${key}"][value="${data[key]}"]`);
-+                        if (radio) radio.checked = true;
-+                    } else {
-+                        el.value = data[key];
-+                    }
-+                }
-+            });
-+            if (editorInstance && data.outside_comment_html) {
-+                editorInstance.setContents(data.outside_comment_html);
-+            }
-+            // 로드 후 수식 재계산
-+            calcS2_1();
-+            calcS2_2();
-+            calcS4_1();
-+            toggleStoreMode();
-+            initAutoGrowTextareas();
-+        }
-+    }
-+
-+// 사진 삽입 시 화면에 미리보기 출력
-+function previewImage(input, previewId) {
-+    const previewContainer = document.getElementById(previewId);
-+    previewContainer.innerHTML = ""; // 기존 미리보기 삭제
-+
-+    if (input.files && input.files[0]) {
-+        const reader = new FileReader();
-+        
-+        reader.onload = function(e) {
-+            const img = document.createElement("img");
-+            img.src = e.target.result;
-+            img.classList.add("img-preview"); // PDF 저장 시 참조할 클래스
-+            previewContainer.appendChild(img);
-+        };
-+        
-+        reader.readAsDataURL(input.files[0]);
-+    }
-+}
-+
-+    function resetForm() { if(confirm("초기화 하시겠습니까?")) { localStorage.removeItem('temp_report_data'); location.reload(); } }
-+async function saveAsPDF() {
-+    const container = document.querySelector('.container');
-+    const btnGroup = document.querySelector('.btn-group');
-+    const body = document.body;
-+    const sections = document.querySelectorAll('.step-section, #outsideArea');
-+
-+    sections.forEach(section => {
-+        if (section.classList.contains('section-hidden')) section.classList.add('no-print');
-+        else section.classList.remove('no-print');
-+    });
-+
-+    const origBodyBg = body.style.background;
-+    const origBodyPad = body.style.padding;
-+    const origContainerMaxW = container.style.maxWidth;
-+    const origContainerMar = container.style.margin;
-+    body.style.background = '#ffffff';
-+    body.style.padding = '0';
-+    container.style.maxWidth = '780px';
-+    container.style.margin = '0';
-+    if (btnGroup) btnGroup.style.display = 'none';
-+
-+    const replacements = [];
-+    const activeTextareas = document.querySelectorAll('.step-section:not(.no-print) textarea, #outsideArea:not(.no-print) textarea');
-+
-+    if (editorInstance && document.getElementById('outsideArea').style.display !== 'none') {
-+        const outsideHost = document.getElementById('outsideEditor');
-+        if (outsideHost) {
-+            const div = document.createElement('div');
-+            div.innerHTML = editorInstance.getContents();
-+            div.className = 'pdf-text-replacement';
-+            div.style.cssText = 'width:100%; min-height:120px; padding:10px; box-sizing:border-box; border:1px solid #eee; border-radius:8px; background:#fff; white-space:pre-wrap; word-break:break-word; line-height:1.7;';
-+            outsideHost.parentNode.insertBefore(div, outsideHost.nextSibling);
-+            outsideHost.style.display = 'none';
-+            replacements.push({ div, ta: outsideHost });
-+        }
-+    }
-+
-+    activeTextareas.forEach((ta) => {
-+        const div = document.createElement('div');
-+        div.innerText = ta.value;
-+        div.className = 'pdf-text-replacement';
-+        div.style.cssText = 'width:100%; min-height:30px; padding:10px; box-sizing:border-box; border:1px solid #eee; border-radius:8px; background:#fdfdfd; white-space:pre-wrap; word-break:break-word; font-size:14px; line-height:1.7; color:#000; margin-bottom:10px;';
-+        replacements.push({ div, ta });
-+        ta.parentNode.insertBefore(div, ta);
-+        ta.style.display = 'none';
-+    });
-+
-+    const storeName = document.getElementById('storeNameInput')?.value || '미입력';
-+    const date = document.getElementById('inspectionDate')?.value || '일자미상';
-+
-+    // PDF 전용 페이지 조립 (폼/텍스트 절단 방지)
-+    const pdfRoot = document.createElement('div');
-+    pdfRoot.id = 'pdfRootTemp';
-+    pdfRoot.style.cssText = 'position:fixed; left:0; top:0; width:780px; background:#fff; z-index:-1; opacity:1; pointer-events:none;';
-+    document.body.appendChild(pdfRoot);
-+
-+    const pageContentMax = 1020;
-+    const makePageShell = () => {
-+        const page = document.createElement('div');
-+        page.className = 'pdf-page';
-+        page.style.cssText = 'width:780px; min-height:1120px; box-sizing:border-box; padding:16px; background:#fff; page-break-after:always;';
-+        pdfRoot.appendChild(page);
-+        return page;
-+    };
-+
-+    const pushSectionAsPages = (section, titleSuffix = '') => {
-+        const sectionClone = section.cloneNode(true);
-+        const header = sectionClone.querySelector('.step-header');
-+        const content = sectionClone.querySelector('.step-content');
-+
-+        if (!header || !content) {
-+            const page = makePageShell();
-+            page.appendChild(sectionClone);
-+            return;
-+        }
-+
-+        let page = makePageShell();
-+        let sectionBox = document.createElement('div');
-+        sectionBox.className = 'step-section';
-+        sectionBox.style.cssText = section.style.cssText || '';
-+        let headerClone = header.cloneNode(true);
-+        if (titleSuffix) headerClone.innerHTML += titleSuffix;
-+        let contentBox = document.createElement('div');
-+        contentBox.className = 'step-content';
-+        contentBox.style.cssText = content.style.cssText || '';
-+        sectionBox.appendChild(headerClone);
-+        sectionBox.appendChild(contentBox);
-+        page.appendChild(sectionBox);
-+
-+        const blocks = Array.from(content.children);
-+        blocks.forEach((block) => {
-+            const blockClone = block.cloneNode(true);
-+            contentBox.appendChild(blockClone);
-+            if (sectionBox.offsetHeight > pageContentMax && contentBox.children.length > 1) {
-+                contentBox.removeChild(blockClone);
-+
-+                page = makePageShell();
-+                sectionBox = document.createElement('div');
-+                sectionBox.className = 'step-section';
-+                sectionBox.style.cssText = section.style.cssText || '';
-+                headerClone = header.cloneNode(true);
-+                headerClone.innerHTML += ' <span style="font-size:0.8em; opacity:0.85;">(계속)</span>';
-+                contentBox = document.createElement('div');
-+                contentBox.className = 'step-content';
-+                contentBox.style.cssText = content.style.cssText || '';
-+                sectionBox.appendChild(headerClone);
-+                sectionBox.appendChild(contentBox);
-+                page.appendChild(sectionBox);
-+                contentBox.appendChild(blockClone);
-+            }
-+        });
-+    };
-+
-+    const printableSections = Array.from(document.querySelectorAll('.step-section:not(.no-print)'));
-+    printableSections.forEach((section) => pushSectionAsPages(section));
-+
-+    const outsideArea = document.getElementById('outsideArea');
-+    if (outsideArea && outsideArea.style.display !== 'none' && !outsideArea.classList.contains('no-print')) {
-+        const outsideWrapper = document.createElement('div');
-+        outsideWrapper.className = 'step-section';
-+        outsideWrapper.innerHTML = `
-+            <div class="step-header">Out Step. 점포 컨설팅 미진행 사유</div>
-+            <div class="step-content">${outsideArea.innerHTML}</div>
-+        `;
-+        pushSectionAsPages(outsideWrapper);
-+    }
-+
-+    try {
-+        if (typeof html2pdf === 'undefined') {
-+            throw new Error('html2pdf 라이브러리를 찾을 수 없습니다.');
-+        }
-+
-+        await html2pdf().set({
-+            margin: [0, 0, 0, 0],
-+            filename: `컨설팅리포트_${storeName}_${date}.pdf`,
-+            image: { type: 'jpeg', quality: 0.97 },
-+            html2canvas: {
-+                scale: 2,
-+                useCORS: true,
-+                backgroundColor: '#ffffff',
-+                scrollY: 0,
-+                x: 0
-+            },
-+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-+            pagebreak: { mode: ['css', 'legacy'] }
-+        }).from(pdfRoot).save();
-+    } catch (error) {
-+        console.error('PDF 생성 실패:', error);
-+        alert('PDF 생성 중 오류가 발생했습니다.');
-+    } finally {
-+        replacements.forEach(({ div, ta }) => {
-+            ta.style.display = 'block';
-+            div.remove();
-+        });
-+        pdfRoot.remove();
-+        sections.forEach(section => section.classList.remove('no-print'));
-+        body.style.background = origBodyBg;
-+        body.style.padding = origBodyPad;
-+        container.style.maxWidth = origContainerMaxW;
-+        container.style.margin = origContainerMar;
-+        if (btnGroup) btnGroup.style.display = 'flex';
-+        toggleStoreMode();
-+    }
-+}
-+// 공유 모달 열기 - 파일 첨부 지원
-+function openShareModal() {
-+    const storeName = document.getElementById('storeNameInput')?.value || "점포";
-+    const date = document.getElementById('inspectionDate')?.value || "";
-+    const solution = document.getElementsByName('s4_5_solution_final')[0]?.value || '';
-+    const marketChange = document.getElementsByName('s1_6_comment')[0]?.value || '';
-+    const profitAnalysis = document.getElementsByName('s3_2_comment')[0]?.value || '';
-+    const laborAnalysis = document.getElementsByName('s4_1_comment')[0]?.value || '';
-+    const specialIssues = document.getElementsByName('s4_3_special_comment')[0]?.value || '';
-+
-+    const subjectText = `[보고] ${storeName} 최종 컨설팅 리포트${date ? ' (' + date + ')' : ''}`;
-+    const defaultMsg = `안녕하세요.
-+
-+[${storeName}] 최종 컨설팅 리포트 공유드립니다.
-+` +
-+        (date ? `- 점검일자: ${date}
-+` : '') +
-+        (marketChange ? `
-+[상권변화]
-+${marketChange.substring(0, 200)}
-+` : '') +
-+        (profitAnalysis ? `
-+[손익분석]
-+${profitAnalysis.substring(0, 200)}
-+` : '') +
-+        (laborAnalysis ? `
-+[인건비 분석]
-+${laborAnalysis.substring(0, 200)}
-+` : '') +
-+        (specialIssues ? `
-+[직영/가맹 업무간 특이사항]
-+${specialIssues.substring(0, 200)}
-+` : '') +
-+        (solution ? `
-+[최종 권고안]
-+${solution.substring(0, 220)}
-+` : '');
-+
-+    document.getElementById('shareSubject').value = subjectText;
-+    document.getElementById('shareMessage').value = defaultMsg;
-+    document.getElementById('shareModal').classList.add('open');
-+}
-+
-+function closeShareModal() {
-+    document.getElementById('shareModal').classList.remove('open');
-+}
-+
-+// 네이티브 공유 (모바일 공유시트 - 파일 첨부 포함)
-+async function doNativeShare() {
-+    const title = document.getElementById('shareSubject').value || '컨설팅 리포트';
-+    const text = document.getElementById('shareMessage').value;
-+    const fileInput = document.getElementById('shareAttachFiles');
-+
-+    if (navigator.share) {
-+        try {
-+            const shareData = { title, text };
-+            if (fileInput.files && fileInput.files.length > 0 && navigator.canShare) {
-+                const filesArray = Array.from(fileInput.files);
-+                const testShare = { title, text, files: filesArray };
-+                if (navigator.canShare(testShare)) {
-+                    shareData.files = filesArray;
-+                }
-+            }
-+            await navigator.share(shareData);
-+            closeShareModal();
-+        } catch (err) {
-+            if (err.name !== 'AbortError') {
-+                alert('공유 중 오류가 발생했습니다: ' + err.message);
-+            }
-+        }
-+    } else {
-+        alert('이 브라우저는 앱 공유를 지원하지 않습니다.\n아래 메일 발송 버튼을 이용해 주세요.');
-+    }
-+}
-+
-+// 이메일 발송 - type: 'outlook365' | 'outlookcom' | 'default'
-+function doEmailShare(type) {
-+    const toEmail = document.getElementById('shareEmail').value || '';
-+    const subject = document.getElementById('shareSubject').value;
-+    const message = document.getElementById('shareMessage').value;
-+    const fileInput = document.getElementById('shareAttachFiles');
-+
-+    // 첨부파일 있을 경우 먼저 다운로드
-+    if (fileInput.files && fileInput.files.length > 0) {
-+        Array.from(fileInput.files).forEach(file => {
-+            const url = URL.createObjectURL(file);
-+            const a = document.createElement('a');
-+            a.href = url;
-+            a.download = file.name;
-+            document.body.appendChild(a);
-+            a.click();
-+            document.body.removeChild(a);
-+            setTimeout(() => URL.revokeObjectURL(url), 2000);
-+        });
-+        setTimeout(() => alert('📎 파일이 다운로드되었습니다.\n메일 앱이 열리면 다운로드된 파일을 직접 첨부해 주세요.'), 300);
-+    }
-+
-+    const encTo = encodeURIComponent(toEmail);
-+    const encSubject = encodeURIComponent(subject);
-+    const encBody = encodeURIComponent(message);
-+
-+    let url;
-+    if (type === 'outlook365') {
-+        // Office 365 Outlook Web
-+        url = `https://outlook.office.com/mail/deeplink/compose?to=${encTo}&subject=${encSubject}&body=${encBody}`;
-+        window.open(url, '_blank');
-+    } else {
-+        url = `https://outlook.office.com/mail/deeplink/compose?to=${encTo}&subject=${encSubject}&body=${encBody}`;
-+        window.open(url, '_blank');
-+    }
-+    closeShareModal();
-+}
-+function openPrevConsultingModal() {
-+    const listEl = document.getElementById('prevConsultingList');
-+    const history = JSON.parse(localStorage.getItem('consulting_history') || '[]');
-+    const currDate = document.getElementById('inspectionDate')?.value || '9999-12-31';
-+    const currStore = document.getElementById('storeNameInput')?.value || '';
-+    const currBranch = document.getElementById('branchSelect')?.value || '';
-+    const currType = document.getElementById('storeTypeSelect')?.value || '';
-+    const currSc = document.getElementById('scSelect')?.value || '';
-+
-+    const filtered = history.filter((item) =>
-+        item.inspection_date && item.inspection_date < currDate &&
-+        item.store_name === currStore && item.branch_name === currBranch &&
-+        item.store_type === currType && item.sc_name === currSc
-+    );
-+
-+    if (!filtered.length) {
-+        listEl.innerHTML = '<div class="sub-desc" style="display:block;">조건에 맞는 이전 컨설팅 데이터가 없습니다.</div>';
-+    } else {
-+        listEl.innerHTML = filtered.map((item, idx) => `
-+            <div style="border:1px solid #ddd; border-radius:8px; padding:10px; background:#fff;">
-+                <div><strong>${item.inspection_date}</strong> / ${item.store_name} / ${item.sc_name}</div>
-+                <div style="font-size:12px; color:#666; margin:6px 0;">${(item.payload?.s4_5_solution_final || '').substring(0, 90)}</div>
-+                <button type="button" class="btn-share-email" style="width:100%; background:#2d7a2d;" onclick="applyPrevConsulting(${idx})">이 내용 불러오기</button>
-+            </div>
-+        `).join('');
-+        window.__filteredPrevConsulting = filtered;
-+    }
-+
-+    document.getElementById('prevConsultingModal').classList.add('open');
-+}
-+
-+function closePrevConsultingModal() {
-+    document.getElementById('prevConsultingModal').classList.remove('open');
-+}
-+
-+function applyPrevConsulting(idx) {
-+    const list = window.__filteredPrevConsulting || [];
-+    const item = list[idx];
-+    if (!item || !item.payload) return;
-+    const data = item.payload;
-+    Object.keys(data).forEach((key) => {
-+        const el = document.getElementsByName(key)[0];
-+        if (!el) return;
-+        if (el.type === 'checkbox') el.checked = data[key] === 'on' || data[key] === true;
-+        else el.value = data[key];
-+        el.dispatchEvent(new Event('input'));
-+        el.dispatchEvent(new Event('change'));
-+    });
-+    if (editorInstance && data.outside_comment_html) editorInstance.setContents(data.outside_comment_html);
-+    calcS2_1(); calcS2_2(); calcS4_1(); initAutoGrowTextareas();
-+    closePrevConsultingModal();
-+    alert('이전 컨설팅 데이터를 불러왔습니다.');
-+}
-+
-+function fillTestData() {
-+    // [Step 0] 담당 지점 및 SC 정보
-+    document.getElementById('inspectionDate').value = '2026-02-10';
-+    document.getElementById('storeNameInput').value = '김해봉황점';
-+    document.getElementById('storeTypeSelect').value = '영업점';
-+    document.getElementById('branchSelect').value = '서부지점';
-+    document.getElementById('branchSelect').dispatchEvent(new Event('change'));
-+
-+    setTimeout(() => {
-+        document.getElementById('scSelect').value = '송정훈 SC';
-+        
-+        // [라디오/체크박스] 일괄 '예' 및 '5점' 설정
-+        const radios = ['s4_overtime']; // 점수 버튼은 삭제되었으므로 체크박스 위주
-+        radios.forEach(name => {
-+            const el = document.querySelector(`input[name="${name}"][value="예"]`);
-+            if(el) el.checked = true;
-+        });
-+        document.getElementById('interview_check').checked = true;
-+        document.getElementById('interview_check').dispatchEvent(new Event('change'));
-+        document.getElementById('improvement_check').checked = true;
-+        document.getElementById('haccp_check').checked = true;
-+
-+        // [데이터 입력] 주요 항목 우선 입력
-+        const allStepsData = {
-+            // Step 1. 시설/환경
-+            's1_3_add_comment': '매장 전면 윈도우 시트지 노후로 인한 재제작 요청. 내부 메뉴판 조명 교체 완료 및 고지물 위치 재조정 필요. [cite: 14]',
-+            's1_6_comment': '봉황리단길 인근 카페 거리 확장으로 주말 젊은 층 유입 비중 20% 증가 추세 확인됨. [cite: 52]',
-+            
-+            // Step 2. 매출 관련 (천원 단위) [cite: 55, 56]
-+            's2_1_last_total': '45,800', 's2_1_last_ext': '4,200', 's2_1_last_del': '8,500', 's2_1_last_grp': '1,500',
-+            's2_1_curr_total': '52,300', 's2_1_curr_ext': '5,100', 's2_1_curr_del': '12,400', 's2_1_curr_grp': '3,200',
-+            's2_1_comment': '배달 비중 급증으로 인한 라이더 대기 공간 확보 및 전용 패키징 속도 개선 솔루션 필요. [cite: 66]',
-+            's2_3_waste_rate': '2.8',
-+            's2_2_l_1':'6,200','s2_2_l_2':'11,400','s2_2_l_3':'3,300','s2_2_l_4':'2,800','s2_2_l_5':'1,900','s2_2_l_6':'2,500','s2_2_l_7':'900','s2_2_l_8':'700',
-+            's2_2_c_1':'7,100','s2_2_c_2':'12,300','s2_2_c_3':'3,900','s2_2_c_4':'3,100','s2_2_c_5':'2,100','s2_2_c_6':'2,800','s2_2_c_7':'1,200','s2_2_c_8':'800',
-+            's2_2_comment':'싱글/더즌 중심으로 안정 성장, 음료군은 여름 시즌 반영으로 완만 상승.',
-+            's2_4_promo1': '발렌타인 한정 더즌', 's2_4_val1': '3,500', 's2_4_per1': '12',
-+            's2_5_comment': '인근 시청 및 교육지원청 대상 분기별 단체 주문 영업(DM) 진행 중. [cite: 98]',
-+            
-+            // Step 3. 손익 관련 [cite: 99, 100]
-+            's3_2_comment': '원재료비 상승 및 배달 수수료 증가로 인한 영업이익 감소분 발생. 자체 판촉 강화 필요. [cite: 114]',
-+            's3_3_comment': '테이크아웃 비중 확대를 위한 픽업 전용 키오스크 운영 및 전용 세트 메뉴 강화 제안. [cite: 116]',
-+            
-+            // Step 4. 인사 및 기타 [cite: 117, 118, 119]
-+            's4_1_last_cost': '12,500', 's4_1_curr_cost': '11,800', 
-+            's4_1_last_time': '1,150', 's4_1_curr_time': '1,080',
-+            'interview_name': '이현우', 'interview_position': '점장',
-+            's4_2_comment': '메이트 숙련도 향상으로 1인당 생산성 개선됨. 장기 근무 메이트에 대한 복리후생 강화 논의. [cite: 131]',
-+            's4_3_special_comment': '가맹본부 핵심 정책 준수 상태 양호하며 점주 소통 활발함. [cite: 133]',
-+            's4_5_solution_final': '[김해봉황점 최종 솔루션]\n1. 피크타임(14~16시) 제조 인력 집중 배치로 품절 방지.\n2. 인근 관광지 연계 단체 주문 영업 강화 및 고객 피드백 상시 모니터링.\n3. 매장 청결도 유지를 위한 시간대별 체크리스트 이행 엄수. [cite: 137]',
-+
-+            // Step 5. 생산형 지표 (제조출고점 기준 데이터 포함) [cite: 138, 139]
-+            's5_yield_mix': '98', 's5_yield_6x': '95', 's5_yield_sugar': '99', 's5_labor_cost': '450',
-+            's5_2_comment': '글레이저 및 튀김기 정기 점검 완료. 노후 벨트 부품 다음 달 교체 예정. [cite: 151]',
-+            's5_4_suggestion': '생산 자동화 기기 도입을 통한 제조 인건비 추가 절감 방안 검토 요청함. [cite: 156]'
-+        };
-+
-+        // 주요 데이터 적용
-+        Object.keys(allStepsData).forEach(key => {
-+            const el = document.getElementsByName(key)[0];
-+            if(el) { 
-+                el.value = allStepsData[key]; 
-+                el.dispatchEvent(new Event('input')); // 수치 자동 계산 실행 [cite: 63]
-+            }
-+        });
-+
-+        // 누락 방지: 전체 폼의 빈 입력값 자동 보완
-+        const form = document.getElementById('inspectionForm');
-+        if (form) {
-+            const isEligible = (el) => {
-+                if (el.closest('#outsideArea')) return false;
-+                if (el.closest('.section-hidden')) return false;
-+                return true;
-+            };
-+
-+            form.querySelectorAll('textarea').forEach((ta, idx) => {
-+                if (!isEligible(ta)) return;
-+                if (!ta.value.trim()) ta.value = `테스트 코멘트 ${idx + 1}`;
-+            });
-+
-+            form.querySelectorAll('input[type="text"], input[type="number"], input[type="date"], input[type="email"]').forEach((input) => {
-+                if (!isEligible(input)) return;
-+                if (input.value) return;
-+                if (input.type === 'date') input.value = '2026-02-10';
-+                else if (input.type === 'number') input.value = '1';
-+                else if (input.type === 'email') input.value = 'test@example.com';
-+                else input.value = '테스트값';
-+                input.dispatchEvent(new Event('input'));
-+            });
-+
-+            form.querySelectorAll('select').forEach((sel) => {
-+                if (!isEligible(sel)) return;
-+                if (sel.value) return;
-+                const candidate = Array.from(sel.options).find((opt) => opt.value && opt.value !== '유형 선택' && opt.value !== '지점 선택' && opt.value !== 'SC 선택');
-+                if (candidate) {
-+                    sel.value = candidate.value;
-+                    sel.dispatchEvent(new Event('change'));
-+                }
-+            });
-+
-+            form.querySelectorAll('input[type="checkbox"]').forEach((cb) => {
-+                if (!isEligible(cb)) return;
-+                if (!cb.checked) cb.checked = true;
-+                cb.dispatchEvent(new Event('change'));
-+            });
-+
-+            const groupedRadio = {};
-+            form.querySelectorAll('input[type="radio"]').forEach((radio) => {
-+                if (!isEligible(radio)) return;
-+                if (!groupedRadio[radio.name]) groupedRadio[radio.name] = [];
-+                groupedRadio[radio.name].push(radio);
-+            });
-+            Object.values(groupedRadio).forEach((radios) => {
-+                if (!radios.some((r) => r.checked)) {
-+                    radios[0].checked = true;
-+                    radios[0].dispatchEvent(new Event('change'));
-+                }
-+            });
-+        }
-+
-+        calcS2_1();
-+        calcS2_2();
-+        calcS4_1();
-+        initAutoGrowTextareas();
-+        alert('모든 스텝(Step 0-5)에 대한 테스트 데이터가 누락 없이 입력되었습니다. [cite: 156]');
-+    }, 200);
-+}
-+</script>
-+</body>
-+</html>
- 
-EOF
-)
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>점포 관리 컨설팅 리포트</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/suneditor@latest/dist/css/suneditor.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/suneditor@latest/dist/suneditor.min.js"></script>
+
+    <style>
+        /* 폰트 및 컬러 변수 정의 */
+        :root {
+            --brand-green: #00782b;
+            --brand-choco: #604c3e;
+            --brand-cream: #f7f3e8;
+            --brand-red: #ce1126;
+            --brand-blue: #005eb8;
+            --white: #ffffff;
+            --border-radius: 12px;
+        }
+
+        body {
+            font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+            background-color: var(--brand-cream);
+            color: var(--brand-choco);
+            margin: 0;
+            padding: 20px;
+            padding-bottom: 120px; /* 버튼 공간 확보 */
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* 헤더 스타일 */
+        .header-logo {
+            text-align: center;
+            background-color: var(--brand-green);
+            color: var(--white);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            margin-bottom: 30px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            border-bottom: 5px solid #005a20;
+        }
+
+        .header-logo h1 {
+            margin: 0;
+            font-size: 1.6rem;
+            letter-spacing: -1px;
+            line-height: 1.2;
+        }
+
+        /* 섹션(STEP) 스타일 */
+        .step-section {
+            background: var(--white);
+            border: 2px solid var(--brand-green);
+            border-radius: var(--border-radius);
+            margin-bottom: 25px;
+            overflow: hidden;
+            box-shadow: 4px 4px 0px rgba(0, 120, 43, 0.1);
+        }
+
+        .step-header {
+            background-color: var(--brand-green);
+            color: var(--white);
+            padding: 12px 20px;
+            font-size: 1.1em;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+        }
+        
+        .step-header::before {
+            content: '🍩';
+            margin-right: 10px;
+            font-size: 1.2em;
+        }
+
+        .step-content {
+            padding: 20px;
+        }
+
+        /* 입력 폼 스타일 */
+        .form-item {
+            margin-bottom: 25px;
+            border-bottom: 1px dashed #ddd;
+            padding-bottom: 20px;
+        }
+
+        .form-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        label.item-title {
+            display: block;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--brand-green);
+            font-size: 1.05em;
+        }
+
+        .sub-desc {
+            font-size: 0.85em;
+            color: #888;
+            margin-bottom: 12px;
+            background: #f9f9f9;
+            padding: 5px 10px;
+            border-radius: 5px;
+            display: inline-block;
+        }
+
+        /* 텍스트 입력창 및 셀렉트 박스 */
+        input[type="text"], 
+        input[type="number"],
+        input[type="date"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 14px;
+            background-color: #fdfdfd;
+            transition: border-color 0.3s;
+        }
+
+        /* 숫자 입력용 스타일(콤마) */
+        input.comma-input {
+            text-align: right;
+            font-weight: bold;
+            color: var(--black);
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--black);
+            background-color: #fff;
+        }
+
+        textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+        
+        select {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2300782b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 16px;
+        }
+
+        /* 입체적 디자인 테이블 스타일 */
+        .data-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-bottom: 15px;
+            font-size: 0.85em;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.1); 
+            border: 1px solid var(--brand-green);
+        }
+        .data-table th { 
+            background: linear-gradient(180deg, var(--brand-green) 0%, #005a20 100%);
+            color: var(--white); 
+            padding: 15px 10px; /* 여유 공간 확보 */
+            font-weight: 600;
+            text-shadow: 1px 1px 1px rgba(0,0,0,0.2);
+            border: none;
+            white-space: nowrap;
+        }
+        .data-table td {
+            border-bottom: 1px solid #edf2f0;
+            border-right: 1px solid #edf2f0;
+            padding: 12px 8px; /* 여유 공간 확보 */
+            text-align: center;
+            background-color: #fff;
+        }
+        .data-table td:last-child { border-right: none; }
+        .data-table tr:last-child td { border-bottom: none; }
+        .data-table input { 
+            border: 1px solid #e2e8e4 !important; 
+            width: 95%; 
+            text-align: right; 
+            background: #fdfdfd; 
+            padding: 6px !important;
+            border-radius: 5px;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+        }
+        .bg-gray { background-color: #f9fbf9 !important; font-weight: bold; color: var(--brand-green); }
+
+        /* 공통 라디오/체크박스 래퍼 스타일 */
+        .option-wrapper {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            background: #f0f7f2;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .radio-label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            font-weight: bold;
+            color: var(--brand-choco);
+        }
+        
+        .radio-label input {
+            margin-right: 8px;
+            width: 18px;
+            height: 18px;
+            accent-color: var(--brand-green);
+        }
+
+        /* 점수 선택 라디오 버튼 */
+        .rating-wrapper {
+            display: flex;
+            justify-content: space-between;
+            background: #f0f7f2;
+            padding: 10px 15px;
+            border-radius: 30px;
+            margin-bottom: 10px;
+            border: 1px solid var(--brand-green);
+        }
+
+        .rating-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 0.85em;
+            cursor: pointer;
+            font-weight: bold;
+            color: var(--brand-green);
+        }
+
+        .rating-item input {
+            margin-bottom: 5px;
+            width: 18px; 
+            height: 18px;
+            accent-color: var(--brand-green);
+        }
+
+        /* 숫자 입력 그룹 */
+        .input-group-row {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+
+        .input-box {
+            flex: 1;
+            min-width: 140px;
+        }
+        
+        .input-box label {
+            display: block;
+            font-size: 0.85em;
+            margin-bottom: 5px;
+            color: var(--brand-choco);
+            font-weight: bold;
+        }
+
+        .input-with-unit {
+            position: relative;
+        }
+        
+        .input-with-unit input {
+            padding-right: 45px; 
+            text-align: right;
+            font-weight: bold;
+            color: var(--brand-green);
+        }
+        
+        .input-with-unit span {
+            position: absolute;
+            right: 12px;
+            top: 14px;
+            color: #999;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+
+        /* 파일 업로드 모바일 최적화 수정 */
+        .file-upload-box {
+            background: #fff;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-top: 5px;
+        }
+        .file-input-group {
+            display: flex;
+            flex-wrap: nowrap;
+            gap: 8px;
+            justify-content: space-between;
+        }
+        .file-input-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            font-size: 0.8em;
+            background: #f8f9fa;
+            padding: 6px;
+            border-radius: 6px;
+            border: 1px solid #eee;
+        }
+        .file-input-item span {
+            font-weight: bold;
+            color: var(--brand-choco);
+            margin-bottom: 2px;
+        }
+        .file-input-item input[type="file"] {
+            width: 100%;
+            font-size: 11px; 
+        }
+
+        /* 체크박스 디자인 */
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            background: #fff;
+            padding: 10px;
+            border: 2px solid #eee;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .checkbox-wrapper:hover {
+            border-color: var(--brand-green);
+        }
+        .checkbox-wrapper input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            accent-color: var(--brand-green);
+        }
+        .checkbox-wrapper label {
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        /* 숨김 영역 */
+        .hidden-area {
+            display: none;
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            margin-top: 10px;
+        }
+
+        /* 하단 고정 버튼 그룹 */
+        .btn-group {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: row;
+            gap: 10px;
+            z-index: 1000;
+        }
+
+        .icon-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: none;
+            color: white;
+            font-size: 18px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+        }
+        .icon-btn span { font-size: 8px; margin-top: 2px; font-weight: bold; }
+        .icon-btn:active { transform: scale(0.9); }
+
+        .btn-reset { background-color: var(--brand-red); }
+        .btn-save { background-color: var(--brand-choco); }
+        .btn-email { background-color: var(--brand-blue); }
+        .btn-history { background-color: var(--brand-green); }
+        .btn-cloud { background-color: #f39c12; } 
+
+        #historyModal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .modal-content {
+            background: white;
+            width: 100%;
+            max-width: 400px;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+        .modal-header {
+            background: var(--brand-green);
+            color: white;
+            padding: 15px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+        }
+        .modal-body { padding: 20px; max-height: 60vh; overflow-y: auto; font-size: 14px; }
+        .history-card { background: #f8f9fa; padding: 12px; border-radius: 8px; border-left: 5px solid var(--brand-choco); }
+
+        @media (max-width: 600px) {
+            .input-group-row { flex-direction: column; gap: 10px; }
+            .rating-wrapper { padding: 8px; }
+            .rating-item { font-size: 0.75em; }
+            .file-input-group { gap: 5px; } 
+            .file-input-item { padding: 4px; }
+            .btn-group { bottom: 10px; right: 10px; gap: 8px; }
+            .icon-btn { width: 45px; height: 45px; font-size: 16px; }
+            .data-table { font-size: 0.75em; }
+        }
+/* 섹션 숨김 상태 스타일 */
+.section-hidden .step-content {
+    display: none !important;
+}
+.section-hidden .step-header {
+    opacity: 0.65;
+}
+.section-hidden .step-header::after {
+    content: ' 〔숨김〕';
+    font-size: 0.85em;
+    opacity: 0.9;
+    font-weight: normal;
+}
+
+/* 공유/발송 모달 스타일 */
+#shareModal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.6);
+    z-index: 3000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    box-sizing: border-box;
+}
+#shareModal.open, #prevConsultingModal.open { display: flex; }
+#prevConsultingModal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.6);
+    z-index: 3000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    box-sizing: border-box;
+}
+.share-modal-content {
+    background: white;
+    width: 100%;
+    max-width: 420px;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+}
+.share-modal-header {
+    background: var(--brand-blue);
+    color: white;
+    padding: 15px 20px;
+    font-weight: bold;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.share-modal-body {
+    padding: 20px;
+    font-size: 14px;
+}
+.share-modal-body label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: var(--brand-choco);
+}
+.share-modal-body input,
+.share-modal-body textarea {
+    width: 100%;
+    margin-bottom: 12px;
+    box-sizing: border-box;
+}
+.share-modal-body .attach-hint {
+    font-size: 0.8em;
+    color: #888;
+    background: #f5f5f5;
+    padding: 6px 10px;
+    border-radius: 6px;
+    margin-bottom: 12px;
+}
+.share-btn-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 5px;
+}
+.share-btn-row button {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 14px;
+}
+.btn-share-email { background: var(--brand-blue); color: white; }
+.btn-share-native { background: var(--brand-green); color: white; }
+.btn-share-cancel { background: #eee; color: #555; }
+
+/* 사진 미리보기 스타일 (유지) */
+.img-preview-container {
+    margin-top: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+.img-preview-container img {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+}
+
+/* PDF 출력용 설정 */
+@media print {
+    body {
+        background-color: #ffffff !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    .container {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 5px !important;
+        border: none !important;
+    }
+    .pdf-text-replacement {
+        display: block !important;
+        visibility: visible !important;
+        color: #333 !important;
+    }
+    textarea {
+        width: 100% !important;
+        height: auto !important;
+        overflow: visible !important;
+        white-space: pre-wrap !important;
+        word-break: break-all !important;
+        border: 1px solid #eee !important;
+        display: block !important;
+        line-height: 1.6 !important;
+    }
+    .data-table, table, .step-section { width: 100% !important; }
+    /* 섹션 및 폼 아이템 잘림 방지 */
+    .step-section {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        margin-bottom: 15px !important;
+    }
+    .form-item {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+    }
+    /* 불필요한 요소 제거 */
+    .btn-group, .icon-btn, #historyModal, #shareModal, .suneditor .se-resizing-bar {
+        display: none !important;
+        visibility: hidden !important;
+    }
+    /* PDF 출력 시 숨김 체크박스 라벨 숨김 */
+    .step-header label {
+        display: none !important;
+    }
+    /* 숨김 섹션 제외 */
+    .step-section.no-print {
+        display: none !important;
+    }
+    .pdf-text-replacement, td, th, input {
+        color: #000000 !important;
+    }
+}
+    </style>
+</head>
+<body>
+
+<div id="historyModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <span>가장 최근 점검 기록</span>
+            <span style="cursor:pointer" onclick="closeHistory()">✖</span>
+        </div>
+        <div class="modal-body" id="modalContent">
+            점포명을 입력하고 조회 버튼을 눌러주세요.
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="header-logo">
+        <h1>STORE MANAGEMENT<br>CONSULTING REPORT</h1>
+        <div style="font-size: 0.9em; opacity: 0.9; margin-top:5px;">점포 관리 컨설팅 리포트</div>
+    </div>
+
+    <form id="inspectionForm">
+
+        <div class="step-section">
+            <div class="step-header">Step 0. 담당 지점 및 SC</div>
+            <div class="step-content">
+                <div class="input-group-row">
+                    <div class="input-box">
+                        <label>📅 점검일자</label>
+                        <input type="date" name="inspection_date" id="inspectionDate">
+                    </div>
+                    <div class="input-box">
+                        <label>🏠 점검 점포</label>
+                        <input type="text" name="inspection_store_name" id="storeNameInput" placeholder="점포명 입력">
+                    </div>
+                    <div class="input-box">
+                        <label>🏷️ 점포 유형</label>
+                        <select id="storeTypeSelect" name="store_type" onchange="toggleStoreMode()">
+                            <option value="">유형 선택</option>
+                            <option value="제조출고점">제조출고점</option>
+                            <option value="제조영업점">제조영업점</option>
+                            <option value="영업점">영업점</option>
+                            <option value="가맹점(영업점)">가맹점(영업점)</option>
+                            <option value="외부활동(미점검)">외부활동(미점검)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="input-group-row">
+                    <div class="input-box">
+                        <label>🏢 담당 지점</label>
+                        <select id="branchSelect" name="branch_name">
+                            <option value="">지점 선택</option>
+                            <option value="중부1지점">중부1지점</option>
+                            <option value="중부2지점">중부2지점</option>
+                            <option value="서부지점">서부지점</option>
+                            <option value="동부지점">동부지점</option>
+                        </select>
+                    </div>
+                    <div class="input-box">
+                        <label>👤 담당 SC</label>
+                        <select id="scSelect" name="sc_name">
+                            <option value="">지점을 먼저 선택하세요</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="outsideArea" class="hidden-area" style="border: 2px solid var(--brand-red); margin-top:20px;">
+                    <label class="item-title" style="color:var(--brand-red)">Out Step. 점포 컨설팅 미진행으로 인한 SC 업무간 특이사항 작성(상세)</label>
+                    <div id="outsideEditor"></div>
+                    <input type="hidden" name="outside_comment_html" id="outsideCommentHtml">
+                </div>
+            </div>
+        </div>
+
+        <div id="mainSteps">
+            <div class="step-section">
+    <div class="step-header">Step 1. 점검 시작 전 (시설/환경)
+<label style="margin-left: auto; font-size: 0.75em; color: white; cursor: pointer; display:flex; align-items:center; gap:4px; white-space:nowrap;">
+        <input type="checkbox" class="section-hide-toggle" style="width:15px; height:15px; accent-color: #f39c12;"> 섹션 숨김
+    </label></div>
+    <div class="step-content">
+        <p class="sub-desc" style="display:block; background:#fff3cd; color:#856404; border:1px solid #ffeeba;">
+        ※ 시설물 불량 및 고지물 관리 상태 사진 등록</p>
+        
+        <div class="form-item">
+            <label class="item-title" id="title_s1_3">1. 점포 내,외관, 고지물 점검</label>
+            <textarea name="s1_3_add_comment" placeholder="점포 내,외관 확인 "></textarea>
+                       <div class="file-upload-box">
+                <div class="file-input-group">
+                    <div class="file-input-item">
+                        <span>📷 사진 삽입:</span>
+                        <input type="file" name="file_s1_3_file" accept="image/*" onchange="previewImage(this, 'preview_s1_3')">
+                    </div>
+                </div>
+                <div id="preview_s1_3" class="img-preview-container"></div>
+            </div>
+        </div>
+
+        <div class="form-item">
+            <label class="item-title" id="title_s1_4">2. 기기 고장 및 교체 필요 사항</label>
+           <textarea name="s1_4_add_comment" placeholder="기기 고장 사항 확인 "></textarea>
+            <div class="file-upload-box">
+                <div class="file-input-group">
+                    <div class="file-input-item">
+                        <span>📷 사진 삽입:</span>
+                        <input type="file" name="file_s1_4_file" accept="image/*" onchange="previewImage(this, 'preview_s1_4')">
+                    </div>
+                </div>
+                <div id="preview_s1_4" class="img-preview-container"></div>
+            </div>
+        </div>
+
+        <div class="form-item">
+            <label class="item-title" id="title_s1_6">3. 점포상권 변화확인</label>
+            <textarea name="s1_6_comment" placeholder="200M 내외 상권파악"></textarea>
+            <div class="file-upload-box">
+                <div class="file-input-group">
+                    <div class="file-input-item">
+                        <span>📷 사진 삽입:</span>
+                        <input type="file" name="file_s1_6_file" accept="image/*" onchange="previewImage(this, 'preview_s1_6')">
+                    </div>
+                </div>
+                <div id="preview_s1_6" class="img-preview-container"></div>
+            </div>
+        </div>
+    </div>
+</div>
+                                       <div class="step-section">
+                <div class="step-header">Step 2. 매출 관련<label style="margin-left: auto; font-size: 0.75em; color: white; cursor: pointer; display:flex; align-items:center; gap:4px; white-space:nowrap;">
+        <input type="checkbox" class="section-hide-toggle" style="width:15px; height:15px; accent-color: #f39c12;"> 섹션 숨김
+    </label></div>
+                <div class="step-content">
+                    
+                    <div class="form-item">
+                        <label class="item-title">1. 매출 실적 분석 (단위: 천원)</label>
+                        <table class="data-table" id="salesTable">
+                            <thead>
+                                <tr><th>구분(천원)</th><th>매출</th><th>외부채널</th><th>배달</th><th>단체</th><th>순수래점</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>전년</td>
+                                    <td><input type="text" name="s2_1_last_total" class="comma-input" oninput="calcS2_1()"></td>
+                                    <td><input type="text" name="s2_1_last_ext" class="comma-input" oninput="calcS2_1()"></td>
+                                    <td><input type="text" name="s2_1_last_del" class="comma-input" oninput="calcS2_1()"></td>
+                                    <td><input type="text" name="s2_1_last_grp" class="comma-input" oninput="calcS2_1()"></td>
+                                    <td class="bg-gray" id="s2_1_last_pure">0</td>
+                                </tr>
+                                <tr>
+                                    <td>금년</td>
+                                    <td><input type="text" name="s2_1_curr_total" class="comma-input" oninput="calcS2_1()"></td>
+                                    <td><input type="text" name="s2_1_curr_ext" class="comma-input" oninput="calcS2_1()"></td>
+                                    <td><input type="text" name="s2_1_curr_del" class="comma-input" oninput="calcS2_1()"></td>
+                                    <td><input type="text" name="s2_1_curr_grp" class="comma-input" oninput="calcS2_1()"></td>
+                                    <td class="bg-gray" id="s2_1_curr_pure">0</td>
+                                </tr>
+                                <tr class="bg-gray">
+                                    <td>증감</td>
+                                    <td id="s2_1_diff_total">0</td>
+                                    <td colspan="4" style="text-align:right; padding-right:20px;">순수래점 증감: <span id="s2_1_diff_pure">0</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <textarea name="s2_1_comment" placeholder="특이사항 및 분석 내용 입력"></textarea>
+                    </div>
+
+                    <div class="form-item">
+                        <label class="item-title">2. 블럭별 매출 분석</label>
+                        <table class="data-table" id="blockAnalysisTable">
+                            <thead>
+                                <tr><th>구분</th><th>싱글</th><th>더즌</th><th>커피</th><th>프로즌</th><th>기타음료</th><th>베이크드</th><th>판매용품</th><th>기타</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>전년</td>
+                                    <script>for(let i=1;i<=8;i++) document.write(`<td><input type="text" name="s2_2_l_${i}" class="comma-input" oninput="calcS2_2()"></td>`);</script>
+                                </tr>
+                                <tr>
+                                    <td>금년</td>
+                                    <script>for(let i=1;i<=8;i++) document.write(`<td><input type="text" name="s2_2_c_${i}" class="comma-input" oninput="calcS2_2()"></td>`);</script>
+                                </tr>
+                                <tr class="bg-gray" id="blockDiffRow">
+                                    <td>증감</td><script>for(let i=1;i<=8;i++) document.write(`<td>0</td>`);</script>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <textarea name="s2_2_comment" placeholder="증감 원인 및 상세 분석"></textarea>
+                    </div>
+
+                    <div class="form-item">
+                        <label class="item-title">3. 도넛 품절, 폐기 및 배달실적</label>
+                        <div class="sub-desc" style="display:block; margin-bottom:10px;">■ 점포판매 제품품절 시간 확인</div>
+                        <table class="data-table">
+                            <tr>
+                                <th>OG 품절</th>
+                                <td colspan="2">
+                                    <select name="s2_3_og_time">
+                                        <option value="미발생">미발생</option>
+                                        <script>for(let i=12; i<=21; i++) document.write(`<option value="${i}:00">${i}:00</option>`);</script>
+                                    </select>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>어쏘티드1</th>
+                                <td><select name="as_t1"><option>미발생</option><script>for(let i=12; i<=21; i++) document.write(`<option>${i}:00</option>`);</script></select></td>
+                                <td><input type="text" name="as_n1" placeholder="제품명" style="width:120px; text-align:left;"></td>
+                            </tr>
+                            <tr>
+                                <th>어쏘티드2</th>
+                                <td><select name="as_t2"><option>미발생</option><script>for(let i=12; i<=21; i++) document.write(`<option>${i}:00</option>`);</script></select></td>
+                                <td><input type="text" name="as_n2" placeholder="제품명" style="width:120px; text-align:left;"></td>
+                            </tr>
+                            <tr>
+                                <th>어쏘티드3</th>
+                                <td><select name="as_t3"><option>미발생</option><script>for(let i=12; i<=21; i++) document.write(`<option>${i}:00</option>`);</script></select></td>
+                                <td><input type="text" name="as_n3" placeholder="제품명" style="width:120px; text-align:left;"></td>
+                            </tr>
+                        </table>
+
+                        <div class="sub-desc" style="display:block; margin-bottom:10px;">■ 품절시간 확인 및 폐기율</div>
+                        <table class="data-table">
+                            <tr>
+                                <th style="width:25%;">배달 품절 시간</th>
+                                <td style="width:25%;">
+                                    <select name="s2_3_del_time">
+                                        <option value="미발생">미발생</option>
+                                        <script>for(let i=12; i<=21; i++) document.write(`<option value="${i}:00">${i}:00</option>`);</script>
+                                    </select>
+                                </td>
+                                <th style="width:25%;">폐기율(%)</th>
+                                <td style="width:25%;"><input type="number" name="s2_3_waste_rate" step="0.1" style="width:80%;"></td>
+                            </tr>
+                        </table>
+                        <textarea name="s2_3_comment" placeholder="발주 적정성 및 품절 관련 코멘트"></textarea>
+                    </div>
+
+                    <div class="form-item">
+                        <label class="item-title">4. 판촉 운영 (점포판촉 / CRM / 외부채널)</label>
+                        <table class="data-table">
+                            <thead><tr><th>판촉명</th><th>추가매출</th><th>매출구성비(%)</th></tr></thead>
+                            <tbody>
+                                <tr><td><input type="text" name="s2_4_promo1"></td><td><input type="text" class="comma-input" name="s2_4_val1"></td><td><input type="number" name="s2_4_per1"></td></tr>
+                                <tr><td><input type="text" name="s2_4_promo2"></td><td><input type="text" class="comma-input" name="s2_4_val2"></td><td><input type="number" name="s2_4_per2"></td></tr>
+                            </tbody>
+                        </table>
+                        <textarea name="s2_4_comment" placeholder="판촉 성과 및 향후 운영 계획"></textarea>
+                    </div>
+
+                    <div class="form-item">
+                        <label class="item-title" id="title_s2_5">5. 단체주문(CR 활동)</label>
+                        <textarea name="s2_5_comment" placeholder="단체고객 리스트 - DM발송 및 분기별 관리"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <div class="step-section" id="step3Section">
+                    <div class="step-header">Step 3. 손익 관련
+<label style="margin-left: auto; font-size: 0.75em; color: white; cursor: pointer; display:flex; align-items:center; gap:4px; white-space:nowrap;">
+        <input type="checkbox" class="section-hide-toggle" style="width:15px; height:15px; accent-color: #f39c12;"> 섹션 숨김
+    </label></div>
+                    <div class="step-content">
+                        <div class="form-item">
+                            <label class="item-title">1. 계정과목별 분석 (최근 확인된 점포 손익계산서 기준)</label>
+                            <div id="accountTableContainer"></div>
+                            <button type="button" onclick="addAccountTable()" style="padding: 10px; background: var(--brand-blue); color: white; border: none; border-radius: 5px; cursor: pointer; margin-bottom: 15px;">+ 계정과목 선택하여 추가</button>
+                            <textarea name="s3_1_comment" placeholder="손익 부진점 운영현황 및 활성화/절감 방안"></textarea>
+                        </div>
+                        <div class="form-item"><label class="item-title">2. 손익 분석 (영업이익 적자 원인)</label><textarea name="s3_2_comment"></textarea></div>
+                        <div class="form-item"><label class="item-title">3. 자체 손익 (외부채널 제외) 개선 방안</label><textarea name="s3_3_comment"></textarea></div>
+                    </div>
+                </div>
+
+                <div class="step-section" id="step4Section">
+                    <div class="step-header">Step 4. 인사 및 기타 점검<label style="margin-left: auto; font-size: 0.75em; color: white; cursor: pointer; display:flex; align-items:center; gap:4px; white-space:nowrap;">
+        <input type="checkbox" class="section-hide-toggle" style="width:15px; height:15px; accent-color: #f39c12;"> 섹션 숨김
+    </label></div>
+                    <div class="step-content">
+                        <div class="form-item">
+                            <label class="item-title">1. 인력 운영 적정성 (52시간, 인건비 등)</label>
+<table class="data-table">
+    <thead>
+        <tr>
+            <th>구분</th>
+            <th>메이트 인건비(천원)</th>
+            <th>비용 증감(율)</th> <th>사용 시간(H)</th>
+            <th>시간 증감(율)</th> </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>전년</td>
+            <td><input type="text" name="s4_1_last_cost" class="comma-input" oninput="calcS4_1()"></td>
+            <td rowspan="2" id="s4_1_cost_diff" class="bg-gray">0<br>(0%)</td>
+            <td><input type="text" name="s4_1_last_time" class="comma-input" oninput="calcS4_1()"></td>
+            <td rowspan="2" id="s4_1_time_diff" class="bg-gray">0<br>(0%)</td>
+        </tr>
+        <tr>
+            <td>금년</td>
+            <td><input type="text" name="s4_1_curr_cost" class="comma-input" oninput="calcS4_1()"></td>
+            <td><input type="text" name="s4_1_curr_time" class="comma-input" oninput="calcS4_1()"></td>
+        </tr>
+    </tbody>
+</table>
+                                                        <div class="option-wrapper">
+                                <span style="font-weight:bold; font-size:0.9em; margin-right:10px;">52시간 미초과 준수 여부 :</span>
+                                <label class="radio-label"><input type="radio" name="s4_overtime" value="예"> 예</label>
+                                <label class="radio-label"><input type="radio" name="s4_overtime" value="아니오"> 아니오</label>
+                            </div>
+                            <textarea name="s4_1_comment" placeholder="인건비 분석 및 운영 적정성 코멘트"></textarea>
+                        </div>
+                        <div class="form-item">
+                            <label class="item-title">2. 직원 면담 및 SHIFT 점검</label>
+                            <div class="checkbox-wrapper"><input type="checkbox" id="interview_check" name="s4_interview_yn">
+                            <label for="interview_check">직원 면담 진행 여부</label></div>
+                            <div id="interview_area" class="hidden-area">
+                                <div class="input-group-row">
+                                    <div class="input-box"><label>점포명</label><input type="text" name="interview_store"></div>
+                                    <div class="input-box"><label>이름</label><input type="text" name="interview_name"></div>
+                                    <div class="input-box"><label>직책</label><input type="text" name="interview_position"></div>
+                                </div>
+                                <div class="file-upload-box">
+                                    <div class="file-input-group">
+                                        <div class="file-input-item"><span>카메라 실행:</span><input type="file" name="file_interview_cam" accept="image/*" capture="camera"></div>
+                                        <div class="file-input-item"><span>파일 선택:</span><input type="file" name="file_interview_file" accept="image/*"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <textarea name="s4_2_comment" style="margin-top:15px;"></textarea>
+                        </div>
+                        <div class="form-item"><label class="item-title">3. 직영,가맹 업무간 특이사항 작성</label><textarea name="s4_3_special_comment"></textarea></div>
+                        <div class="form-item" id="step4_4_area">
+    <label class="item-title" id="title_s4_4">4. Store통합관리팀 점검 지적사항 관련 (정직원, 가맹점주에게 개선 여부만 확인)</label>
+    
+    <div class="checkbox-wrapper">
+        <input type="checkbox" id="improvement_check" name="s4_improvement_yn">
+        <label for="improvement_check">지적사항 개선 확인 완료</label>
+    </div>
+
+    <textarea name="s4_4_comment" style="height:120px;" 
+        placeholder="[대표 지적사항 예시]&#10;1. 유통기한 고지물 및 라벨 관리 상태&#10;2. 튀김기 및 배기 후드 청결도&#10;3. 원재료 보관 온도 및 선입선출 이행&#10;4. 법정 필수 서류(보건증 등) 비치 여부&#10;5. 개인 위생 용품 착용 및 관리 실태"></textarea>
+</div>
+                       <div class="form-item" id="step4_5_area">
+    <label class="item-title" id="title_s4_5">5. 점포 컨설팅 결과에 따른 솔루션 전달(최종 권고안)</label>
+    <textarea name="s4_5_solution_final" placeholder="최종 권고안 및 솔루션 내용 입력"></textarea>
+</div>
+                    </div>
+                </div>
+
+                <div class="step-section" id="step5Section">
+                    <div class="step-header">Step 5. 생산형 점포 수율 및 개당 인건비 확인<label style="margin-left: auto; font-size: 0.75em; color: white; cursor: pointer; display:flex; align-items:center; gap:4px; white-space:nowrap;">
+        <input type="checkbox" class="section-hide-toggle" style="width:15px; height:15px; accent-color: #f39c12;"> 섹션 숨김
+    </label></div>
+                    <div class="step-content">
+                        <div class="form-item">
+                            <label class="item-title">1. 생산형 점포 수율 및 개당 인건비</label>
+                            <div class="input-group-row">
+                                <div class="input-box"><label>🥣 믹스 수율</label><div class="input-with-unit"><input type="number" name="s5_yield_mix"><span>%</span></div></div>
+                                <div class="input-box"><label>🍩 6X 수율</label><div class="input-with-unit"><input type="number" name="s5_yield_6x"><span>%</span></div></div>
+                            </div>
+                            <div class="input-group-row">
+                                <div class="input-box"><label>🍬 정백당 수율</label><div class="input-with-unit"><input type="number" name="s5_yield_sugar"><span>%</span></div></div>
+                                <div class="input-box"><label>💰 개당 인건비</label><div class="input-with-unit"><input type="text" name="s5_labor_cost" class="comma-input"><span>원</span></div></div>
+                            </div>
+                            <textarea name="s5_1_comment"></textarea>
+                        </div>
+                        <div class="form-item">
+                            <label class="item-title">2. 제조출고 영업점 기기 상태 및 수리 확인</label>
+                            <div class="file-upload-box">
+                                <div class="file-input-group">
+                                    <div class="file-input-item"><span>카메라 실행:</span><input type="file" name="file_s5_machine_cam" accept="image/*" capture="camera"></div>
+                                    <div class="file-input-item"><span>파일 선택:</span><input type="file" name="file_s5_machine_file" accept="image/*"></div>
+                                </div>
+                            </div>
+                            <textarea name="s5_2_comment" style="margin-top:10px;"></textarea>
+                        </div>
+                        <div class="form-item">
+                            <label class="item-title">3. 제조점 해섭(HACCP) 서류 확인</label>
+                            <div class="checkbox-wrapper"><input type="checkbox" id="haccp_check" name="haccp_yn"><label for="haccp_check">HACCP 관련 서류 비치 및 작성 확인 완료</label></div>
+                            <textarea name="s5_3_comment"></textarea>
+                        </div>
+                        <div class="form-item">
+                            <label class="item-title">4. 제조출고,영업점 고충 및 건의사항</label>
+                            <textarea name="s5_4_suggestion"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+<!-- 공유/발송 모달 -->
+<div id="shareModal">
+    <div class="share-modal-content">
+        <div class="share-modal-header">
+            <span>📤 공유 / 발송</span>
+            <span style="cursor:pointer; font-size:1.1em;" onclick="closeShareModal()">✖</span>
+        </div>
+        <div class="share-modal-body">
+            <label>받는 사람 (이메일)</label>
+            <input type="email" id="shareEmail" placeholder="이메일 주소 입력 (선택)">
+
+            <label>제목</label>
+            <input type="text" id="shareSubject" placeholder="메일 제목">
+
+            <label>메시지</label>
+            <textarea id="shareMessage" style="height:80px;" placeholder="추가 메시지 입력 (선택)"></textarea>
+
+            <label>📎 파일 첨부</label>
+            <div class="attach-hint">💡 첨부 파일을 선택하면 자동 다운로드 후 메일 앱에서 첨부하세요.</div>
+            <input type="file" id="shareAttachFiles" multiple accept="*/*" style="margin-bottom:14px;">
+
+            <div style="font-size:0.8em; font-weight:bold; color:var(--brand-choco); margin-bottom:6px;">📬 메일 발송 방법 선택</div>
+            <div class="share-btn-row">
+                <button class="btn-share-email" style="background:#0078d4;" onclick="doEmailShare('outlook365')">
+                    <span style="font-size:1.1em;">📧</span><br><small>Outlook 365</small>
+                </button>
+                <button class="btn-share-native" onclick="doNativeShare()">📱 앱으로 공유</button>
+            </div>
+            <div class="share-btn-row" style="margin-top:8px;">
+                <button class="btn-share-cancel" onclick="closeShareModal()">취소</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="prevConsultingModal">
+    <div class="share-modal-content">
+        <div class="share-modal-header">
+            <span>🕘 이전 컨설팅 불러오기</span>
+            <span style="cursor:pointer; font-size:1.1em;" onclick="closePrevConsultingModal()">✖</span>
+        </div>
+        <div class="share-modal-body">
+            <div class="sub-desc" style="display:block; margin-bottom:12px;">점포명/지점/유형/SC가 동일하고, 현재 점검일 이전 데이터만 표시됩니다.</div>
+            <div id="prevConsultingList" style="display:flex; flex-direction:column; gap:10px;"></div>
+            <div class="share-btn-row" style="margin-top:8px;">
+                <button class="btn-share-cancel" onclick="closePrevConsultingModal()">닫기</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="btn-group">
+    <button type="button" class="icon-btn" id="btnSaveTemp" style="background-color: #005eb8;" onclick="saveTempData()">
+        💾<span>중간저장</span>
+    </button>
+    <button type="button" class="icon-btn" id="btnPdf" style="background-color: #e74c3c;" onclick="saveAsPDF()">
+        📄<span>PDF저장</span>
+    </button>
+    <button type="button" class="icon-btn" id="btnShare" style="background-color: #f39c12;" onclick="openShareModal()">
+        📤<span>공유/발송</span>
+    </button>
+    <button type="button" class="icon-btn" id="btnLoadPrev" style="background-color: #34495e;" onclick="openPrevConsultingModal()">
+        🕘<span>이전불러오기</span>
+    </button>
+    <button type="button" class="icon-btn" id="btnFillData" style="background-color: #9b59b6;" onclick="fillTestData()">
+        🧪<span>데이터입력</span>
+    </button>
+    <button type="button" class="icon-btn btn-reset" id="btnReset" onclick="resetForm()">
+        🗑️<span>초기화</span>
+    </button>
+</div>
+ <script>
+function toggleStoreMode() {
+    const val = document.getElementById("storeTypeSelect").value;
+    const mainSteps = document.getElementById("mainSteps");
+    const outsideArea = document.getElementById("outsideArea");
+    const btnGroup = document.querySelector('.btn-group');
+    const btnSaveTemp = document.getElementById('btnSaveTemp');
+    const btnPdf = document.getElementById('btnPdf');
+    const btnShare = document.getElementById('btnShare');
+    const btnFillData = document.getElementById('btnFillData');
+    const btnLoadPrev = document.getElementById('btnLoadPrev');
+    const btnReset = document.getElementById('btnReset');
+
+    // 하위 섹션 참조
+    const step3 = document.getElementById("step3Section");
+    const step5 = document.getElementById("step5Section");
+
+    // 제목 요소 참조
+    const titleS25 = document.getElementById("title_s2_5");
+    const titleS44 = document.getElementById("title_s4_4");
+    const titleS45 = document.getElementById("title_s4_5");
+
+    // 1. 기본 초기화 (모두 보임 상태로 시작)
+    mainSteps.style.display = "block";
+    outsideArea.style.display = "none";
+    if (step3) step3.style.display = "block";
+    if (step5) step5.style.display = "block";
+
+    // 2. 점포 유형별 분기 처리
+    if (val === "외부활동(미점검)") {
+        mainSteps.style.display = "none";
+        outsideArea.style.display = "block";
+        if (btnSaveTemp) btnSaveTemp.style.display = "none";
+        if (btnFillData) btnFillData.style.display = "none";
+        if (btnLoadPrev) btnLoadPrev.style.display = "none";
+        if (btnPdf) btnPdf.style.display = "flex";
+        if (btnShare) btnShare.style.display = "flex";
+        if (btnReset) btnReset.style.display = "flex";
+        if (editorInstance) editorInstance.refresh();
+    } 
+    else if (val === "가맹점(영업점)") {
+        if (btnSaveTemp) btnSaveTemp.style.display = "flex";
+        if (btnFillData) btnFillData.style.display = "flex";
+        if (btnLoadPrev) btnLoadPrev.style.display = "flex";
+        if (btnPdf) btnPdf.style.display = "flex";
+        if (btnShare) btnShare.style.display = "flex";
+        if (btnReset) btnReset.style.display = "flex";
+        if (step3) step3.style.display = "none";
+        if (step5) step5.style.display = "none";
+        if (titleS25) titleS25.innerText = "5. 가맹점 도넛 수불 및 정량 정시 현황";
+        if (titleS44) titleS44.innerText = "4. 가맹점 스토어담당 지적 개선 여부 확인";
+        if (titleS45) titleS45.innerText = "5. 가맹점 최종 솔루션 및 권고안";
+    } 
+    else if (val === "영업점") {
+        if (btnSaveTemp) btnSaveTemp.style.display = "flex";
+        if (btnFillData) btnFillData.style.display = "flex";
+        if (btnLoadPrev) btnLoadPrev.style.display = "flex";
+        if (btnPdf) btnPdf.style.display = "flex";
+        if (btnShare) btnShare.style.display = "flex";
+        if (btnReset) btnReset.style.display = "flex";
+        if (step5) step5.style.display = "none";
+        if (titleS25) titleS25.innerText = "5. 단체주문(CR 활동)";
+        if (titleS44) titleS44.innerText = "4. Store통합관리팀 점검 지적사항 관련";
+        if (titleS45) titleS45.innerText = "5. 점포 컨설팅 결과에 따른 솔루션 전달(최종 권고안)";
+    } else {
+        if (btnSaveTemp) btnSaveTemp.style.display = "flex";
+        if (btnFillData) btnFillData.style.display = "flex";
+        if (btnLoadPrev) btnLoadPrev.style.display = "flex";
+        if (btnPdf) btnPdf.style.display = "flex";
+        if (btnShare) btnShare.style.display = "flex";
+        if (btnReset) btnReset.style.display = "flex";
+    }
+
+    // [핵심] 어떤 모드에서도 플로팅 버튼 항상 표시
+    if (btnGroup) {
+        btnGroup.style.removeProperty('display');
+        btnGroup.style.setProperty('display', 'flex', 'important');
+    }
+}
+    // 2. 수식 계산 로직 (유틸리티)
+    function uncomma(str) {
+        return Number(String(str || "0").replace(/,/g, ""));
+    }
+
+    // Step 2.1 매출 실적 계산
+    function calcS2_1() {
+        const getVal = (name) => uncomma(document.getElementsByName(name)[0]?.value);
+        
+        const lastT = getVal('s2_1_last_total');
+        const lastE = getVal('s2_1_last_ext');
+        const lastD = getVal('s2_1_last_del');
+        const lastG = getVal('s2_1_last_grp');
+        
+        const currT = getVal('s2_1_curr_total');
+        const currE = getVal('s2_1_curr_ext');
+        const currD = getVal('s2_1_curr_del');
+        const currG = getVal('s2_1_curr_grp');
+
+        const lastPure = lastT - lastE - lastD - lastG;
+        const currPure = currT - currE - currD - currG;
+
+        document.getElementById('s2_1_last_pure').innerText = lastPure.toLocaleString();
+        document.getElementById('s2_1_curr_pure').innerText = currPure.toLocaleString();
+
+        const diffT = currT - lastT;
+        const perT = lastT ? ((diffT / lastT) * 100).toFixed(1) : 0;
+        document.getElementById('s2_1_diff_total').innerText = `${diffT.toLocaleString()} (${perT}%)`;
+
+        const diffP = currPure - lastPure;
+        const perP = lastPure ? ((diffP / lastPure) * 100).toFixed(1) : 0;
+        document.getElementById('s2_1_diff_pure').innerText = `${diffP.toLocaleString()} (${perP}%)`;
+    }
+
+    // Step 2.2 블럭별 증감 계산
+    function calcS2_2() {
+        const row = document.getElementById('blockDiffRow');
+        for(let i=1; i<=8; i++) {
+            const last = uncomma(document.getElementsByName(`s2_2_l_${i}`)[0]?.value || 0);
+            const curr = uncomma(document.getElementsByName(`s2_2_c_${i}`)[0]?.value || 0);
+            const diff = curr - last;
+            const per = last ? ((diff/last)*100).toFixed(1) : 0;
+            row.cells[i].innerHTML = `${diff.toLocaleString()}<br>(${per}%)`;
+        }
+    }
+
+    // Step 3 계정과목 동적 추가 및 계산
+    let accCount = 0;
+    function addAccountTable() {
+        accCount++;
+        const container = document.getElementById("accountTableContainer");
+        const tableHtml = `
+            <div style="margin-bottom:20px; border:1px solid var(--brand-blue); padding:15px; border-radius:10px; background:#fff;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                    <strong style="color:var(--brand-blue)">■ 계정과목 분석 (#${accCount})</strong>
+                    <span style="cursor:pointer; font-size:12px; border:1px solid #ff0000; padding:2px 6px; border-radius:4px; color:#ff0000;" onclick="this.parentElement.parentElement.remove()">항목삭제</span>
+                </div>
+                <table class="data-table">
+                    <tr><th>계정과목 선택</th><th>전년실적</th><th>금년실적</th><th>증감율</th></tr>
+                    <tr>
+                        <td>
+                            <select name="s3_acc_type_${accCount}">
+                                <option>원가</option><option>인건비(메이트)</option><option>인건비(퇴직금)</option>
+                                <option>복리후생비</option><option>수선유지비</option><option>직배송물류비</option>
+                                <option>수도광열비</option><option>소모품비</option>
+                            </select>
+                        </td>
+                        <td><input type="text" class="comma-input" id="s3_last_${accCount}" name="s3_last_${accCount}" oninput="calcS3(${accCount})"></td>
+                        <td><input type="text" class="comma-input" id="s3_curr_${accCount}" name="s3_curr_${accCount}" oninput="calcS3(${accCount})"></td>
+                        <td id="s3_res_${accCount}" class="bg-gray">0%</td>
+                    </tr>
+                </table>
+                <textarea name="s3_comment_${accCount}" style="margin-top:5px; height:60px;" placeholder="분석 코멘트"></textarea>
+            </div>`;
+        container.insertAdjacentHTML('beforeend', tableHtml);
+    }
+
+    function calcS3(idx) {
+        const last = uncomma(document.getElementById(`s3_last_${idx}`).value);
+        const curr = uncomma(document.getElementById(`s3_curr_${idx}`).value);
+        const res = last ? (((curr - last) / last) * 100).toFixed(1) : 0;
+        document.getElementById(`s3_res_${idx}`).innerText = res + '%';
+    }
+
+    // Step 4.1 인건비 계산
+    function calcS4_1() {
+        const lastC = uncomma(document.getElementsByName('s4_1_last_cost')[0].value);
+        const currC = uncomma(document.getElementsByName('s4_1_curr_cost')[0].value);
+        const lastT = uncomma(document.getElementsByName('s4_1_last_time')[0].value);
+        const currT = uncomma(document.getElementsByName('s4_1_curr_time')[0].value);
+
+        const costDiff = currC - lastC;
+        const costPer = lastC ? ((costDiff / lastC) * 100).toFixed(1) : 0;
+        document.getElementById('s4_1_cost_diff').innerHTML = `${costDiff.toLocaleString()}<br>(${costPer}%)`;
+
+        const timeDiff = currT - lastT;
+        const timePer = lastT ? ((timeDiff / lastT) * 100).toFixed(1) : 0;
+        document.getElementById('s4_1_time_diff').innerHTML = `${timeDiff.toLocaleString()}<br>(${timePer}%)`;
+    }
+
+    // 3. 페이지 초기화 및 이벤트 바인딩
+    let editorInstance;
+    const scList = { "중부1지점": ["정지성 SC", "강미옥 SC"], "중부2지점": ["장문근 SC", "이종현 SC"], "서부지점": ["송정훈 SC", "강인구 SC"], "동부지점": ["성동연 SC", "채성우 SC"] };
+
+
+    function autoGrowTextarea(el) {
+        if (!el) return;
+        el.style.height = 'auto';
+        el.style.height = `${Math.max(el.scrollHeight, 90)}px`;
+    }
+
+    function initAutoGrowTextareas() {
+        document.querySelectorAll('textarea').forEach((ta) => {
+            autoGrowTextarea(ta);
+            ta.addEventListener('input', () => autoGrowTextarea(ta));
+        });
+    }
+
+    function getCurrentFormSnapshot() {
+        const formData = new FormData(document.getElementById('inspectionForm'));
+        const data = Object.fromEntries(formData.entries());
+        data.outside_comment_html = editorInstance ? editorInstance.getContents() : '';
+        return data;
+    }
+
+    function saveConsultingHistory(data) {
+        const historyKey = 'consulting_history';
+        const history = JSON.parse(localStorage.getItem(historyKey) || '[]');
+        const record = {
+            savedAt: new Date().toISOString(),
+            inspection_date: data.inspection_date || '',
+            store_name: data.inspection_store_name || '',
+            branch_name: data.branch_name || '',
+            store_type: data.store_type || '',
+            sc_name: data.sc_name || '',
+            payload: data
+        };
+        history.unshift(record);
+        localStorage.setItem(historyKey, JSON.stringify(history.slice(0, 50)));
+    }
+
+    window.onload = function() {
+        // 에디터 생성
+        if(typeof SUNEDITOR !== 'undefined') {
+            editorInstance = SUNEDITOR.create('outsideEditor', {
+                buttonList: [['undo', 'redo', 'removeFormat'], ['font', 'fontSize', 'formatBlock'], ['bold', 'underline', 'italic', 'strike', 'subscript', 'superscript'], ['fontColor', 'hiliteColor'], ['align', 'list', 'lineHeight'], ['table', 'link', 'image', 'video'], ['fullScreen', 'showBlocks', 'codeView']],
+                width: '100%',
+                height: '380px',
+                minHeight: '320px',
+                resizingBar: true,
+                imageUploadSizeLimit: 5242880
+            });
+        }
+        
+        // 실시간 콤마 적용 이벤트
+        document.addEventListener('input', function(e) {
+            if (e.target.classList.contains('comma-input')) {
+                let value = e.target.value.replace(/[^0-9-]/g, '');
+                e.target.value = value.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+            }
+        });
+
+        // 지점 선택 이벤트
+        document.getElementById("branchSelect").addEventListener("change", function() {
+            const scSelect = document.getElementById("scSelect");
+            scSelect.innerHTML = '<option value="">SC 선택</option>'; 
+            if (this.value && scList[this.value]) {
+                scList[this.value].forEach(sc => {
+                    const option = document.createElement("option");
+                    option.value = sc; option.textContent = sc;
+                    scSelect.appendChild(option);
+                });
+            }
+        });
+
+        // 직원 면담 체크박스 연동 (정상화)
+        document.getElementById("interview_check").addEventListener("change", function() {
+            document.getElementById("interview_area").style.display = this.checked ? "block" : "none";
+        });
+
+        // 섹션 숨김 토글 이벤트 바인딩
+        document.querySelectorAll('.section-hide-toggle').forEach(function(cb) {
+            cb.addEventListener('change', function() {
+                const section = this.closest('.step-section');
+                if (section) {
+                    if (this.checked) {
+                        section.classList.add('section-hidden');
+                    } else {
+                        section.classList.remove('section-hidden');
+                    }
+                }
+            });
+        });
+        
+        // 텍스트박스 자동 확장
+        initAutoGrowTextareas();
+
+        // 임시저장 데이터 로드
+        loadTempData();
+    };
+
+    // 임시저장 로직
+    function saveTempData() {
+        const data = getCurrentFormSnapshot();
+        localStorage.setItem('temp_report_data', JSON.stringify(data));
+        saveConsultingHistory(data);
+        alert("중간 저장되었습니다.");
+    }
+
+    function loadTempData() {
+        const savedData = localStorage.getItem('temp_report_data');
+        if (savedData) {
+            const data = JSON.parse(savedData);
+            Object.keys(data).forEach(key => {
+                const el = document.getElementsByName(key)[0];
+                if (el) {
+                    if (el.type === 'radio') {
+                        const radio = document.querySelector(`input[name="${key}"][value="${data[key]}"]`);
+                        if (radio) radio.checked = true;
+                    } else {
+                        el.value = data[key];
+                    }
+                }
+            });
+            if (editorInstance && data.outside_comment_html) {
+                editorInstance.setContents(data.outside_comment_html);
+            }
+            // 로드 후 수식 재계산
+            calcS2_1();
+            calcS2_2();
+            calcS4_1();
+            toggleStoreMode();
+            initAutoGrowTextareas();
+        }
+    }
+
+// 사진 삽입 시 화면에 미리보기 출력
+function previewImage(input, previewId) {
+    const previewContainer = document.getElementById(previewId);
+    previewContainer.innerHTML = ""; // 기존 미리보기 삭제
+
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            const img = document.createElement("img");
+            img.src = e.target.result;
+            img.classList.add("img-preview"); // PDF 저장 시 참조할 클래스
+            previewContainer.appendChild(img);
+        };
+        
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+    function resetForm() { if(confirm("초기화 하시겠습니까?")) { localStorage.removeItem('temp_report_data'); location.reload(); } }
+async function saveAsPDF() {
+    const container = document.querySelector('.container');
+    const btnGroup = document.querySelector('.btn-group');
+    const body = document.body;
+    const sections = document.querySelectorAll('.step-section, #outsideArea');
+
+    sections.forEach(section => {
+        if (section.classList.contains('section-hidden')) section.classList.add('no-print');
+        else section.classList.remove('no-print');
+    });
+
+    const origBodyBg = body.style.background;
+    const origBodyPad = body.style.padding;
+    const origContainerMaxW = container.style.maxWidth;
+    const origContainerMar = container.style.margin;
+    body.style.background = '#ffffff';
+    body.style.padding = '0';
+    container.style.maxWidth = '780px';
+    container.style.margin = '0';
+    if (btnGroup) btnGroup.style.display = 'none';
+
+    const replacements = [];
+    const activeTextareas = document.querySelectorAll('.step-section:not(.no-print) textarea, #outsideArea:not(.no-print) textarea');
+
+    if (editorInstance && document.getElementById('outsideArea').style.display !== 'none') {
+        const outsideHost = document.getElementById('outsideEditor');
+        if (outsideHost) {
+            const div = document.createElement('div');
+            div.innerHTML = editorInstance.getContents();
+            div.className = 'pdf-text-replacement';
+            div.style.cssText = 'width:100%; min-height:120px; padding:10px; box-sizing:border-box; border:1px solid #eee; border-radius:8px; background:#fff; white-space:pre-wrap; word-break:break-word; line-height:1.7;';
+            outsideHost.parentNode.insertBefore(div, outsideHost.nextSibling);
+            outsideHost.style.display = 'none';
+            replacements.push({ div, ta: outsideHost });
+        }
+    }
+
+    activeTextareas.forEach((ta) => {
+        const div = document.createElement('div');
+        div.innerText = ta.value;
+        div.className = 'pdf-text-replacement';
+        div.style.cssText = 'width:100%; min-height:30px; padding:10px; box-sizing:border-box; border:1px solid #eee; border-radius:8px; background:#fdfdfd; white-space:pre-wrap; word-break:break-word; font-size:14px; line-height:1.7; color:#000; margin-bottom:10px;';
+        replacements.push({ div, ta });
+        ta.parentNode.insertBefore(div, ta);
+        ta.style.display = 'none';
+    });
+
+    const storeName = document.getElementById('storeNameInput')?.value || '미입력';
+    const date = document.getElementById('inspectionDate')?.value || '일자미상';
+
+    // PDF 전용 페이지 조립 (폼/텍스트 절단 방지)
+    const pdfRoot = document.createElement('div');
+    pdfRoot.id = 'pdfRootTemp';
+    pdfRoot.style.cssText = 'position:fixed; left:0; top:0; width:780px; background:#fff; z-index:-1; opacity:1; pointer-events:none;';
+    document.body.appendChild(pdfRoot);
+
+    const pageContentMax = 1020;
+    const makePageShell = () => {
+        const page = document.createElement('div');
+        page.className = 'pdf-page';
+        page.style.cssText = 'width:780px; min-height:1120px; box-sizing:border-box; padding:16px; background:#fff; page-break-after:always;';
+        pdfRoot.appendChild(page);
+        return page;
+    };
+
+    const pushSectionAsPages = (section, titleSuffix = '') => {
+        const sectionClone = section.cloneNode(true);
+        const header = sectionClone.querySelector('.step-header');
+        const content = sectionClone.querySelector('.step-content');
+
+        if (!header || !content) {
+            const page = makePageShell();
+            page.appendChild(sectionClone);
+            return;
+        }
+
+        let page = makePageShell();
+        let sectionBox = document.createElement('div');
+        sectionBox.className = 'step-section';
+        sectionBox.style.cssText = section.style.cssText || '';
+        let headerClone = header.cloneNode(true);
+        if (titleSuffix) headerClone.innerHTML += titleSuffix;
+        let contentBox = document.createElement('div');
+        contentBox.className = 'step-content';
+        contentBox.style.cssText = content.style.cssText || '';
+        sectionBox.appendChild(headerClone);
+        sectionBox.appendChild(contentBox);
+        page.appendChild(sectionBox);
+
+        const blocks = Array.from(content.children);
+        blocks.forEach((block) => {
+            const blockClone = block.cloneNode(true);
+            contentBox.appendChild(blockClone);
+            if (sectionBox.offsetHeight > pageContentMax && contentBox.children.length > 1) {
+                contentBox.removeChild(blockClone);
+
+                page = makePageShell();
+                sectionBox = document.createElement('div');
+                sectionBox.className = 'step-section';
+                sectionBox.style.cssText = section.style.cssText || '';
+                headerClone = header.cloneNode(true);
+                headerClone.innerHTML += ' <span style="font-size:0.8em; opacity:0.85;">(계속)</span>';
+                contentBox = document.createElement('div');
+                contentBox.className = 'step-content';
+                contentBox.style.cssText = content.style.cssText || '';
+                sectionBox.appendChild(headerClone);
+                sectionBox.appendChild(contentBox);
+                page.appendChild(sectionBox);
+                contentBox.appendChild(blockClone);
+            }
+        });
+    };
+
+    const printableSections = Array.from(document.querySelectorAll('.step-section:not(.no-print)'));
+    printableSections.forEach((section) => pushSectionAsPages(section));
+
+    const outsideArea = document.getElementById('outsideArea');
+    if (outsideArea && outsideArea.style.display !== 'none' && !outsideArea.classList.contains('no-print')) {
+        const outsideWrapper = document.createElement('div');
+        outsideWrapper.className = 'step-section';
+        outsideWrapper.innerHTML = `
+            <div class="step-header">Out Step. 점포 컨설팅 미진행 사유</div>
+            <div class="step-content">${outsideArea.innerHTML}</div>
+        `;
+        pushSectionAsPages(outsideWrapper);
+    }
+
+    try {
+        if (typeof html2pdf === 'undefined') {
+            throw new Error('html2pdf 라이브러리를 찾을 수 없습니다.');
+        }
+
+        await html2pdf().set({
+            margin: [0, 0, 0, 0],
+            filename: `컨설팅리포트_${storeName}_${date}.pdf`,
+            image: { type: 'jpeg', quality: 0.97 },
+            html2canvas: {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: '#ffffff',
+                scrollY: 0,
+                x: 0
+            },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+            pagebreak: { mode: ['css', 'legacy'] }
+        }).from(pdfRoot).save();
+    } catch (error) {
+        console.error('PDF 생성 실패:', error);
+        alert('PDF 생성 중 오류가 발생했습니다.');
+    } finally {
+        replacements.forEach(({ div, ta }) => {
+            ta.style.display = 'block';
+            div.remove();
+        });
+        pdfRoot.remove();
+        sections.forEach(section => section.classList.remove('no-print'));
+        body.style.background = origBodyBg;
+        body.style.padding = origBodyPad;
+        container.style.maxWidth = origContainerMaxW;
+        container.style.margin = origContainerMar;
+        if (btnGroup) btnGroup.style.display = 'flex';
+        toggleStoreMode();
+    }
+}
+// 공유 모달 열기 - 파일 첨부 지원
+function openShareModal() {
+    const storeName = document.getElementById('storeNameInput')?.value || "점포";
+    const date = document.getElementById('inspectionDate')?.value || "";
+    const solution = document.getElementsByName('s4_5_solution_final')[0]?.value || '';
+    const marketChange = document.getElementsByName('s1_6_comment')[0]?.value || '';
+    const profitAnalysis = document.getElementsByName('s3_2_comment')[0]?.value || '';
+    const laborAnalysis = document.getElementsByName('s4_1_comment')[0]?.value || '';
+    const specialIssues = document.getElementsByName('s4_3_special_comment')[0]?.value || '';
+
+    const subjectText = `[보고] ${storeName} 최종 컨설팅 리포트${date ? ' (' + date + ')' : ''}`;
+    const defaultMsg = `안녕하세요.
+
+[${storeName}] 최종 컨설팅 리포트 공유드립니다.
+` +
+        (date ? `- 점검일자: ${date}
+` : '') +
+        (marketChange ? `
+[상권변화]
+${marketChange.substring(0, 200)}
+` : '') +
+        (profitAnalysis ? `
+[손익분석]
+${profitAnalysis.substring(0, 200)}
+` : '') +
+        (laborAnalysis ? `
+[인건비 분석]
+${laborAnalysis.substring(0, 200)}
+` : '') +
+        (specialIssues ? `
+[직영/가맹 업무간 특이사항]
+${specialIssues.substring(0, 200)}
+` : '') +
+        (solution ? `
+[최종 권고안]
+${solution.substring(0, 220)}
+` : '');
+
+    document.getElementById('shareSubject').value = subjectText;
+    document.getElementById('shareMessage').value = defaultMsg;
+    document.getElementById('shareModal').classList.add('open');
+}
+
+function closeShareModal() {
+    document.getElementById('shareModal').classList.remove('open');
+}
+
+// 네이티브 공유 (모바일 공유시트 - 파일 첨부 포함)
+async function doNativeShare() {
+    const title = document.getElementById('shareSubject').value || '컨설팅 리포트';
+    const text = document.getElementById('shareMessage').value;
+    const fileInput = document.getElementById('shareAttachFiles');
+
+    if (navigator.share) {
+        try {
+            const shareData = { title, text };
+            if (fileInput.files && fileInput.files.length > 0 && navigator.canShare) {
+                const filesArray = Array.from(fileInput.files);
+                const testShare = { title, text, files: filesArray };
+                if (navigator.canShare(testShare)) {
+                    shareData.files = filesArray;
+                }
+            }
+            await navigator.share(shareData);
+            closeShareModal();
+        } catch (err) {
+            if (err.name !== 'AbortError') {
+                alert('공유 중 오류가 발생했습니다: ' + err.message);
+            }
+        }
+    } else {
+        alert('이 브라우저는 앱 공유를 지원하지 않습니다.\n아래 메일 발송 버튼을 이용해 주세요.');
+    }
+}
+
+// 이메일 발송 - type: 'outlook365' | 'outlookcom' | 'default'
+function doEmailShare(type) {
+    const toEmail = document.getElementById('shareEmail').value || '';
+    const subject = document.getElementById('shareSubject').value;
+    const message = document.getElementById('shareMessage').value;
+    const fileInput = document.getElementById('shareAttachFiles');
+
+    // 첨부파일 있을 경우 먼저 다운로드
+    if (fileInput.files && fileInput.files.length > 0) {
+        Array.from(fileInput.files).forEach(file => {
+            const url = URL.createObjectURL(file);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = file.name;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            setTimeout(() => URL.revokeObjectURL(url), 2000);
+        });
+        setTimeout(() => alert('📎 파일이 다운로드되었습니다.\n메일 앱이 열리면 다운로드된 파일을 직접 첨부해 주세요.'), 300);
+    }
+
+    const encTo = encodeURIComponent(toEmail);
+    const encSubject = encodeURIComponent(subject);
+    const encBody = encodeURIComponent(message);
+
+    let url;
+    if (type === 'outlook365') {
+        // Office 365 Outlook Web
+        url = `https://outlook.office.com/mail/deeplink/compose?to=${encTo}&subject=${encSubject}&body=${encBody}`;
+        window.open(url, '_blank');
+    } else {
+        url = `https://outlook.office.com/mail/deeplink/compose?to=${encTo}&subject=${encSubject}&body=${encBody}`;
+        window.open(url, '_blank');
+    }
+    closeShareModal();
+}
+function openPrevConsultingModal() {
+    const listEl = document.getElementById('prevConsultingList');
+    const history = JSON.parse(localStorage.getItem('consulting_history') || '[]');
+    const currDate = document.getElementById('inspectionDate')?.value || '9999-12-31';
+    const currStore = document.getElementById('storeNameInput')?.value || '';
+    const currBranch = document.getElementById('branchSelect')?.value || '';
+    const currType = document.getElementById('storeTypeSelect')?.value || '';
+    const currSc = document.getElementById('scSelect')?.value || '';
+
+    const filtered = history.filter((item) =>
+        item.inspection_date && item.inspection_date < currDate &&
+        item.store_name === currStore && item.branch_name === currBranch &&
+        item.store_type === currType && item.sc_name === currSc
+    );
+
+    if (!filtered.length) {
+        listEl.innerHTML = '<div class="sub-desc" style="display:block;">조건에 맞는 이전 컨설팅 데이터가 없습니다.</div>';
+    } else {
+        listEl.innerHTML = filtered.map((item, idx) => `
+            <div style="border:1px solid #ddd; border-radius:8px; padding:10px; background:#fff;">
+                <div><strong>${item.inspection_date}</strong> / ${item.store_name} / ${item.sc_name}</div>
+                <div style="font-size:12px; color:#666; margin:6px 0;">${(item.payload?.s4_5_solution_final || '').substring(0, 90)}</div>
+                <button type="button" class="btn-share-email" style="width:100%; background:#2d7a2d;" onclick="applyPrevConsulting(${idx})">이 내용 불러오기</button>
+            </div>
+        `).join('');
+        window.__filteredPrevConsulting = filtered;
+    }
+
+    document.getElementById('prevConsultingModal').classList.add('open');
+}
+
+function closePrevConsultingModal() {
+    document.getElementById('prevConsultingModal').classList.remove('open');
+}
+
+function applyPrevConsulting(idx) {
+    const list = window.__filteredPrevConsulting || [];
+    const item = list[idx];
+    if (!item || !item.payload) return;
+    const data = item.payload;
+    Object.keys(data).forEach((key) => {
+        const el = document.getElementsByName(key)[0];
+        if (!el) return;
+        if (el.type === 'checkbox') el.checked = data[key] === 'on' || data[key] === true;
+        else el.value = data[key];
+        el.dispatchEvent(new Event('input'));
+        el.dispatchEvent(new Event('change'));
+    });
+    if (editorInstance && data.outside_comment_html) editorInstance.setContents(data.outside_comment_html);
+    calcS2_1(); calcS2_2(); calcS4_1(); initAutoGrowTextareas();
+    closePrevConsultingModal();
+    alert('이전 컨설팅 데이터를 불러왔습니다.');
+}
+
+function fillTestData() {
+    // [Step 0] 담당 지점 및 SC 정보
+    document.getElementById('inspectionDate').value = '2026-02-10';
+    document.getElementById('storeNameInput').value = '김해봉황점';
+    document.getElementById('storeTypeSelect').value = '영업점';
+    document.getElementById('branchSelect').value = '서부지점';
+    document.getElementById('branchSelect').dispatchEvent(new Event('change'));
+
+    setTimeout(() => {
+        document.getElementById('scSelect').value = '송정훈 SC';
+        
+        // [라디오/체크박스] 일괄 '예' 및 '5점' 설정
+        const radios = ['s4_overtime']; // 점수 버튼은 삭제되었으므로 체크박스 위주
+        radios.forEach(name => {
+            const el = document.querySelector(`input[name="${name}"][value="예"]`);
+            if(el) el.checked = true;
+        });
+        document.getElementById('interview_check').checked = true;
+        document.getElementById('interview_check').dispatchEvent(new Event('change'));
+        document.getElementById('improvement_check').checked = true;
+        document.getElementById('haccp_check').checked = true;
+
+        // [데이터 입력] 주요 항목 우선 입력
+        const allStepsData = {
+            // Step 1. 시설/환경
+            's1_3_add_comment': '매장 전면 윈도우 시트지 노후로 인한 재제작 요청. 내부 메뉴판 조명 교체 완료 및 고지물 위치 재조정 필요. [cite: 14]',
+            's1_6_comment': '봉황리단길 인근 카페 거리 확장으로 주말 젊은 층 유입 비중 20% 증가 추세 확인됨. [cite: 52]',
+            
+            // Step 2. 매출 관련 (천원 단위) [cite: 55, 56]
+            's2_1_last_total': '45,800', 's2_1_last_ext': '4,200', 's2_1_last_del': '8,500', 's2_1_last_grp': '1,500',
+            's2_1_curr_total': '52,300', 's2_1_curr_ext': '5,100', 's2_1_curr_del': '12,400', 's2_1_curr_grp': '3,200',
+            's2_1_comment': '배달 비중 급증으로 인한 라이더 대기 공간 확보 및 전용 패키징 속도 개선 솔루션 필요. [cite: 66]',
+            's2_3_waste_rate': '2.8',
+            's2_2_l_1':'6,200','s2_2_l_2':'11,400','s2_2_l_3':'3,300','s2_2_l_4':'2,800','s2_2_l_5':'1,900','s2_2_l_6':'2,500','s2_2_l_7':'900','s2_2_l_8':'700',
+            's2_2_c_1':'7,100','s2_2_c_2':'12,300','s2_2_c_3':'3,900','s2_2_c_4':'3,100','s2_2_c_5':'2,100','s2_2_c_6':'2,800','s2_2_c_7':'1,200','s2_2_c_8':'800',
+            's2_2_comment':'싱글/더즌 중심으로 안정 성장, 음료군은 여름 시즌 반영으로 완만 상승.',
+            's2_4_promo1': '발렌타인 한정 더즌', 's2_4_val1': '3,500', 's2_4_per1': '12',
+            's2_5_comment': '인근 시청 및 교육지원청 대상 분기별 단체 주문 영업(DM) 진행 중. [cite: 98]',
+            
+            // Step 3. 손익 관련 [cite: 99, 100]
+            's3_2_comment': '원재료비 상승 및 배달 수수료 증가로 인한 영업이익 감소분 발생. 자체 판촉 강화 필요. [cite: 114]',
+            's3_3_comment': '테이크아웃 비중 확대를 위한 픽업 전용 키오스크 운영 및 전용 세트 메뉴 강화 제안. [cite: 116]',
+            
+            // Step 4. 인사 및 기타 [cite: 117, 118, 119]
+            's4_1_last_cost': '12,500', 's4_1_curr_cost': '11,800', 
+            's4_1_last_time': '1,150', 's4_1_curr_time': '1,080',
+            'interview_name': '이현우', 'interview_position': '점장',
+            's4_2_comment': '메이트 숙련도 향상으로 1인당 생산성 개선됨. 장기 근무 메이트에 대한 복리후생 강화 논의. [cite: 131]',
+            's4_3_special_comment': '가맹본부 핵심 정책 준수 상태 양호하며 점주 소통 활발함. [cite: 133]',
+            's4_5_solution_final': '[김해봉황점 최종 솔루션]\n1. 피크타임(14~16시) 제조 인력 집중 배치로 품절 방지.\n2. 인근 관광지 연계 단체 주문 영업 강화 및 고객 피드백 상시 모니터링.\n3. 매장 청결도 유지를 위한 시간대별 체크리스트 이행 엄수. [cite: 137]',
+
+            // Step 5. 생산형 지표 (제조출고점 기준 데이터 포함) [cite: 138, 139]
+            's5_yield_mix': '98', 's5_yield_6x': '95', 's5_yield_sugar': '99', 's5_labor_cost': '450',
+            's5_2_comment': '글레이저 및 튀김기 정기 점검 완료. 노후 벨트 부품 다음 달 교체 예정. [cite: 151]',
+            's5_4_suggestion': '생산 자동화 기기 도입을 통한 제조 인건비 추가 절감 방안 검토 요청함. [cite: 156]'
+        };
+
+        // 주요 데이터 적용
+        Object.keys(allStepsData).forEach(key => {
+            const el = document.getElementsByName(key)[0];
+            if(el) { 
+                el.value = allStepsData[key]; 
+                el.dispatchEvent(new Event('input')); // 수치 자동 계산 실행 [cite: 63]
+            }
+        });
+
+        // 누락 방지: 전체 폼의 빈 입력값 자동 보완
+        const form = document.getElementById('inspectionForm');
+        if (form) {
+            const isEligible = (el) => {
+                if (el.closest('#outsideArea')) return false;
+                if (el.closest('.section-hidden')) return false;
+                return true;
+            };
+
+            form.querySelectorAll('textarea').forEach((ta, idx) => {
+                if (!isEligible(ta)) return;
+                if (!ta.value.trim()) ta.value = `테스트 코멘트 ${idx + 1}`;
+            });
+
+            form.querySelectorAll('input[type="text"], input[type="number"], input[type="date"], input[type="email"]').forEach((input) => {
+                if (!isEligible(input)) return;
+                if (input.value) return;
+                if (input.type === 'date') input.value = '2026-02-10';
+                else if (input.type === 'number') input.value = '1';
+                else if (input.type === 'email') input.value = 'test@example.com';
+                else input.value = '테스트값';
+                input.dispatchEvent(new Event('input'));
+            });
+
+            form.querySelectorAll('select').forEach((sel) => {
+                if (!isEligible(sel)) return;
+                if (sel.value) return;
+                const candidate = Array.from(sel.options).find((opt) => opt.value && opt.value !== '유형 선택' && opt.value !== '지점 선택' && opt.value !== 'SC 선택');
+                if (candidate) {
+                    sel.value = candidate.value;
+                    sel.dispatchEvent(new Event('change'));
+                }
+            });
+
+            form.querySelectorAll('input[type="checkbox"]').forEach((cb) => {
+                if (!isEligible(cb)) return;
+                if (!cb.checked) cb.checked = true;
+                cb.dispatchEvent(new Event('change'));
+            });
+
+            const groupedRadio = {};
+            form.querySelectorAll('input[type="radio"]').forEach((radio) => {
+                if (!isEligible(radio)) return;
+                if (!groupedRadio[radio.name]) groupedRadio[radio.name] = [];
+                groupedRadio[radio.name].push(radio);
+            });
+            Object.values(groupedRadio).forEach((radios) => {
+                if (!radios.some((r) => r.checked)) {
+                    radios[0].checked = true;
+                    radios[0].dispatchEvent(new Event('change'));
+                }
+            });
+        }
+
+        calcS2_1();
+        calcS2_2();
+        calcS4_1();
+        initAutoGrowTextareas();
+        alert('모든 스텝(Step 0-5)에 대한 테스트 데이터가 누락 없이 입력되었습니다. [cite: 156]');
+    }, 200);
+}
+</script>
+</body>
+</html>
