@@ -467,7 +467,18 @@
     padding: 20px;
     box-sizing: border-box;
 }
-#shareModal.open { display: flex; }
+#shareModal.open, #prevConsultingModal.open { display: flex; }
+#prevConsultingModal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.6);
+    z-index: 3000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    box-sizing: border-box;
+}
 .share-modal-content {
     background: white;
     width: 100%;
@@ -770,19 +781,19 @@
                         <label class="item-title">2. 블럭별 매출 분석</label>
                         <table class="data-table" id="blockAnalysisTable">
                             <thead>
-                                <tr><th>구분</th><th>더즌</th><th>싱글</th><th>세트</th><th>프로즌</th><th>커피</th><th>판매용품</th><th>기타</th></tr>
+                                <tr><th>구분</th><th>싱글</th><th>더즌</th><th>커피</th><th>프로즌</th><th>기타음료</th><th>베이크드</th><th>판매용품</th><th>기타</th></tr>
                             </thead>
                             <tbody>
                                 <tr>
                                     <td>전년</td>
-                                    <script>for(let i=1;i<=7;i++) document.write(`<td><input type="text" name="s2_2_l_${i}" class="comma-input" oninput="calcS2_2()"></td>`);</script>
+                                    <script>for(let i=1;i<=8;i++) document.write(`<td><input type="text" name="s2_2_l_${i}" class="comma-input" oninput="calcS2_2()"></td>`);</script>
                                 </tr>
                                 <tr>
                                     <td>금년</td>
-                                    <script>for(let i=1;i<=7;i++) document.write(`<td><input type="text" name="s2_2_c_${i}" class="comma-input" oninput="calcS2_2()"></td>`);</script>
+                                    <script>for(let i=1;i<=8;i++) document.write(`<td><input type="text" name="s2_2_c_${i}" class="comma-input" oninput="calcS2_2()"></td>`);</script>
                                 </tr>
                                 <tr class="bg-gray" id="blockDiffRow">
-                                    <td>증감</td><script>for(let i=1;i<=7;i++) document.write(`<td>0</td>`);</script>
+                                    <td>증감</td><script>for(let i=1;i<=8;i++) document.write(`<td>0</td>`);</script>
                                 </tr>
                             </tbody>
                         </table>
@@ -930,8 +941,7 @@
                             <textarea name="s4_2_comment" style="margin-top:15px;"></textarea>
                         </div>
                         <div class="form-item"><label class="item-title">3. 직영,가맹 업무간 특이사항 작성</label><textarea name="s4_3_special_comment"></textarea></div>
-                        <div class="form-item">
-                       <div class="form-item" id="step4_4_area">
+                        <div class="form-item" id="step4_4_area">
     <label class="item-title" id="title_s4_4">4. Store통합관리팀 점검 지적사항 관련 (정직원, 가맹점주에게 개선 여부만 확인)</label>
     
     <div class="checkbox-wrapper">
@@ -990,11 +1000,6 @@
             </div>
         </div>
     </form>
-<div id="image_summary_page" class="step-section">
-    <div class="step-header">부록. 점검 사진 모음</div>
-    <div class="step-content" id="image_summary_content" style="display: flex; flex-wrap: wrap; justify-content: space-around;">
-        </div>
-</div>
 <!-- 공유/발송 모달 -->
 <div id="shareModal">
     <div class="share-modal-content">
@@ -1021,15 +1026,7 @@
                 <button class="btn-share-email" style="background:#0078d4;" onclick="doEmailShare('outlook365')">
                     <span style="font-size:1.1em;">📧</span><br><small>Outlook 365</small>
                 </button>
-                <button class="btn-share-email" style="background:#0067b8;" onclick="doEmailShare('outlookcom')">
-                    <span style="font-size:1.1em;">📧</span><br><small>Outlook.com</small>
-                </button>
-                <button class="btn-share-email" style="background:#555;" onclick="doEmailShare('default')">
-                    <span style="font-size:1.1em;">✉️</span><br><small>기본 메일앱</small>
-                </button>
-            </div>
-            <div class="share-btn-row" style="margin-top:8px;">
-                <button class="btn-share-native" onclick="doNativeShare()">📱 앱으로 공유 (모바일)</button>
+                <button class="btn-share-native" onclick="doNativeShare()">📱 앱으로 공유</button>
             </div>
             <div class="share-btn-row" style="margin-top:8px;">
                 <button class="btn-share-cancel" onclick="closeShareModal()">취소</button>
@@ -1038,20 +1035,39 @@
     </div>
 </div>
 
+<div id="prevConsultingModal">
+    <div class="share-modal-content">
+        <div class="share-modal-header">
+            <span>🕘 이전 컨설팅 불러오기</span>
+            <span style="cursor:pointer; font-size:1.1em;" onclick="closePrevConsultingModal()">✖</span>
+        </div>
+        <div class="share-modal-body">
+            <div class="sub-desc" style="display:block; margin-bottom:12px;">점포명/지점/유형/SC가 동일하고, 현재 점검일 이전 데이터만 표시됩니다.</div>
+            <div id="prevConsultingList" style="display:flex; flex-direction:column; gap:10px;"></div>
+            <div class="share-btn-row" style="margin-top:8px;">
+                <button class="btn-share-cancel" onclick="closePrevConsultingModal()">닫기</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="btn-group">
-    <button type="button" class="icon-btn" style="background-color: #005eb8;" onclick="saveTempData()">
+    <button type="button" class="icon-btn" id="btnSaveTemp" style="background-color: #005eb8;" onclick="saveTempData()">
         💾<span>중간저장</span>
     </button>
-    <button type="button" class="icon-btn" style="background-color: #e74c3c;" onclick="saveAsPDF()">
+    <button type="button" class="icon-btn" id="btnPdf" style="background-color: #e74c3c;" onclick="saveAsPDF()">
         📄<span>PDF저장</span>
     </button>
-    <button type="button" class="icon-btn" style="background-color: #f39c12;" onclick="openShareModal()">
+    <button type="button" class="icon-btn" id="btnShare" style="background-color: #f39c12;" onclick="openShareModal()">
         📤<span>공유/발송</span>
     </button>
-    <button type="button" class="icon-btn" style="background-color: #9b59b6;" onclick="fillTestData()">
+    <button type="button" class="icon-btn" id="btnLoadPrev" style="background-color: #34495e;" onclick="openPrevConsultingModal()">
+        🕘<span>이전불러오기</span>
+    </button>
+    <button type="button" class="icon-btn" id="btnFillData" style="background-color: #9b59b6;" onclick="fillTestData()">
         🧪<span>데이터입력</span>
     </button>
-    <button type="button" class="icon-btn btn-reset" onclick="resetForm()">
+    <button type="button" class="icon-btn btn-reset" id="btnReset" onclick="resetForm()">
         🗑️<span>초기화</span>
     </button>
 </div>
@@ -1061,6 +1077,12 @@ function toggleStoreMode() {
     const mainSteps = document.getElementById("mainSteps");
     const outsideArea = document.getElementById("outsideArea");
     const btnGroup = document.querySelector('.btn-group');
+    const btnSaveTemp = document.getElementById('btnSaveTemp');
+    const btnPdf = document.getElementById('btnPdf');
+    const btnShare = document.getElementById('btnShare');
+    const btnFillData = document.getElementById('btnFillData');
+    const btnLoadPrev = document.getElementById('btnLoadPrev');
+    const btnReset = document.getElementById('btnReset');
 
     // 하위 섹션 참조
     const step3 = document.getElementById("step3Section");
@@ -1081,9 +1103,21 @@ function toggleStoreMode() {
     if (val === "외부활동(미점검)") {
         mainSteps.style.display = "none";
         outsideArea.style.display = "block";
+        if (btnSaveTemp) btnSaveTemp.style.display = "none";
+        if (btnFillData) btnFillData.style.display = "none";
+        if (btnLoadPrev) btnLoadPrev.style.display = "none";
+        if (btnPdf) btnPdf.style.display = "flex";
+        if (btnShare) btnShare.style.display = "flex";
+        if (btnReset) btnReset.style.display = "flex";
         if (editorInstance) editorInstance.refresh();
     } 
     else if (val === "가맹점(영업점)") {
+        if (btnSaveTemp) btnSaveTemp.style.display = "flex";
+        if (btnFillData) btnFillData.style.display = "flex";
+        if (btnLoadPrev) btnLoadPrev.style.display = "flex";
+        if (btnPdf) btnPdf.style.display = "flex";
+        if (btnShare) btnShare.style.display = "flex";
+        if (btnReset) btnReset.style.display = "flex";
         if (step3) step3.style.display = "none";
         if (step5) step5.style.display = "none";
         if (titleS25) titleS25.innerText = "5. 가맹점 도넛 수불 및 정량 정시 현황";
@@ -1091,10 +1125,23 @@ function toggleStoreMode() {
         if (titleS45) titleS45.innerText = "5. 가맹점 최종 솔루션 및 권고안";
     } 
     else if (val === "영업점") {
+        if (btnSaveTemp) btnSaveTemp.style.display = "flex";
+        if (btnFillData) btnFillData.style.display = "flex";
+        if (btnLoadPrev) btnLoadPrev.style.display = "flex";
+        if (btnPdf) btnPdf.style.display = "flex";
+        if (btnShare) btnShare.style.display = "flex";
+        if (btnReset) btnReset.style.display = "flex";
         if (step5) step5.style.display = "none";
         if (titleS25) titleS25.innerText = "5. 단체주문(CR 활동)";
         if (titleS44) titleS44.innerText = "4. Store통합관리팀 점검 지적사항 관련";
         if (titleS45) titleS45.innerText = "5. 점포 컨설팅 결과에 따른 솔루션 전달(최종 권고안)";
+    } else {
+        if (btnSaveTemp) btnSaveTemp.style.display = "flex";
+        if (btnFillData) btnFillData.style.display = "flex";
+        if (btnLoadPrev) btnLoadPrev.style.display = "flex";
+        if (btnPdf) btnPdf.style.display = "flex";
+        if (btnShare) btnShare.style.display = "flex";
+        if (btnReset) btnReset.style.display = "flex";
     }
 
     // [핵심] 어떤 모드에서도 플로팅 버튼 항상 표시
@@ -1140,7 +1187,7 @@ function toggleStoreMode() {
     // Step 2.2 블럭별 증감 계산
     function calcS2_2() {
         const row = document.getElementById('blockDiffRow');
-        for(let i=1; i<=7; i++) {
+        for(let i=1; i<=8; i++) {
             const last = uncomma(document.getElementsByName(`s2_2_l_${i}`)[0]?.value || 0);
             const curr = uncomma(document.getElementsByName(`s2_2_c_${i}`)[0]?.value || 0);
             const diff = curr - last;
@@ -1207,12 +1254,53 @@ function toggleStoreMode() {
     let editorInstance;
     const scList = { "중부1지점": ["정지성 SC", "강미옥 SC"], "중부2지점": ["장문근 SC", "이종현 SC"], "서부지점": ["송정훈 SC", "강인구 SC"], "동부지점": ["성동연 SC", "채성우 SC"] };
 
+
+    function autoGrowTextarea(el) {
+        if (!el) return;
+        el.style.height = 'auto';
+        el.style.height = `${Math.max(el.scrollHeight, 90)}px`;
+    }
+
+    function initAutoGrowTextareas() {
+        document.querySelectorAll('textarea').forEach((ta) => {
+            autoGrowTextarea(ta);
+            ta.addEventListener('input', () => autoGrowTextarea(ta));
+        });
+    }
+
+    function getCurrentFormSnapshot() {
+        const formData = new FormData(document.getElementById('inspectionForm'));
+        const data = Object.fromEntries(formData.entries());
+        data.outside_comment_html = editorInstance ? editorInstance.getContents() : '';
+        return data;
+    }
+
+    function saveConsultingHistory(data) {
+        const historyKey = 'consulting_history';
+        const history = JSON.parse(localStorage.getItem(historyKey) || '[]');
+        const record = {
+            savedAt: new Date().toISOString(),
+            inspection_date: data.inspection_date || '',
+            store_name: data.inspection_store_name || '',
+            branch_name: data.branch_name || '',
+            store_type: data.store_type || '',
+            sc_name: data.sc_name || '',
+            payload: data
+        };
+        history.unshift(record);
+        localStorage.setItem(historyKey, JSON.stringify(history.slice(0, 50)));
+    }
+
     window.onload = function() {
         // 에디터 생성
         if(typeof SUNEDITOR !== 'undefined') {
             editorInstance = SUNEDITOR.create('outsideEditor', {
-                buttonList: [['undo', 'redo'], ['font', 'fontSize'], ['bold', 'underline', 'italic'], ['fontColor', 'hiliteColor'], ['table', 'link', 'image']],
-                width: '100%', height: '250px'
+                buttonList: [['undo', 'redo', 'removeFormat'], ['font', 'fontSize', 'formatBlock'], ['bold', 'underline', 'italic', 'strike', 'subscript', 'superscript'], ['fontColor', 'hiliteColor'], ['align', 'list', 'lineHeight'], ['table', 'link', 'image', 'video'], ['fullScreen', 'showBlocks', 'codeView']],
+                width: '100%',
+                height: '380px',
+                minHeight: '320px',
+                resizingBar: true,
+                imageUploadSizeLimit: 5242880
             });
         }
         
@@ -1256,15 +1344,18 @@ function toggleStoreMode() {
             });
         });
         
+        // 텍스트박스 자동 확장
+        initAutoGrowTextareas();
+
         // 임시저장 데이터 로드
         loadTempData();
     };
 
     // 임시저장 로직
     function saveTempData() {
-        const formData = new FormData(document.getElementById('inspectionForm'));
-        const data = Object.fromEntries(formData.entries());
+        const data = getCurrentFormSnapshot();
         localStorage.setItem('temp_report_data', JSON.stringify(data));
+        saveConsultingHistory(data);
         alert("중간 저장되었습니다.");
     }
 
@@ -1283,10 +1374,15 @@ function toggleStoreMode() {
                     }
                 }
             });
+            if (editorInstance && data.outside_comment_html) {
+                editorInstance.setContents(data.outside_comment_html);
+            }
             // 로드 후 수식 재계산
             calcS2_1();
+            calcS2_2();
             calcS4_1();
             toggleStoreMode();
+            initAutoGrowTextareas();
         }
     }
 
@@ -1316,16 +1412,11 @@ async function saveAsPDF() {
     const body = document.body;
     const sections = document.querySelectorAll('.step-section, #outsideArea');
 
-    // 숨김 처리된 섹션에 no-print 적용
     sections.forEach(section => {
-        if (section.classList.contains('section-hidden')) {
-            section.classList.add('no-print');
-        } else {
-            section.classList.remove('no-print');
-        }
+        if (section.classList.contains('section-hidden')) section.classList.add('no-print');
+        else section.classList.remove('no-print');
     });
 
-    // PDF 준비: 배경 크림색 제거, 여백 제거
     const origBodyBg = body.style.background;
     const origBodyPad = body.style.padding;
     const origContainerMaxW = container.style.maxWidth;
@@ -1334,74 +1425,142 @@ async function saveAsPDF() {
     body.style.padding = '0';
     container.style.maxWidth = '780px';
     container.style.margin = '0';
-
     if (btnGroup) btnGroup.style.display = 'none';
 
-    // textarea → div 교체 (내용 잘림 방지)
     const replacements = [];
     const activeTextareas = document.querySelectorAll('.step-section:not(.no-print) textarea, #outsideArea:not(.no-print) textarea');
 
-    activeTextareas.forEach(ta => {
+    if (editorInstance && document.getElementById('outsideArea').style.display !== 'none') {
+        const outsideHost = document.getElementById('outsideEditor');
+        if (outsideHost) {
+            const div = document.createElement('div');
+            div.innerHTML = editorInstance.getContents();
+            div.className = 'pdf-text-replacement';
+            div.style.cssText = 'width:100%; min-height:120px; padding:10px; box-sizing:border-box; border:1px solid #eee; border-radius:8px; background:#fff; white-space:pre-wrap; word-break:break-word; line-height:1.7;';
+            outsideHost.parentNode.insertBefore(div, outsideHost.nextSibling);
+            outsideHost.style.display = 'none';
+            replacements.push({ div, ta: outsideHost });
+        }
+    }
+
+    activeTextareas.forEach((ta) => {
         const div = document.createElement('div');
         div.innerText = ta.value;
         div.className = 'pdf-text-replacement';
-        div.style.cssText = `
-            width:100%; min-height:30px; padding:10px; box-sizing:border-box;
-            border:1px solid #eee; border-radius:8px; background:#fdfdfd;
-            white-space:pre-wrap; word-break:break-word; font-size:14px;
-            line-height:1.7; color:#000; margin-bottom:10px;
-            page-break-inside:avoid; break-inside:avoid;
-        `;
+        div.style.cssText = 'width:100%; min-height:30px; padding:10px; box-sizing:border-box; border:1px solid #eee; border-radius:8px; background:#fdfdfd; white-space:pre-wrap; word-break:break-word; font-size:14px; line-height:1.7; color:#000; margin-bottom:10px;';
         replacements.push({ div, ta });
         ta.parentNode.insertBefore(div, ta);
         ta.style.display = 'none';
     });
 
-    // form-item에 잘림 방지 속성 추가
-    const formItems = document.querySelectorAll('.step-section:not(.no-print) .form-item');
-    formItems.forEach(fi => {
-        fi.dataset.origStyle = fi.style.cssText;
-        fi.style.pageBreakInside = 'avoid';
-        fi.style.breakInside = 'avoid';
-    });
-
     const storeName = document.getElementById('storeNameInput')?.value || '미입력';
     const date = document.getElementById('inspectionDate')?.value || '일자미상';
 
-    const options = {
-        margin: [8, 8, 8, 8],
-        filename: `컨설팅리포트_${storeName}_${date}.pdf`,
-        image: { type: 'jpeg', quality: 0.97 },
-        html2canvas: {
-            scale: 2,
-            useCORS: true,
-            backgroundColor: '#ffffff',
-            width: container.offsetWidth,
-            windowWidth: container.offsetWidth + 32,
-            scrollY: 0,
-            x: 0
-        },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak: {
-            mode: ['avoid-all', 'css'],
-            avoid: ['.form-item', '.data-table', '.step-header']
-        }
+    // PDF 전용 페이지 조립 (폼/텍스트 절단 방지)
+    const pdfRoot = document.createElement('div');
+    pdfRoot.id = 'pdfRootTemp';
+    pdfRoot.style.cssText = 'position:fixed; left:-99999px; top:0; width:780px; background:#fff; z-index:-1;';
+    document.body.appendChild(pdfRoot);
+
+    const pageContentMax = 1020;
+    const makePageShell = () => {
+        const page = document.createElement('div');
+        page.className = 'pdf-page';
+        page.style.cssText = 'width:780px; min-height:1120px; box-sizing:border-box; padding:16px; background:#fff; page-break-after:always;';
+        pdfRoot.appendChild(page);
+        return page;
     };
 
+    const pushSectionAsPages = (section, titleSuffix = '') => {
+        const sectionClone = section.cloneNode(true);
+        const header = sectionClone.querySelector('.step-header');
+        const content = sectionClone.querySelector('.step-content');
+
+        if (!header || !content) {
+            const page = makePageShell();
+            page.appendChild(sectionClone);
+            return;
+        }
+
+        let page = makePageShell();
+        let sectionBox = document.createElement('div');
+        sectionBox.className = 'step-section';
+        sectionBox.style.cssText = section.style.cssText || '';
+        let headerClone = header.cloneNode(true);
+        if (titleSuffix) headerClone.innerHTML += titleSuffix;
+        let contentBox = document.createElement('div');
+        contentBox.className = 'step-content';
+        contentBox.style.cssText = content.style.cssText || '';
+        sectionBox.appendChild(headerClone);
+        sectionBox.appendChild(contentBox);
+        page.appendChild(sectionBox);
+
+        const blocks = Array.from(content.children);
+        blocks.forEach((block) => {
+            const blockClone = block.cloneNode(true);
+            contentBox.appendChild(blockClone);
+            if (sectionBox.offsetHeight > pageContentMax && contentBox.children.length > 1) {
+                contentBox.removeChild(blockClone);
+
+                page = makePageShell();
+                sectionBox = document.createElement('div');
+                sectionBox.className = 'step-section';
+                sectionBox.style.cssText = section.style.cssText || '';
+                headerClone = header.cloneNode(true);
+                headerClone.innerHTML += ' <span style="font-size:0.8em; opacity:0.85;">(계속)</span>';
+                contentBox = document.createElement('div');
+                contentBox.className = 'step-content';
+                contentBox.style.cssText = content.style.cssText || '';
+                sectionBox.appendChild(headerClone);
+                sectionBox.appendChild(contentBox);
+                page.appendChild(sectionBox);
+                contentBox.appendChild(blockClone);
+            }
+        });
+    };
+
+    const printableSections = Array.from(document.querySelectorAll('.step-section:not(.no-print)'));
+    printableSections.forEach((section) => pushSectionAsPages(section));
+
+    const outsideArea = document.getElementById('outsideArea');
+    if (outsideArea && outsideArea.style.display !== 'none' && !outsideArea.classList.contains('no-print')) {
+        const outsideWrapper = document.createElement('div');
+        outsideWrapper.className = 'step-section';
+        outsideWrapper.innerHTML = `
+            <div class="step-header">Out Step. 점포 컨설팅 미진행 사유</div>
+            <div class="step-content">${outsideArea.innerHTML}</div>
+        `;
+        pushSectionAsPages(outsideWrapper);
+    }
+
     try {
-        await html2pdf().set(options).from(container).save();
+        if (typeof html2pdf === 'undefined') {
+            throw new Error('html2pdf 라이브러리를 찾을 수 없습니다.');
+        }
+
+        await html2pdf().set({
+            margin: [0, 0, 0, 0],
+            filename: `컨설팅리포트_${storeName}_${date}.pdf`,
+            image: { type: 'jpeg', quality: 0.97 },
+            html2canvas: {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: '#ffffff',
+                scrollY: 0,
+                x: 0
+            },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+            pagebreak: { mode: ['css', 'legacy'] }
+        }).from(pdfRoot).save();
     } catch (error) {
-        console.error("PDF 생성 실패:", error);
-        alert("PDF 생성 중 오류가 발생했습니다.");
+        console.error('PDF 생성 실패:', error);
+        alert('PDF 생성 중 오류가 발생했습니다.');
     } finally {
-        // 원래 상태 복구
         replacements.forEach(({ div, ta }) => {
             ta.style.display = 'block';
             div.remove();
         });
-        formItems.forEach(fi => {
-            fi.style.cssText = fi.dataset.origStyle || '';
-        });
+        pdfRoot.remove();
         sections.forEach(section => section.classList.remove('no-print'));
         body.style.background = origBodyBg;
         body.style.padding = origBodyPad;
@@ -1415,12 +1574,39 @@ async function saveAsPDF() {
 function openShareModal() {
     const storeName = document.getElementById('storeNameInput')?.value || "점포";
     const date = document.getElementById('inspectionDate')?.value || "";
-    const solution = document.getElementsByName('s4_5_solution_final')[0]?.value || "";
+    const solution = document.getElementsByName('s4_5_solution_final')[0]?.value || '';
+    const marketChange = document.getElementsByName('s1_6_comment')[0]?.value || '';
+    const profitAnalysis = document.getElementsByName('s3_2_comment')[0]?.value || '';
+    const laborAnalysis = document.getElementsByName('s4_1_comment')[0]?.value || '';
+    const specialIssues = document.getElementsByName('s4_3_special_comment')[0]?.value || '';
 
-    const subjectText = `[보고] ${storeName} 점포 컨설팅 리포트${date ? ' (' + date + ')' : ''}`;
-    const defaultMsg = `안녕하세요.\n\n[${storeName}] 점포 컨설팅 리포트 첨부드립니다.\n` +
-        (date ? `- 점검일자: ${date}\n` : '') +
-        (solution ? `\n[주요 솔루션]\n${solution.substring(0, 150)}${solution.length > 150 ? '...' : ''}` : '');
+    const subjectText = `[보고] ${storeName} 최종 컨설팅 리포트${date ? ' (' + date + ')' : ''}`;
+    const defaultMsg = `안녕하세요.
+
+[${storeName}] 최종 컨설팅 리포트 공유드립니다.
+` +
+        (date ? `- 점검일자: ${date}
+` : '') +
+        (marketChange ? `
+[상권변화]
+${marketChange.substring(0, 200)}
+` : '') +
+        (profitAnalysis ? `
+[손익분석]
+${profitAnalysis.substring(0, 200)}
+` : '') +
+        (laborAnalysis ? `
+[인건비 분석]
+${laborAnalysis.substring(0, 200)}
+` : '') +
+        (specialIssues ? `
+[직영/가맹 업무간 특이사항]
+${specialIssues.substring(0, 200)}
+` : '') +
+        (solution ? `
+[최종 권고안]
+${solution.substring(0, 220)}
+` : '');
 
     document.getElementById('shareSubject').value = subjectText;
     document.getElementById('shareMessage').value = defaultMsg;
@@ -1490,17 +1676,66 @@ function doEmailShare(type) {
         // Office 365 Outlook Web
         url = `https://outlook.office.com/mail/deeplink/compose?to=${encTo}&subject=${encSubject}&body=${encBody}`;
         window.open(url, '_blank');
-    } else if (type === 'outlookcom') {
-        // Outlook.com (개인)
-        url = `https://outlook.live.com/mail/deeplink/compose?to=${encTo}&subject=${encSubject}&body=${encBody}`;
-        window.open(url, '_blank');
     } else {
-        // 기본 mailto (OS 기본 메일앱 - PC에서는 아웃룩 앱이 기본이면 자동 연결)
-        url = `mailto:${toEmail}?subject=${encSubject}&body=${encBody}`;
-        window.location.href = url;
+        url = `https://outlook.office.com/mail/deeplink/compose?to=${encTo}&subject=${encSubject}&body=${encBody}`;
+        window.open(url, '_blank');
     }
     closeShareModal();
 }
+function openPrevConsultingModal() {
+    const listEl = document.getElementById('prevConsultingList');
+    const history = JSON.parse(localStorage.getItem('consulting_history') || '[]');
+    const currDate = document.getElementById('inspectionDate')?.value || '9999-12-31';
+    const currStore = document.getElementById('storeNameInput')?.value || '';
+    const currBranch = document.getElementById('branchSelect')?.value || '';
+    const currType = document.getElementById('storeTypeSelect')?.value || '';
+    const currSc = document.getElementById('scSelect')?.value || '';
+
+    const filtered = history.filter((item) =>
+        item.inspection_date && item.inspection_date < currDate &&
+        item.store_name === currStore && item.branch_name === currBranch &&
+        item.store_type === currType && item.sc_name === currSc
+    );
+
+    if (!filtered.length) {
+        listEl.innerHTML = '<div class="sub-desc" style="display:block;">조건에 맞는 이전 컨설팅 데이터가 없습니다.</div>';
+    } else {
+        listEl.innerHTML = filtered.map((item, idx) => `
+            <div style="border:1px solid #ddd; border-radius:8px; padding:10px; background:#fff;">
+                <div><strong>${item.inspection_date}</strong> / ${item.store_name} / ${item.sc_name}</div>
+                <div style="font-size:12px; color:#666; margin:6px 0;">${(item.payload?.s4_5_solution_final || '').substring(0, 90)}</div>
+                <button type="button" class="btn-share-email" style="width:100%; background:#2d7a2d;" onclick="applyPrevConsulting(${idx})">이 내용 불러오기</button>
+            </div>
+        `).join('');
+        window.__filteredPrevConsulting = filtered;
+    }
+
+    document.getElementById('prevConsultingModal').classList.add('open');
+}
+
+function closePrevConsultingModal() {
+    document.getElementById('prevConsultingModal').classList.remove('open');
+}
+
+function applyPrevConsulting(idx) {
+    const list = window.__filteredPrevConsulting || [];
+    const item = list[idx];
+    if (!item || !item.payload) return;
+    const data = item.payload;
+    Object.keys(data).forEach((key) => {
+        const el = document.getElementsByName(key)[0];
+        if (!el) return;
+        if (el.type === 'checkbox') el.checked = data[key] === 'on' || data[key] === true;
+        else el.value = data[key];
+        el.dispatchEvent(new Event('input'));
+        el.dispatchEvent(new Event('change'));
+    });
+    if (editorInstance && data.outside_comment_html) editorInstance.setContents(data.outside_comment_html);
+    calcS2_1(); calcS2_2(); calcS4_1(); initAutoGrowTextareas();
+    closePrevConsultingModal();
+    alert('이전 컨설팅 데이터를 불러왔습니다.');
+}
+
 function fillTestData() {
     // [Step 0] 담당 지점 및 SC 정보
     document.getElementById('inspectionDate').value = '2026-02-10';
@@ -1523,7 +1758,7 @@ function fillTestData() {
         document.getElementById('improvement_check').checked = true;
         document.getElementById('haccp_check').checked = true;
 
-        // [데이터 입력] 모든 스텝의 공란 채우기
+        // [데이터 입력] 주요 항목 우선 입력
         const allStepsData = {
             // Step 1. 시설/환경
             's1_3_add_comment': '매장 전면 윈도우 시트지 노후로 인한 재제작 요청. 내부 메뉴판 조명 교체 완료 및 고지물 위치 재조정 필요. [cite: 14]',
@@ -1534,6 +1769,9 @@ function fillTestData() {
             's2_1_curr_total': '52,300', 's2_1_curr_ext': '5,100', 's2_1_curr_del': '12,400', 's2_1_curr_grp': '3,200',
             's2_1_comment': '배달 비중 급증으로 인한 라이더 대기 공간 확보 및 전용 패키징 속도 개선 솔루션 필요. [cite: 66]',
             's2_3_waste_rate': '2.8',
+            's2_2_l_1':'6,200','s2_2_l_2':'11,400','s2_2_l_3':'3,300','s2_2_l_4':'2,800','s2_2_l_5':'1,900','s2_2_l_6':'2,500','s2_2_l_7':'900','s2_2_l_8':'700',
+            's2_2_c_1':'7,100','s2_2_c_2':'12,300','s2_2_c_3':'3,900','s2_2_c_4':'3,100','s2_2_c_5':'2,100','s2_2_c_6':'2,800','s2_2_c_7':'1,200','s2_2_c_8':'800',
+            's2_2_comment':'싱글/더즌 중심으로 안정 성장, 음료군은 여름 시즌 반영으로 완만 상승.',
             's2_4_promo1': '발렌타인 한정 더즌', 's2_4_val1': '3,500', 's2_4_per1': '12',
             's2_5_comment': '인근 시청 및 교육지원청 대상 분기별 단체 주문 영업(DM) 진행 중. [cite: 98]',
             
@@ -1555,7 +1793,7 @@ function fillTestData() {
             's5_4_suggestion': '생산 자동화 기기 도입을 통한 제조 인건비 추가 절감 방안 검토 요청함. [cite: 156]'
         };
 
-        // 데이터 통합 적용
+        // 주요 데이터 적용
         Object.keys(allStepsData).forEach(key => {
             const el = document.getElementsByName(key)[0];
             if(el) { 
@@ -1563,7 +1801,65 @@ function fillTestData() {
                 el.dispatchEvent(new Event('input')); // 수치 자동 계산 실행 [cite: 63]
             }
         });
-        
+
+        // 누락 방지: 전체 폼의 빈 입력값 자동 보완
+        const form = document.getElementById('inspectionForm');
+        if (form) {
+            const isEligible = (el) => {
+                if (el.closest('#outsideArea')) return false;
+                if (el.closest('.section-hidden')) return false;
+                return true;
+            };
+
+            form.querySelectorAll('textarea').forEach((ta, idx) => {
+                if (!isEligible(ta)) return;
+                if (!ta.value.trim()) ta.value = `테스트 코멘트 ${idx + 1}`;
+            });
+
+            form.querySelectorAll('input[type="text"], input[type="number"], input[type="date"], input[type="email"]').forEach((input) => {
+                if (!isEligible(input)) return;
+                if (input.value) return;
+                if (input.type === 'date') input.value = '2026-02-10';
+                else if (input.type === 'number') input.value = '1';
+                else if (input.type === 'email') input.value = 'test@example.com';
+                else input.value = '테스트값';
+                input.dispatchEvent(new Event('input'));
+            });
+
+            form.querySelectorAll('select').forEach((sel) => {
+                if (!isEligible(sel)) return;
+                if (sel.value) return;
+                const candidate = Array.from(sel.options).find((opt) => opt.value && opt.value !== '유형 선택' && opt.value !== '지점 선택' && opt.value !== 'SC 선택');
+                if (candidate) {
+                    sel.value = candidate.value;
+                    sel.dispatchEvent(new Event('change'));
+                }
+            });
+
+            form.querySelectorAll('input[type="checkbox"]').forEach((cb) => {
+                if (!isEligible(cb)) return;
+                if (!cb.checked) cb.checked = true;
+                cb.dispatchEvent(new Event('change'));
+            });
+
+            const groupedRadio = {};
+            form.querySelectorAll('input[type="radio"]').forEach((radio) => {
+                if (!isEligible(radio)) return;
+                if (!groupedRadio[radio.name]) groupedRadio[radio.name] = [];
+                groupedRadio[radio.name].push(radio);
+            });
+            Object.values(groupedRadio).forEach((radios) => {
+                if (!radios.some((r) => r.checked)) {
+                    radios[0].checked = true;
+                    radios[0].dispatchEvent(new Event('change'));
+                }
+            });
+        }
+
+        calcS2_1();
+        calcS2_2();
+        calcS4_1();
+        initAutoGrowTextareas();
         alert('모든 스텝(Step 0-5)에 대한 테스트 데이터가 누락 없이 입력되었습니다. [cite: 156]');
     }, 200);
 }
