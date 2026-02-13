@@ -41,59 +41,74 @@
             margin: 0 auto;
         }
 
-        .ref-banner {
-            background: #ffffff;
+        .concept-hero {
+            background: linear-gradient(135deg, #ffffff 0%, #f5f7f6 100%);
             border: 1px solid var(--line);
-            border-left: 5px solid var(--brand-green);
-            border-radius: 12px;
-            padding: 12px 14px;
-            margin-bottom: 14px;
-            color: var(--ink);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 24px;
+            box-shadow: 0 8px 25px rgba(16, 40, 26, 0.08);
+        }
+
+        .concept-title {
+            margin: 0;
+            font-size: 1.2rem;
+            color: var(--brand-green);
+            font-weight: 800;
+            letter-spacing: -0.3px;
+        }
+
+        .concept-sub {
+            margin-top: 10px;
+            color: var(--muted);
             font-size: 0.92rem;
         }
 
-        .layout-shell {
+        .concept-grid {
             display: grid;
-            grid-template-columns: 260px 1fr;
-            gap: 18px;
-            align-items: start;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-top: 16px;
         }
 
-        .quick-panel {
+        .concept-card {
             background: #fff;
-            border: 1px solid var(--line);
+            border: 1px solid #e3e7e4;
             border-radius: 12px;
             padding: 14px;
-            position: sticky;
-            top: 16px;
-            box-shadow: 0 6px 16px rgba(18, 35, 26, 0.08);
         }
 
-        .quick-panel h3 {
-            margin: 0 0 10px;
-            color: var(--brand-green);
-            font-size: 1rem;
+        .concept-card h3 {
+            margin: 0 0 8px;
+            font-size: 0.95rem;
+            color: var(--ink);
         }
 
-        .quick-nav {
+        .chip-list {
             display: flex;
-            flex-direction: column;
-            gap: 7px;
+            flex-wrap: wrap;
+            gap: 8px;
         }
 
-        .quick-nav a {
-            text-decoration: none;
-            color: #20372a;
-            background: #f3f6f4;
-            border: 1px solid #dde3df;
-            border-radius: 8px;
-            padding: 8px 10px;
-            font-size: 0.84rem;
+        .chip {
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: #f1f5f2;
+            border: 1px solid #dce5df;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #355543;
+        }
+
+        .note-callout {
+            margin-top: 12px;
+            padding: 10px 12px;
+            border-left: 4px solid #d84a2a;
+            background: var(--highlight);
+            color: #a92710;
+            font-size: 0.86rem;
             font-weight: 700;
         }
-
-        .content-main { min-width: 0; }
-
 
         /* 헤더 스타일 */
         .header-logo {
@@ -140,11 +155,6 @@
             margin-right: 10px;
             font-size: 0.95em;
             color: var(--brand-green);
-        }
-
-
-        .step-header label {
-            color: var(--ink) !important;
         }
 
         .step-content {
@@ -497,8 +507,7 @@
         .history-card { background: #f8f9fa; padding: 12px; border-radius: 8px; border-left: 5px solid var(--brand-choco); }
 
         @media (max-width: 600px) {
-            .layout-shell { grid-template-columns: 1fr; }
-            .quick-panel { position: static; }
+            .concept-grid { grid-template-columns: 1fr; }
             .input-group-row { flex-direction: column; gap: 10px; }
             .rating-wrapper { padding: 8px; }
             .rating-item { font-size: 0.75em; }
@@ -702,18 +711,33 @@
         <div style="font-size: 0.9em; opacity: 0.9; margin-top:5px;">점포 관리 컨설팅 리포트</div>
     </div>
 
-    <section class="ref-banner">
-        PDF는 색상/톤 참고용으로만 반영했고, 화면 구조는 참고 웹사이트처럼 "탐색 + 작성" 흐름으로 재구성했습니다.
+    <section class="concept-hero">
+        <h2 class="concept-title">INTERIOR RENDERINGS / MATERIALS &amp; FINISHES 컨셉 반영 웹 폼</h2>
+        <p class="concept-sub">요청하신 PDF 시안의 톤(그린 헤더, 라이트 그레이 배경, 주석 하이라이트)과 참고 사이트의 정보 구조를 결합해 즉시 사용할 수 있는 상담 리포트 화면으로 구성했습니다.</p>
+        <div class="concept-grid">
+            <article class="concept-card">
+                <h3>디자인 기준</h3>
+                <div class="chip-list">
+                    <span class="chip">Krispy Green Accent</span>
+                    <span class="chip">Light Gray Canvas</span>
+                    <span class="chip">Card Section Layout</span>
+                    <span class="chip">PDF 보고서 가독성 우선</span>
+                </div>
+            </article>
+            <article class="concept-card">
+                <h3>빠른 커스터마이징 포인트</h3>
+                <div class="chip-list">
+                    <span class="chip">브릭/타일 사양 메모</span>
+                    <span class="chip">렌더링 코멘트 섹션</span>
+                    <span class="chip">지점·SC별 템플릿화</span>
+                    <span class="chip">참고 사이트 톤앤매너 연동</span>
+                </div>
+                <div class="note-callout">예: 벽돌 색상은 오렌지 계열이 아닌 웜 브릭 기준으로 통일</div>
+            </article>
+        </div>
     </section>
 
-    <div class="layout-shell">
-        <aside class="quick-panel">
-            <h3>빠른 이동</h3>
-            <div id="quickNav" class="quick-nav"></div>
-        </aside>
-
-        <main class="content-main">
-            <form id="inspectionForm">
+    <form id="inspectionForm">
 
         <div class="step-section">
             <div class="step-header">Step 0. 담당 지점 및 SC</div>
@@ -1080,10 +1104,7 @@
                 </div>
             </div>
         </div>
-            </form>
-        </main>
-    </div>
-</div>
+    </form>
 <!-- 공유/발송 모달 -->
 <div id="shareModal">
     <div class="share-modal-content">
@@ -1375,28 +1396,7 @@ function toggleStoreMode() {
         localStorage.setItem(historyKey, JSON.stringify(history.slice(0, 50)));
     }
 
-    
-function buildStepQuickNav() {
-    const quickNav = document.getElementById('quickNav');
-    if (!quickNav) return;
-    quickNav.innerHTML = '';
-
-    const sections = Array.from(document.querySelectorAll('#inspectionForm .step-section'));
-    sections.forEach((section, idx) => {
-        const header = section.querySelector('.step-header');
-        if (!header) return;
-        const clean = header.textContent.replace(/\s+/g, ' ').trim();
-        const id = `step-nav-${idx + 1}`;
-        section.id = section.id || id;
-
-        const a = document.createElement('a');
-        a.href = `#${section.id}`;
-        a.textContent = clean;
-        quickNav.appendChild(a);
-    });
-}
-
-window.onload = function() {
+    window.onload = function() {
         // 에디터 생성
         if(typeof SUNEDITOR !== 'undefined') {
             editorInstance = SUNEDITOR.create('outsideEditor', {
@@ -1408,8 +1408,6 @@ window.onload = function() {
                 imageUploadSizeLimit: 5242880
             });
         }
-
-        buildStepQuickNav();
         
         // 실시간 콤마 적용 이벤트
         document.addEventListener('input', function(e) {
