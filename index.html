@@ -13,12 +13,16 @@
     <style>
         /* 폰트 및 컬러 변수 정의 */
         :root {
-            --brand-green: #00782b;
-            --brand-choco: #604c3e;
-            --brand-cream: #f7f3e8;
+            --brand-green: #0f6a3a;
+            --brand-choco: #3f3a37;
+            --brand-cream: #f1f1f1;
             --brand-red: #ce1126;
             --brand-blue: #005eb8;
             --white: #ffffff;
+            --ink: #1f2622;
+            --muted: #6b7470;
+            --line: #cfd5d1;
+            --highlight: #fff69a;
             --border-radius: 12px;
         }
 
@@ -33,14 +37,46 @@
         }
 
         .container {
-            max-width: 800px;
+            max-width: 1240px;
             margin: 0 auto;
         }
+
+        .right-step-float {
+            position: fixed;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 120px;
+            background: rgba(255,255,255,0.92);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            box-shadow: 0 8px 18px rgba(23, 35, 29, 0.15);
+            z-index: 950;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .right-step-float a {
+            text-decoration: none;
+            color: #ffffff;
+            background: var(--brand-green);
+            border-radius: 8px;
+            padding: 7px 8px;
+            font-size: 0.77rem;
+            font-weight: 700;
+            text-align: center;
+            letter-spacing: -0.2px;
+        }
+
+        .content-main { min-width: 0; }
+
 
         /* 헤더 스타일 */
         .header-logo {
             text-align: center;
-            background-color: var(--brand-green);
+            background: linear-gradient(90deg, #0f6a3a 0%, #13582f 100%);
             color: var(--white);
             padding: 20px;
             border-radius: var(--border-radius);
@@ -59,27 +95,34 @@
         /* 섹션(STEP) 스타일 */
         .step-section {
             background: var(--white);
-            border: 2px solid var(--brand-green);
+            border: 1px solid var(--line);
             border-radius: var(--border-radius);
             margin-bottom: 25px;
             overflow: hidden;
-            box-shadow: 4px 4px 0px rgba(0, 120, 43, 0.1);
+            box-shadow: 0 8px 18px rgba(23, 35, 29, 0.08);
         }
 
         .step-header {
-            background-color: var(--brand-green);
-            color: var(--white);
+            background-color: #f3f6f4;
+            color: var(--ink);
             padding: 12px 20px;
             font-size: 1.1em;
             font-weight: bold;
             display: flex;
             align-items: center;
+            border-bottom: 1px solid var(--line);
         }
         
         .step-header::before {
-            content: '🍩';
+            content: '●';
             margin-right: 10px;
-            font-size: 1.2em;
+            font-size: 0.95em;
+            color: var(--brand-green);
+        }
+
+
+        .step-header label {
+            color: var(--ink) !important;
         }
 
         .step-content {
@@ -392,15 +435,12 @@
             cursor: pointer;
             box-shadow: 0 4px 10px rgba(0,0,0,0.2);
             transition: transform 0.2s;
+            background-color: var(--brand-green);
+            font-weight: 700;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.25);
         }
-        .icon-btn span { font-size: 8px; margin-top: 2px; font-weight: bold; }
+        .icon-btn span { font-size: 9px; margin-top: 2px; font-weight: 800; letter-spacing: -0.2px; }
         .icon-btn:active { transform: scale(0.9); }
-
-        .btn-reset { background-color: var(--brand-red); }
-        .btn-save { background-color: var(--brand-choco); }
-        .btn-email { background-color: var(--brand-blue); }
-        .btn-history { background-color: var(--brand-green); }
-        .btn-cloud { background-color: #f39c12; } 
 
         #historyModal {
             display: none;
@@ -430,29 +470,16 @@
         }
         .modal-body { padding: 20px; max-height: 60vh; overflow-y: auto; font-size: 14px; }
         .history-card { background: #f8f9fa; padding: 12px; border-radius: 8px; border-left: 5px solid var(--brand-choco); }
-
-        @media (max-width: 600px) {
-            .input-group-row { flex-direction: column; gap: 10px; }
-            .rating-wrapper { padding: 8px; }
-            .rating-item { font-size: 0.75em; }
-            .file-input-group { gap: 5px; } 
-            .file-input-item { padding: 4px; }
-            .btn-group { bottom: 10px; right: 10px; gap: 8px; }
-            .icon-btn { width: 45px; height: 45px; font-size: 16px; }
-            .data-table { font-size: 0.75em; }
-        }
-/* 섹션 숨김 상태 스타일 */
-.section-hidden .step-content {
-    display: none !important;
-}
-.section-hidden .step-header {
-    opacity: 0.65;
-}
-.section-hidden .step-header::after {
-    content: ' 〔숨김〕';
-    font-size: 0.85em;
-    opacity: 0.9;
-    font-weight: normal;
+@media (max-width: 600px) {
+    .input-group-row { flex-direction: column; gap: 10px; }
+    .rating-wrapper { padding: 8px; }
+    .rating-item { font-size: 0.75em; }
+    .file-input-group { gap: 5px; }
+    .file-input-item { padding: 4px; }
+    .btn-group { bottom: 10px; right: 10px; gap: 8px; }
+    .icon-btn { width: 45px; height: 45px; font-size: 16px; }
+    .data-table { font-size: 0.75em; }
+    .right-step-float { display: none; }
 }
 
 /* 공유/발송 모달 스타일 */
@@ -635,7 +662,8 @@
         <div style="font-size: 0.9em; opacity: 0.9; margin-top:5px;">점포 관리 컨설팅 리포트</div>
     </div>
 
-    <form id="inspectionForm">
+    <main class="content-main">
+        <form id="inspectionForm">
 
         <div class="step-section">
             <div class="step-header">Step 0. 담당 지점 및 SC</div>
@@ -682,6 +710,7 @@
 
                 <div id="outsideArea" class="hidden-area" style="border: 2px solid var(--brand-red); margin-top:20px;">
                     <label class="item-title" style="color:var(--brand-red)">Out Step. 점포 컨설팅 미진행으로 인한 SC 업무간 특이사항 작성(상세)</label>
+                    <div class="sub-desc" style="display:block; margin-bottom:8px;">※ 외부활동(미점검) 텍스트 박스 기본 높이를 기존 대비 2배로 설정</div>
                     <div id="outsideEditor"></div>
                     <input type="hidden" name="outside_comment_html" id="outsideCommentHtml">
                 </div>
@@ -805,49 +834,41 @@
 
                     <div class="form-item">
                         <label class="item-title">3. 도넛 품절, 폐기 및 배달실적</label>
-                        <div class="sub-desc" style="display:block; margin-bottom:10px;">■ 점포판매 제품품절 시간 확인</div>
+                        <div class="sub-desc" style="display:block; margin-bottom:10px;">■ 핵심 지표만 유지 (OG/어쏘티드1/배달품절/폐기율)</div>
                         <table class="data-table">
-                            <tr>
-                                <th>OG 품절</th>
-                                <td colspan="2">
-                                    <select name="s2_3_og_time">
-                                        <option value="미발생">미발생</option>
-                                        <script>for(let i=12; i<=21; i++) document.write(`<option value="${i}:00">${i}:00</option>`);</script>
-                                    </select>
-                                </td>
-                            </tr>
-                            <tr>
-                                <th>어쏘티드1</th>
-                                <td><select name="as_t1"><option>미발생</option><script>for(let i=12; i<=21; i++) document.write(`<option>${i}:00</option>`);</script></select></td>
-                                <td><input type="text" name="as_n1" placeholder="제품명" style="width:120px; text-align:left;"></td>
-                            </tr>
-                            <tr>
-                                <th>어쏘티드2</th>
-                                <td><select name="as_t2"><option>미발생</option><script>for(let i=12; i<=21; i++) document.write(`<option>${i}:00</option>`);</script></select></td>
-                                <td><input type="text" name="as_n2" placeholder="제품명" style="width:120px; text-align:left;"></td>
-                            </tr>
-                            <tr>
-                                <th>어쏘티드3</th>
-                                <td><select name="as_t3"><option>미발생</option><script>for(let i=12; i<=21; i++) document.write(`<option>${i}:00</option>`);</script></select></td>
-                                <td><input type="text" name="as_n3" placeholder="제품명" style="width:120px; text-align:left;"></td>
-                            </tr>
+                            <thead>
+                                <tr>
+                                    <th>OG 품절</th>
+                                    <th>어쏘티드 품절1</th>
+                                    <th>배달 품절 시간</th>
+                                    <th>폐기율(%)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <select name="s2_3_og_time">
+                                            <option value="미발생">미발생</option>
+                                            <script>for(let i=12; i<=21; i++) document.write(`<option value="${i}:00">${i}:00</option>`);</script>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <select name="as_t1">
+                                            <option value="미발생">미발생</option>
+                                            <script>for(let i=12; i<=21; i++) document.write(`<option value="${i}:00">${i}:00</option>`);</script>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <select name="s2_3_del_time">
+                                            <option value="미발생">미발생</option>
+                                            <script>for(let i=12; i<=21; i++) document.write(`<option value="${i}:00">${i}:00</option>`);</script>
+                                        </select>
+                                    </td>
+                                    <td><input type="number" name="s2_3_waste_rate" step="0.1" style="width:90%;"></td>
+                                </tr>
+                            </tbody>
                         </table>
-
-                        <div class="sub-desc" style="display:block; margin-bottom:10px;">■ 품절시간 확인 및 폐기율</div>
-                        <table class="data-table">
-                            <tr>
-                                <th style="width:25%;">배달 품절 시간</th>
-                                <td style="width:25%;">
-                                    <select name="s2_3_del_time">
-                                        <option value="미발생">미발생</option>
-                                        <script>for(let i=12; i<=21; i++) document.write(`<option value="${i}:00">${i}:00</option>`);</script>
-                                    </select>
-                                </td>
-                                <th style="width:25%;">폐기율(%)</th>
-                                <td style="width:25%;"><input type="number" name="s2_3_waste_rate" step="0.1" style="width:80%;"></td>
-                            </tr>
-                        </table>
-                        <textarea name="s2_3_comment" placeholder="발주 적정성 및 품절 관련 코멘트"></textarea>
+                        <textarea name="s2_3_comment" placeholder="발주 적정성 및 품절/폐기 관련 코멘트"></textarea>
                     </div>
 
                     <div class="form-item">
@@ -1002,7 +1023,9 @@
                 </div>
             </div>
         </div>
-    </form>
+        </form>
+    </main>
+</div>
 <!-- 공유/발송 모달 -->
 <div id="shareModal">
     <div class="share-modal-content">
@@ -1012,7 +1035,7 @@
         </div>
         <div class="share-modal-body">
             <label>받는 사람 (이메일)</label>
-            <input type="email" id="shareEmail" placeholder="이메일 주소 입력 (선택)">
+            <input type="email" id="shareEmail" placeholder="회사메일 아이디 또는 전체 주소 (lotte.net)">
 
             <label>제목</label>
             <input type="text" id="shareSubject" placeholder="메일 제목">
@@ -1021,7 +1044,7 @@
             <textarea id="shareMessage" style="height:80px;" placeholder="추가 메시지 입력 (선택)"></textarea>
 
             <label>📎 파일 첨부</label>
-            <div class="attach-hint">💡 첨부 파일을 선택하면 자동 다운로드 후 메일 앱에서 첨부하세요.</div>
+            <div class="attach-hint">💡 lotte.net 회사메일 기준 Outlook 365 웹작성 화면으로 연결됩니다. 첨부 파일은 자동 다운로드 후 메일에 첨부하세요.</div>
             <input type="file" id="shareAttachFiles" multiple accept="*/*" style="margin-bottom:14px;">
 
             <div style="font-size:0.8em; font-weight:bold; color:var(--brand-choco); margin-bottom:6px;">📬 메일 발송 방법 선택</div>
@@ -1055,25 +1078,27 @@
 </div>
 
 <div class="btn-group">
-    <button type="button" class="icon-btn" id="btnSaveTemp" style="background-color: #005eb8;" onclick="saveTempData()">
+    <button type="button" class="icon-btn" id="btnSaveTemp" onclick="saveTempData()">
         💾<span>중간저장</span>
     </button>
-    <button type="button" class="icon-btn" id="btnPdf" style="background-color: #e74c3c;" onclick="saveAsPDF()">
+    <button type="button" class="icon-btn" id="btnPdf" onclick="saveAsPDF()">
         📄<span>PDF저장</span>
     </button>
-    <button type="button" class="icon-btn" id="btnShare" style="background-color: #f39c12;" onclick="openShareModal()">
+    <button type="button" class="icon-btn" id="btnShare" onclick="openShareModal()">
         📤<span>공유/발송</span>
     </button>
-    <button type="button" class="icon-btn" id="btnLoadPrev" style="background-color: #34495e;" onclick="openPrevConsultingModal()">
+    <button type="button" class="icon-btn" id="btnLoadPrev" onclick="openPrevConsultingModal()">
         🕘<span>이전불러오기</span>
     </button>
-    <button type="button" class="icon-btn" id="btnFillData" style="background-color: #9b59b6;" onclick="fillTestData()">
+    <button type="button" class="icon-btn" id="btnFillData" onclick="fillTestData()">
         🧪<span>데이터입력</span>
     </button>
     <button type="button" class="icon-btn btn-reset" id="btnReset" onclick="resetForm()">
         🗑️<span>초기화</span>
     </button>
 </div>
+
+<div id="rightStepFloat" class="right-step-float" aria-label="스텝 바로가기"></div>
  <script>
 function toggleStoreMode() {
     const val = document.getElementById("storeTypeSelect").value;
@@ -1294,18 +1319,39 @@ function toggleStoreMode() {
         localStorage.setItem(historyKey, JSON.stringify(history.slice(0, 50)));
     }
 
-    window.onload = function() {
+    
+function buildRightStepFloat() {
+    const floatMenu = document.getElementById('rightStepFloat');
+    if (!floatMenu) return;
+    floatMenu.innerHTML = '';
+    const sections = Array.from(document.querySelectorAll('#inspectionForm .step-section'));
+    sections.forEach((section, idx) => {
+        const header = section.querySelector('.step-header');
+        if (!header) return;
+        const id = section.id || `step-nav-${idx + 1}`;
+        section.id = id;
+        const label = (header.textContent.match(/Step\s*\d+/i) || [header.textContent.trim()])[0];
+        const link = document.createElement('a');
+        link.href = `#${id}`;
+        link.textContent = label;
+        floatMenu.appendChild(link);
+    });
+}
+
+window.onload = function() {
         // 에디터 생성
         if(typeof SUNEDITOR !== 'undefined') {
             editorInstance = SUNEDITOR.create('outsideEditor', {
                 buttonList: [['undo', 'redo', 'removeFormat'], ['font', 'fontSize', 'formatBlock'], ['bold', 'underline', 'italic', 'strike', 'subscript', 'superscript'], ['fontColor', 'hiliteColor'], ['align', 'list', 'lineHeight'], ['table', 'link', 'image', 'video'], ['fullScreen', 'showBlocks', 'codeView']],
                 width: '100%',
-                height: '380px',
-                minHeight: '320px',
+                height: '760px',
+                minHeight: '640px',
                 resizingBar: true,
                 imageUploadSizeLimit: 5242880
             });
         }
+
+        buildRightStepFloat();
         
         // 실시간 콤마 적용 이벤트
         document.addEventListener('input', function(e) {
@@ -1612,6 +1658,9 @@ ${solution.substring(0, 220)}
 
     document.getElementById('shareSubject').value = subjectText;
     document.getElementById('shareMessage').value = defaultMsg;
+    if (!document.getElementById('shareEmail').value.trim()) {
+        document.getElementById('shareEmail').value = 'sc@lotte.net';
+    }
     document.getElementById('shareModal').classList.add('open');
 }
 
@@ -1649,10 +1698,24 @@ async function doNativeShare() {
 
 // 이메일 발송 - type: 'outlook365' | 'outlookcom' | 'default'
 function doEmailShare(type) {
-    const toEmail = document.getElementById('shareEmail').value || '';
+    const inputEl = document.getElementById('shareEmail');
+    let toEmail = (inputEl.value || '').trim();
     const subject = document.getElementById('shareSubject').value;
     const message = document.getElementById('shareMessage').value;
     const fileInput = document.getElementById('shareAttachFiles');
+
+    if (!toEmail) {
+        toEmail = 'sc@lotte.net';
+    } else if (!/@/.test(toEmail)) {
+        toEmail = `${toEmail}@lotte.net`;
+    }
+
+    if (!/@lotte\.net$/i.test(toEmail)) {
+        alert('회사 메일(lotte.net) 주소만 사용 가능합니다.');
+        return;
+    }
+
+    inputEl.value = toEmail;
 
     // 첨부파일 있을 경우 먼저 다운로드
     if (fileInput.files && fileInput.files.length > 0) {
@@ -1771,6 +1834,9 @@ function fillTestData() {
             's2_1_curr_total': '52,300', 's2_1_curr_ext': '5,100', 's2_1_curr_del': '12,400', 's2_1_curr_grp': '3,200',
             's2_1_comment': '배달 비중 급증으로 인한 라이더 대기 공간 확보 및 전용 패키징 속도 개선 솔루션 필요. [cite: 66]',
             's2_3_waste_rate': '2.8',
+            's2_3_og_time': '14:00',
+            'as_t1': '15:00',
+            's2_3_del_time': '16:00',
             's2_2_l_1':'6,200','s2_2_l_2':'11,400','s2_2_l_3':'3,300','s2_2_l_4':'2,800','s2_2_l_5':'1,900','s2_2_l_6':'2,500','s2_2_l_7':'900','s2_2_l_8':'700',
             's2_2_c_1':'7,100','s2_2_c_2':'12,300','s2_2_c_3':'3,900','s2_2_c_4':'3,100','s2_2_c_5':'2,100','s2_2_c_6':'2,800','s2_2_c_7':'1,200','s2_2_c_8':'800',
             's2_2_comment':'싱글/더즌 중심으로 안정 성장, 음료군은 여름 시즌 반영으로 완만 상승.',
@@ -1807,8 +1873,11 @@ function fillTestData() {
         // 누락 방지: 전체 폼의 빈 입력값 자동 보완
         const form = document.getElementById('inspectionForm');
         if (form) {
+            const longChunk = ' 점검 코멘트 상세내용을 길게 입력하여 PDF 줄바꿈/페이지 분할 여부를 검증합니다.';
             form.querySelectorAll('textarea').forEach((ta, idx) => {
-                if (!ta.value.trim()) ta.value = `테스트 코멘트 ${idx + 1}`;
+                const base = ta.value.trim() || `테스트 코멘트 ${idx + 1}`;
+                ta.value = base + longChunk.repeat(5);
+                ta.dispatchEvent(new Event('input'));
             });
 
             form.querySelectorAll('input[type="text"], input[type="number"], input[type="date"], input[type="email"]').forEach((input) => {
@@ -1830,7 +1899,11 @@ function fillTestData() {
             });
 
             form.querySelectorAll('input[type="checkbox"]').forEach((cb) => {
-                if (!cb.checked) cb.checked = true;
+                if (cb.classList.contains('section-hide-toggle')) {
+                    cb.checked = false;
+                } else if (!cb.checked) {
+                    cb.checked = true;
+                }
                 cb.dispatchEvent(new Event('change'));
             });
 
