@@ -192,6 +192,23 @@
             resize: vertical;
         }
         
+
+
+        /* Out Step 에디터 배경/텍스트 고정 (검은 영역 방지) */
+        #outsideArea .sun-editor,
+        #outsideArea .sun-editor .se-wrapper,
+        #outsideArea .sun-editor .se-wrapper-inner,
+        #outsideArea .sun-editor .se-resizing-bar,
+        #outsideArea .sun-editor .se-container,
+        #outsideArea .sun-editor-editable {
+            background: #ffffff !important;
+            color: #111111 !important;
+        }
+        #outsideArea .sun-editor-editable [style*="background"] {
+            background: transparent !important;
+            background-color: transparent !important;
+        }
+
         select {
             appearance: none;
             background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2300782b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
@@ -1361,7 +1378,7 @@ function applyLatestConsultingFromPopup() {
         el.dispatchEvent(new Event('input'));
         el.dispatchEvent(new Event('change'));
     });
-    if (editorInstance && data.outside_comment_html) editorInstance.setContents(data.outside_comment_html);
+    if (editorInstance && data.outside_comment_html) editorInstance.setContents(sanitizeOutsideHtml(data.outside_comment_html));
     calcS2_1(); calcS2_2(); calcS4_1(); initAutoGrowTextareas();
     closePrevConsultingModal();
 }
@@ -1395,10 +1412,34 @@ async function openLatestConsultingByStore() {
         });
     }
 
+
+function sanitizeOutsideHtml(html = '') {
+    const wrap = document.createElement('div');
+    wrap.innerHTML = html || '';
+    wrap.querySelectorAll('*').forEach((node) => {
+        if (node.style) {
+            node.style.background = '';
+            node.style.backgroundColor = '';
+            const c = (node.style.color || '').toLowerCase().replace(/\s+/g, '');
+            if (c === 'black' || c === '#000' || c === '#000000' || c === 'rgb(0,0,0)') node.style.color = '';
+        }
+        const styleAttr = node.getAttribute('style');
+        if (styleAttr) {
+            const cleaned = styleAttr
+                .replace(/background(?:-color)?\s*:[^;]+;?/gi, '')
+                .replace(/color\s*:\s*(#000|#000000|black|rgb\(0,\s*0,\s*0\))\s*;?/gi, '')
+                .trim();
+            if (cleaned) node.setAttribute('style', cleaned);
+            else node.removeAttribute('style');
+        }
+    });
+    return wrap.innerHTML;
+}
+
     function getCurrentFormSnapshot() {
         const formData = new FormData(document.getElementById('inspectionForm'));
         const data = Object.fromEntries(formData.entries());
-        data.outside_comment_html = editorInstance ? editorInstance.getContents() : '';
+        data.outside_comment_html = editorInstance ? sanitizeOutsideHtml(editorInstance.getContents()) : '';
         return data;
     }
 
@@ -1526,7 +1567,7 @@ window.onload = function() {
                 }
             });
             if (editorInstance && data.outside_comment_html) {
-                editorInstance.setContents(data.outside_comment_html);
+                editorInstance.setContents(sanitizeOutsideHtml(data.outside_comment_html));
             }
             // 로드 후 수식 재계산
             calcS2_1();
@@ -1571,6 +1612,92 @@ async function saveAsExcel() {
     const isNumericLike = (v = '') => /^-?\d[\d,]*(\.\d+)?$/.test(String(v).trim());
     const toNum = (v = '') => Number(String(v || 0).replace(/,/g, '')) || 0;
     const getValue = (name) => document.getElementsByName(name)[0]?.value ?? '';
+
+
+    const storeType = document.getElementById('storeTypeSelect')?.value || '';
+    const htmlToText = (html = '') => {
+        const tmp = document.createElement('div');
+        tmp.innerHTML = sanitizeOutsideHtml(html || '');
+        return String(tmp.textContent || tmp.innerText || '').replace(/ /g, ' ').trim();
+    };
+
+    if (storeType === '외부활동(미점검)') {
+        const workbook = new ExcelJS.Workbook();
+        const storeNameRaw = document.getElementById('storeNameInput')?.value || '점포';
+        const dateRaw = document.getElementById('inspectionDate')?.value || '';
+        const dateForSheet = dateRaw ? dateRaw.replace(/-/g, '.') : '일자미상';
+        const safeSheetName = `${storeNameRaw}(${dateForSheet})`.replace(/[\/:*?\[\]]/g, '_').slice(0, 31);
+        const ws = workbook.addWorksheet(safeSheetName || '컨설팅리포트');
+
+        ws.columns = [
+            { header: '메인 섹션', width: 26 },
+            { header: '항목', width: 34 },
+            { header: '세부 항목', width: 36 },
+            { header: '값', width: 74 },
+        ];
+
+        const headerRow = ws.getRow(1);
+        headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+        headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
+        headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '0F6A3A' } };
+        headerRow.eachCell((c) => {
+            c.border = { top: {style:'thin'}, left:{style:'thin'}, right:{style:'thin'}, bottom:{style:'thin'} };
+        });
+
+        const step0 = [
+            ['Step 0. 담당 지점 및 SC', '기타 항목', '점검일자', getValue('inspection_date')],
+            ['Step 0. 담당 지점 및 SC', '기타 항목', '점검 점포', getValue('inspection_store_name')],
+            ['Step 0. 담당 지점 및 SC', '기타 항목', '점포 유형', getValue('store_type')],
+            ['Step 0. 담당 지점 및 SC', '기타 항목', '담당 지점', getValue('branch_name')],
+            ['Step 0. 담당 지점 및 SC', '기타 항목', '담당 SC', getValue('sc_name')],
+        ];
+
+        const step0Start = 2;
+        step0.forEach((r) => ws.addRow(r));
+        const step0End = ws.lastRow.number;
+        ws.mergeCells(`A${step0Start}:A${step0End}`);
+        ws.mergeCells(`B${step0Start}:B${step0End}`);
+        ws.getCell(`A${step0Start}`).alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+        ws.getCell(`B${step0Start}`).alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+
+        const outTitleRow = ws.addRow(['Out Step', '점포 컨설팅 미진행 특이사항', '상세 내용', '']);
+        outTitleRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+        ['A','B','C','D'].forEach(col => {
+            const cell = ws.getCell(`${col}${outTitleRow.number}`);
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '006D3B' } };
+            cell.alignment = { vertical: 'middle', horizontal: 'center' };
+            cell.border = { top: {style:'thin'}, left:{style:'thin'}, right:{style:'thin'}, bottom:{style:'thin'} };
+        });
+
+        const outText = htmlToText(editorInstance ? editorInstance.getContents() : getValue('outside_comment_html')) || '-';
+        const textRow = ws.addRow(['Out Step', '미점검 상세 코멘트', outText, '']);
+        ws.mergeCells(`C${textRow.number}:D${textRow.number}`);
+        ws.getCell(`C${textRow.number}`).alignment = { vertical: 'top', horizontal: 'left', wrapText: true };
+        ws.getCell(`A${textRow.number}`).alignment = { vertical: 'middle', horizontal: 'center' };
+        ws.getCell(`B${textRow.number}`).alignment = { vertical: 'middle', horizontal: 'center' };
+        ws.getCell(`C${textRow.number}`).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFBEA' } };
+        ws.getRow(textRow.number).height = 140;
+
+        ws.eachRow((row, rno) => {
+            if (rno < 2) return;
+            row.eachCell({ includeEmpty: true }, (cell) => {
+                if (!cell.border) cell.border = { top: {style:'thin'}, left:{style:'thin'}, right:{style:'thin'}, bottom:{style:'thin'} };
+            });
+        });
+
+        const buffer = await workbook.xlsx.writeBuffer();
+        const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const a = document.createElement('a');
+        const storeName = storeNameRaw || '점포';
+        const date = dateRaw || '일자미상';
+        a.href = URL.createObjectURL(blob);
+        a.download = `컨설팅리포트_${storeName}_${date}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+        return;
+    }
 
     const sanitizeValue = (name, value) => {
         const raw = String(value || '').trim();
@@ -2164,7 +2291,7 @@ function applyPrevConsulting(idx) {
         el.dispatchEvent(new Event('input'));
         el.dispatchEvent(new Event('change'));
     });
-    if (editorInstance && data.outside_comment_html) editorInstance.setContents(data.outside_comment_html);
+    if (editorInstance && data.outside_comment_html) editorInstance.setContents(sanitizeOutsideHtml(data.outside_comment_html));
     calcS2_1(); calcS2_2(); calcS4_1(); initAutoGrowTextareas();
     closePrevConsultingModal();
     alert('이전 컨설팅 데이터를 불러왔습니다.');
