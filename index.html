@@ -1614,6 +1614,93 @@ async function saveAsExcel() {
     const getValue = (name) => document.getElementsByName(name)[0]?.value ?? '';
 
 
+    const toDataUrl = (file) => new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+
+    const collectImageEntries = () => {
+        const entries = [];
+        const fileInputs = Array.from(document.querySelectorAll('#inspectionForm input[type="file"]'));
+        fileInputs.forEach((input) => {
+            const files = Array.from(input.files || []);
+            if (!files.length) return;
+            const step = clean(input.closest('.step-section')?.querySelector('.step-header')?.textContent || 'Out Step');
+            const item = clean(input.closest('.form-item')?.querySelector('.item-title')?.textContent || '이미지 항목');
+            files.forEach((file, idx) => {
+                entries.push({
+                    file,
+                    location: `${step} > ${item}`,
+                    field: clean(input.name || input.id || `이미지${idx + 1}`),
+                    filename: file.name || 'unnamed'
+                });
+            });
+        });
+        return entries;
+    };
+
+    const appendImageSheet = async (workbook, storeNameRaw, dateRaw) => {
+        const entries = collectImageEntries();
+        if (!entries.length) return;
+
+        const dateCompact = (dateRaw || '').replace(/-/g, '') || '일자미상';
+        const imageSheetName = `${storeNameRaw || '점포'}(${dateCompact}_이미지)`
+            .replace(/[\/:*?\[\]]/g, '_')
+            .slice(0, 31);
+        const wsImg = workbook.addWorksheet(imageSheetName || '이미지');
+
+        wsImg.columns = [
+            { header: '등록 위치', width: 56 },
+            { header: '필드명', width: 28 },
+            { header: '파일명', width: 46 },
+            { header: '이미지', width: 88 },
+        ];
+
+        const h = wsImg.getRow(1);
+        h.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+        h.alignment = { vertical: 'middle', horizontal: 'center' };
+        h.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '0F6A3A' } };
+        h.eachCell((c) => c.border = { top:{style:'thin'}, left:{style:'thin'}, right:{style:'thin'}, bottom:{style:'thin'} });
+
+        let row = 2;
+        for (const it of entries) {
+            wsImg.getCell(`A${row}`).value = it.location;
+            wsImg.getCell(`B${row}`).value = it.field;
+            wsImg.getCell(`C${row}`).value = it.filename;
+
+            const dataUrl = await toDataUrl(it.file);
+            const extMatch = String(it.file.type || '').match(/image\/(png|jpeg|jpg|gif|webp)/i);
+            const ext = extMatch ? (extMatch[1].toLowerCase() === 'jpg' ? 'jpeg' : extMatch[1].toLowerCase()) : 'png';
+            const imageId = workbook.addImage({ base64: dataUrl, extension: ext });
+
+            const img = new Image();
+            img.src = dataUrl;
+            await new Promise((res) => { img.onload = res; img.onerror = res; });
+            const natW = img.naturalWidth || 600;
+            const natH = img.naturalHeight || 400;
+            const maxW = 600;
+            const drawW = Math.min(maxW, natW);
+            const drawH = Math.max(120, Math.round(natH * (drawW / natW)));
+
+            wsImg.getRow(row).height = Math.max(90, Math.round(drawH * 0.75));
+            wsImg.addImage(imageId, {
+                tl: { col: 3.05, row: row - 0.85 },
+                ext: { width: drawW, height: drawH }
+            });
+
+            ['A','B','C','D'].forEach((col) => {
+                const cell = wsImg.getCell(`${col}${row}`);
+                cell.alignment = { vertical: 'top', horizontal: col === 'D' ? 'center' : 'left', wrapText: true };
+                cell.border = { top:{style:'thin'}, left:{style:'thin'}, right:{style:'thin'}, bottom:{style:'thin'} };
+            });
+
+            row += 1;
+        }
+    };
+
+
     const storeType = document.getElementById('storeTypeSelect')?.value || '';
     const htmlToText = (html = '') => {
         const tmp = document.createElement('div');
@@ -1685,7 +1772,8 @@ async function saveAsExcel() {
             });
         });
 
-        const buffer = await workbook.xlsx.writeBuffer();
+        await appendImageSheet(workbook, storeNameRaw, dateRaw);
+    const buffer = await workbook.xlsx.writeBuffer();
         const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
         const a = document.createElement('a');
         const storeName = storeNameRaw || '점포';
@@ -2012,6 +2100,7 @@ async function saveAsExcel() {
         ]]
     );
 
+    await appendImageSheet(workbook, storeNameRaw, dateRaw);
     const buffer = await workbook.xlsx.writeBuffer();
     const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     const a = document.createElement('a');
