@@ -9,6 +9,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/suneditor@latest/dist/css/suneditor.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/suneditor@latest/dist/suneditor.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 
     <style>
         /* 폰트 및 컬러 변수 정의 */
@@ -72,7 +73,6 @@
 
         .content-main { min-width: 0; }
 
-
         /* 헤더 스타일 */
         .header-logo {
             text-align: center;
@@ -119,7 +119,6 @@
             font-size: 0.95em;
             color: var(--brand-green);
         }
-
 
         .step-header label {
             color: var(--ink) !important;
@@ -415,32 +414,34 @@
             position: fixed;
             bottom: 20px;
             right: 20px;
-            display: flex;
-            flex-direction: row;
-            gap: 10px;
+            display: grid;
+            grid-template-columns: repeat(2, 98px);
+            gap: 8px;
             z-index: 1000;
         }
 
         .icon-btn {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
+            min-height: 44px;
+            border-radius: 10px;
             border: none;
             color: white;
-            font-size: 18px;
+            font-size: 14px;
             display: flex;
-            flex-direction: column;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start;
+            gap: 6px;
             cursor: pointer;
             box-shadow: 0 4px 10px rgba(0,0,0,0.2);
             transition: transform 0.2s;
             background-color: var(--brand-green);
             font-weight: 700;
             text-shadow: 0 1px 2px rgba(0,0,0,0.25);
+            padding: 6px 8px;
+            text-align: center;
         }
-        .icon-btn span { font-size: 9px; margin-top: 2px; font-weight: 800; letter-spacing: -0.2px; }
+        .icon-btn span { font-size: 11px; margin-top: 0; font-weight: 800; letter-spacing: -0.2px; line-height: 1.2; }
         .icon-btn:active { transform: scale(0.9); }
+
 
         #historyModal {
             display: none;
@@ -470,16 +471,31 @@
         }
         .modal-body { padding: 20px; max-height: 60vh; overflow-y: auto; font-size: 14px; }
         .history-card { background: #f8f9fa; padding: 12px; border-radius: 8px; border-left: 5px solid var(--brand-choco); }
-@media (max-width: 600px) {
-    .input-group-row { flex-direction: column; gap: 10px; }
-    .rating-wrapper { padding: 8px; }
-    .rating-item { font-size: 0.75em; }
-    .file-input-group { gap: 5px; }
-    .file-input-item { padding: 4px; }
-    .btn-group { bottom: 10px; right: 10px; gap: 8px; }
-    .icon-btn { width: 45px; height: 45px; font-size: 16px; }
-    .data-table { font-size: 0.75em; }
-    .right-step-float { display: none; }
+
+        @media (max-width: 600px) {
+            .input-group-row { flex-direction: column; gap: 10px; }
+            .rating-wrapper { padding: 8px; }
+            .rating-item { font-size: 0.75em; }
+            .file-input-group { gap: 5px; } 
+            .file-input-item { padding: 4px; }
+            .btn-group { bottom: 10px; right: 10px; grid-template-columns: repeat(2, 88px); gap: 6px; }
+            .icon-btn { min-height: 40px; font-size: 12px; padding: 5px 6px; }
+            .icon-btn span { font-size: 10px; }
+            .right-step-float { right: 8px; width: 100px; }
+            .data-table { font-size: 0.75em; }
+        }
+/* 섹션 숨김 상태 스타일 */
+.section-hidden .step-content {
+    display: none !important;
+}
+.section-hidden .step-header {
+    opacity: 0.65;
+}
+.section-hidden .step-header::after {
+    content: ' 〔숨김〕';
+    font-size: 0.85em;
+    opacity: 0.9;
+    font-weight: normal;
 }
 
 /* 공유/발송 모달 스타일 */
@@ -612,13 +628,13 @@
     .data-table, table, .step-section { width: 100% !important; }
     /* 섹션 및 폼 아이템 잘림 방지 */
     .step-section {
-        page-break-inside: avoid !important;
-        break-inside: avoid !important;
-        margin-bottom: 15px !important;
+        page-break-inside: auto !important;
+        break-inside: auto !important;
+        margin-bottom: 12px !important;
     }
     .form-item {
-        page-break-inside: avoid !important;
-        break-inside: avoid !important;
+        page-break-inside: auto !important;
+        break-inside: auto !important;
     }
     /* 불필요한 요소 제거 */
     .btn-group, .icon-btn, #historyModal, #shareModal, .suneditor .se-resizing-bar {
@@ -636,11 +652,8 @@
     .pdf-text-replacement, td, th, input {
         color: #000000 !important;
     }
-    /* --- PDF/인쇄: 헤더가 페이지 하단에 홀로 남지 않게(추가) --- */
-    .step-header { break-after: avoid !important; page-break-after: avoid !important; }
-
 }
-</style>
+    </style>
 </head>
 <body>
 
@@ -662,8 +675,7 @@
         <div style="font-size: 0.9em; opacity: 0.9; margin-top:5px;">점포 관리 컨설팅 리포트</div>
     </div>
 
-    <main class="content-main">
-        <form id="inspectionForm">
+    <form id="inspectionForm">
 
         <div class="step-section">
             <div class="step-header">Step 0. 담당 지점 및 SC</div>
@@ -710,7 +722,6 @@
 
                 <div id="outsideArea" class="hidden-area" style="border: 2px solid var(--brand-red); margin-top:20px;">
                     <label class="item-title" style="color:var(--brand-red)">Out Step. 점포 컨설팅 미진행으로 인한 SC 업무간 특이사항 작성(상세)</label>
-                    <div class="sub-desc" style="display:block; margin-bottom:8px;">※ 외부활동(미점검) 텍스트 박스 기본 높이를 기존 대비 2배로 설정</div>
                     <div id="outsideEditor"></div>
                     <input type="hidden" name="outside_comment_html" id="outsideCommentHtml">
                 </div>
@@ -834,7 +845,6 @@
 
                     <div class="form-item">
                         <label class="item-title">3. 도넛 품절, 폐기 및 배달실적</label>
-                        <div class="sub-desc" style="display:block; margin-bottom:10px;">■ 핵심 지표만 유지 (OG/어쏘티드1/배달품절/폐기율)</div>
                         <table class="data-table">
                             <thead>
                                 <tr>
@@ -925,14 +935,14 @@
     </thead>
     <tbody>
         <tr>
-            <td>전년</td>
+            <td>동일형태점포</td>
             <td><input type="text" name="s4_1_last_cost" class="comma-input" oninput="calcS4_1()"></td>
             <td rowspan="2" id="s4_1_cost_diff" class="bg-gray">0<br>(0%)</td>
             <td><input type="text" name="s4_1_last_time" class="comma-input" oninput="calcS4_1()"></td>
             <td rowspan="2" id="s4_1_time_diff" class="bg-gray">0<br>(0%)</td>
         </tr>
         <tr>
-            <td>금년</td>
+            <td>컨설팅점포</td>
             <td><input type="text" name="s4_1_curr_cost" class="comma-input" oninput="calcS4_1()"></td>
             <td><input type="text" name="s4_1_curr_time" class="comma-input" oninput="calcS4_1()"></td>
         </tr>
@@ -957,7 +967,6 @@
                                 </div>
                                 <div class="file-upload-box">
                                     <div class="file-input-group">
-                                        <div class="file-input-item"><span>카메라 실행:</span><input type="file" name="file_interview_cam" accept="image/*" capture="camera"></div>
                                         <div class="file-input-item"><span>파일 선택:</span><input type="file" name="file_interview_file" accept="image/*"></div>
                                     </div>
                                 </div>
@@ -966,19 +975,8 @@
                         </div>
                         <div class="form-item"><label class="item-title">3. 직영,가맹 업무간 특이사항 작성</label><textarea name="s4_3_special_comment"></textarea></div>
                         <div class="form-item" id="step4_4_area">
-    <label class="item-title" id="title_s4_4">4. Store통합관리팀 점검 지적사항 관련 (정직원, 가맹점주에게 개선 여부만 확인)</label>
-    
-    <div class="checkbox-wrapper">
-        <input type="checkbox" id="improvement_check" name="s4_improvement_yn">
-        <label for="improvement_check">지적사항 개선 확인 완료</label>
-    </div>
-
-    <textarea name="s4_4_comment" style="height:120px;" 
-        placeholder="[대표 지적사항 예시]&#10;1. 유통기한 고지물 및 라벨 관리 상태&#10;2. 튀김기 및 배기 후드 청결도&#10;3. 원재료 보관 온도 및 선입선출 이행&#10;4. 법정 필수 서류(보건증 등) 비치 여부&#10;5. 개인 위생 용품 착용 및 관리 실태"></textarea>
-</div>
-                       <div class="form-item" id="step4_5_area">
-    <label class="item-title" id="title_s4_5">5. 점포 컨설팅 결과에 따른 솔루션 전달(최종 권고안)</label>
-    <textarea name="s4_5_solution_final" placeholder="최종 권고안 및 솔루션 내용 입력"></textarea>
+    <label class="item-title" id="title_s4_4">4. 점포 컨설팅 결과에 따른 솔루션 전달(최종 권고안)</label>
+    <textarea name="s4_4_solution_final" placeholder="최종 권고안 및 솔루션 내용 입력"></textarea>
 </div>
                     </div>
                 </div>
@@ -1004,7 +1002,6 @@
                             <label class="item-title">2. 제조출고 영업점 기기 상태 및 수리 확인</label>
                             <div class="file-upload-box">
                                 <div class="file-input-group">
-                                    <div class="file-input-item"><span>카메라 실행:</span><input type="file" name="file_s5_machine_cam" accept="image/*" capture="camera"></div>
                                     <div class="file-input-item"><span>파일 선택:</span><input type="file" name="file_s5_machine_file" accept="image/*"></div>
                                 </div>
                             </div>
@@ -1023,9 +1020,7 @@
                 </div>
             </div>
         </div>
-        </form>
-    </main>
-</div>
+    </form>
 <!-- 공유/발송 모달 -->
 <div id="shareModal">
     <div class="share-modal-content">
@@ -1035,7 +1030,7 @@
         </div>
         <div class="share-modal-body">
             <label>받는 사람 (이메일)</label>
-            <input type="email" id="shareEmail" placeholder="회사메일 아이디 또는 전체 주소 (lotte.net)">
+            <input type="email" id="shareEmail" placeholder="이메일 주소 입력 (선택)">
 
             <label>제목</label>
             <input type="text" id="shareSubject" placeholder="메일 제목">
@@ -1044,7 +1039,7 @@
             <textarea id="shareMessage" style="height:80px;" placeholder="추가 메시지 입력 (선택)"></textarea>
 
             <label>📎 파일 첨부</label>
-            <div class="attach-hint">💡 lotte.net 회사메일 기준 Outlook 365 웹작성 화면으로 연결됩니다. 첨부 파일은 자동 다운로드 후 메일에 첨부하세요.</div>
+            <div class="attach-hint">💡 첨부 파일을 선택하면 자동 다운로드 후 메일 앱에서 첨부하세요.</div>
             <input type="file" id="shareAttachFiles" multiple accept="*/*" style="margin-bottom:14px;">
 
             <div style="font-size:0.8em; font-weight:bold; color:var(--brand-choco); margin-bottom:6px;">📬 메일 발송 방법 선택</div>
@@ -1079,27 +1074,31 @@
 
 <div class="btn-group">
     <button type="button" class="icon-btn" id="btnSaveTemp" onclick="saveTempData()">
-        💾<span>중간저장</span>
+        🗂️<span>데이터저장</span>
     </button>
     <button type="button" class="icon-btn" id="btnPdf" onclick="saveAsPDF()">
-        📄<span>PDF저장</span>
+        🧾<span>PDF저장</span>
+    </button>
+    <button type="button" class="icon-btn" id="btnExcel" onclick="saveAsExcel()">
+        📈<span>엑셀저장</span>
     </button>
     <button type="button" class="icon-btn" id="btnShare" onclick="openShareModal()">
-        📤<span>공유/발송</span>
+        📨<span>공유/발송</span>
     </button>
     <button type="button" class="icon-btn" id="btnLoadPrev" onclick="openPrevConsultingModal()">
         🕘<span>이전불러오기</span>
     </button>
     <button type="button" class="icon-btn" id="btnFillData" onclick="fillTestData()">
-        🧪<span>데이터입력</span>
+        🧪<span>테스트입력</span>
     </button>
     <button type="button" class="icon-btn btn-reset" id="btnReset" onclick="resetForm()">
-        🗑️<span>초기화</span>
+        ♻️<span>초기화</span>
     </button>
 </div>
 
 <div id="rightStepFloat" class="right-step-float" aria-label="스텝 바로가기"></div>
  <script>
+
 function toggleStoreMode() {
     const val = document.getElementById("storeTypeSelect").value;
     const mainSteps = document.getElementById("mainSteps");
@@ -1108,6 +1107,7 @@ function toggleStoreMode() {
     const btnSaveTemp = document.getElementById('btnSaveTemp');
     const btnPdf = document.getElementById('btnPdf');
     const btnShare = document.getElementById('btnShare');
+    const btnExcel = document.getElementById('btnExcel');
     const btnFillData = document.getElementById('btnFillData');
     const btnLoadPrev = document.getElementById('btnLoadPrev');
     const btnReset = document.getElementById('btnReset');
@@ -1119,7 +1119,6 @@ function toggleStoreMode() {
     // 제목 요소 참조
     const titleS25 = document.getElementById("title_s2_5");
     const titleS44 = document.getElementById("title_s4_4");
-    const titleS45 = document.getElementById("title_s4_5");
 
     // 1. 기본 초기화 (모두 보임 상태로 시작)
     mainSteps.style.display = "block";
@@ -1135,6 +1134,7 @@ function toggleStoreMode() {
         if (btnFillData) btnFillData.style.display = "none";
         if (btnLoadPrev) btnLoadPrev.style.display = "none";
         if (btnPdf) btnPdf.style.display = "flex";
+        if (btnExcel) btnExcel.style.display = "flex";
         if (btnShare) btnShare.style.display = "flex";
         if (btnReset) btnReset.style.display = "flex";
         if (editorInstance) editorInstance.refresh();
@@ -1144,30 +1144,31 @@ function toggleStoreMode() {
         if (btnFillData) btnFillData.style.display = "flex";
         if (btnLoadPrev) btnLoadPrev.style.display = "flex";
         if (btnPdf) btnPdf.style.display = "flex";
+        if (btnExcel) btnExcel.style.display = "flex";
         if (btnShare) btnShare.style.display = "flex";
         if (btnReset) btnReset.style.display = "flex";
         if (step3) step3.style.display = "none";
         if (step5) step5.style.display = "none";
         if (titleS25) titleS25.innerText = "5. 가맹점 도넛 수불 및 정량 정시 현황";
-        if (titleS44) titleS44.innerText = "4. 가맹점 스토어담당 지적 개선 여부 확인";
-        if (titleS45) titleS45.innerText = "5. 가맹점 최종 솔루션 및 권고안";
+        if (titleS44) titleS44.innerText = "4. 가맹점 최종 솔루션 및 권고안";
     } 
     else if (val === "영업점") {
         if (btnSaveTemp) btnSaveTemp.style.display = "flex";
         if (btnFillData) btnFillData.style.display = "flex";
         if (btnLoadPrev) btnLoadPrev.style.display = "flex";
         if (btnPdf) btnPdf.style.display = "flex";
+        if (btnExcel) btnExcel.style.display = "flex";
         if (btnShare) btnShare.style.display = "flex";
         if (btnReset) btnReset.style.display = "flex";
         if (step5) step5.style.display = "none";
         if (titleS25) titleS25.innerText = "5. 단체주문(CR 활동)";
-        if (titleS44) titleS44.innerText = "4. Store통합관리팀 점검 지적사항 관련";
-        if (titleS45) titleS45.innerText = "5. 점포 컨설팅 결과에 따른 솔루션 전달(최종 권고안)";
+        if (titleS44) titleS44.innerText = "4. 점포 컨설팅 결과에 따른 솔루션 전달(최종 권고안)";
     } else {
         if (btnSaveTemp) btnSaveTemp.style.display = "flex";
         if (btnFillData) btnFillData.style.display = "flex";
         if (btnLoadPrev) btnLoadPrev.style.display = "flex";
         if (btnPdf) btnPdf.style.display = "flex";
+        if (btnExcel) btnExcel.style.display = "flex";
         if (btnShare) btnShare.style.display = "flex";
         if (btnReset) btnReset.style.display = "flex";
     }
@@ -1282,6 +1283,100 @@ function toggleStoreMode() {
     let editorInstance;
     const scList = { "중부1지점": ["정지성 SC", "강미옥 SC"], "중부2지점": ["장문근 SC", "이종현 SC"], "서부지점": ["송정훈 SC", "강인구 SC"], "동부지점": ["성동연 SC", "채성우 SC"] };
 
+const GOOGLE_SHEET_WEBAPP_URL = ""; // TODO: Google Apps Script Web App URL 입력
+
+function getLatestConsultingSummary(payload = {}) {
+    return {
+        marketChange: payload.s1_6_comment || '',
+        donutWaste: payload.s2_3_comment || '',
+        promotion: payload.s2_4_comment || '',
+        profit: payload.s3_2_comment || '',
+        labor: payload.s4_1_comment || '',
+        solution: payload.s4_4_solution_final || ''
+    };
+}
+
+async function saveToGoogleSheet(data) {
+    if (!GOOGLE_SHEET_WEBAPP_URL) return;
+    try {
+        await fetch(GOOGLE_SHEET_WEBAPP_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'save_report', data })
+        });
+    } catch (err) {
+        console.warn('Google Sheet 저장 실패:', err);
+    }
+}
+
+async function fetchLatestFromGoogleSheet(storeName) {
+    if (!GOOGLE_SHEET_WEBAPP_URL || !storeName) return null;
+    try {
+        const url = `${GOOGLE_SHEET_WEBAPP_URL}?action=latest_by_store&store_name=${encodeURIComponent(storeName)}`;
+        const res = await fetch(url);
+        if (!res.ok) return null;
+        return await res.json();
+    } catch {
+        return null;
+    }
+}
+
+function renderLatestConsultingPopup(item) {
+    const listEl = document.getElementById('prevConsultingList');
+    const payload = item?.payload || {};
+    const s = getLatestConsultingSummary(payload);
+    listEl.innerHTML = `
+        <div style="border:1px solid #ddd; border-radius:10px; padding:12px; background:#fff;">
+            <div><strong>${item.inspection_date || '-'}</strong> / ${item.store_name || ''} / ${item.sc_name || ''}</div>
+            <hr style="margin:10px 0; border:none; border-top:1px solid #eee;" />
+            <div><b>점포상권 변화</b><br>${(s.marketChange || '-').substring(0,160)}</div>
+            <div><b>도넛 품절/폐기</b><br>${(s.donutWaste || '-').substring(0,160)}</div>
+            <div><b>판촉운영</b><br>${(s.promotion || '-').substring(0,160)}</div>
+            <div><b>손익 관련</b><br>${(s.profit || '-').substring(0,160)}</div>
+            <div><b>인건비 적정성</b><br>${(s.labor || '-').substring(0,160)}</div>
+            <div><b>최종 솔루션</b><br>${(s.solution || '-').substring(0,180)}</div>
+            <div class="share-btn-row" style="margin-top:10px;">
+              <button type="button" class="btn-share-email" style="background:#2d7a2d;" onclick="applyLatestConsultingFromPopup()">이 내용 불러오기</button>
+              <button type="button" class="btn-share-cancel" onclick="closePrevConsultingModal()">닫기</button>
+            </div>
+        </div>`;
+    window.__latestConsultingItem = item;
+    document.getElementById('prevConsultingModal').classList.add('open');
+}
+
+function applyLatestConsultingFromPopup() {
+    const item = window.__latestConsultingItem;
+    if (!item || !item.payload) return;
+    const data = item.payload;
+    Object.keys(data).forEach((key) => {
+        const el = document.getElementsByName(key)[0];
+        if (!el) return;
+        if (el.type === 'checkbox') el.checked = data[key] === 'on' || data[key] === true;
+        else el.value = data[key];
+        el.dispatchEvent(new Event('input'));
+        el.dispatchEvent(new Event('change'));
+    });
+    if (editorInstance && data.outside_comment_html) editorInstance.setContents(data.outside_comment_html);
+    calcS2_1(); calcS2_2(); calcS4_1(); initAutoGrowTextareas();
+    closePrevConsultingModal();
+}
+
+async function openLatestConsultingByStore() {
+    const storeName = document.getElementById('storeNameInput')?.value?.trim();
+    if (!storeName) return;
+    const history = JSON.parse(localStorage.getItem('consulting_history') || '[]');
+    const local = history
+        .filter(item => item.store_name === storeName)
+        .sort((a,b)=>(b.inspection_date||'').localeCompare(a.inspection_date||''))[0];
+    if (local) {
+        renderLatestConsultingPopup(local);
+        return;
+    }
+    const remote = await fetchLatestFromGoogleSheet(storeName);
+    if (remote && remote.payload) renderLatestConsultingPopup(remote);
+}
+
 
     function autoGrowTextarea(el) {
         if (!el) return;
@@ -1344,15 +1439,15 @@ window.onload = function() {
             editorInstance = SUNEDITOR.create('outsideEditor', {
                 buttonList: [['undo', 'redo', 'removeFormat'], ['font', 'fontSize', 'formatBlock'], ['bold', 'underline', 'italic', 'strike', 'subscript', 'superscript'], ['fontColor', 'hiliteColor'], ['align', 'list', 'lineHeight'], ['table', 'link', 'image', 'video'], ['fullScreen', 'showBlocks', 'codeView']],
                 width: '100%',
-                height: '760px',
-                minHeight: '640px',
+                height: '380px',
+                minHeight: '320px',
                 resizingBar: true,
                 imageUploadSizeLimit: 5242880
             });
         }
-
-        buildRightStepFloat();
         
+        buildRightStepFloat();
+
         // 실시간 콤마 적용 이벤트
         document.addEventListener('input', function(e) {
             if (e.target.classList.contains('comma-input')) {
@@ -1373,6 +1468,8 @@ window.onload = function() {
                 });
             }
         });
+
+        document.getElementById("storeNameInput").addEventListener("change", openLatestConsultingByStore);
 
         // 직원 면담 체크박스 연동 (정상화)
         document.getElementById("interview_check").addEventListener("change", function() {
@@ -1405,7 +1502,8 @@ window.onload = function() {
         const data = getCurrentFormSnapshot();
         localStorage.setItem('temp_report_data', JSON.stringify(data));
         saveConsultingHistory(data);
-        alert("중간 저장되었습니다.");
+        saveToGoogleSheet(data);
+        alert("데이터 저장되었습니다.");
     }
 
     function loadTempData() {
@@ -1454,6 +1552,349 @@ function previewImage(input, previewId) {
     }
 }
 
+
+async function saveAsExcel() {
+    if (typeof ExcelJS === 'undefined') {
+        alert('엑셀 내보내기 모듈을 불러오지 못했습니다. 네트워크 상태를 확인해 주세요.');
+        return;
+    }
+
+    const form = document.getElementById('inspectionForm');
+    const controls = Array.from(form.querySelectorAll('input, select, textarea'));
+    const radioHandled = new Set();
+
+    const clean = (v = '') => String(v).replace(/\s+/g, ' ').trim();
+    const isNumericLike = (v = '') => /^-?\d[\d,]*(\.\d+)?$/.test(String(v).trim());
+    const toNum = (v = '') => Number(String(v || 0).replace(/,/g, '')) || 0;
+    const getValue = (name) => document.getElementsByName(name)[0]?.value ?? '';
+
+    const sanitizeValue = (name, value) => {
+        const raw = String(value || '').trim();
+        if (!raw) return '';
+        if (raw.includes('for(let') || raw.includes('document.write')) {
+            const times = raw.match(/(미발생|\d{1,2}:00)/g);
+            if (times && times.length) return times[0];
+            return raw.split('for(let')[0].trim();
+        }
+        return raw;
+    };
+
+    const getStepLabel = (el) => clean(el.closest('.step-section')?.querySelector('.step-header')?.textContent || '공통');
+    const getItemTitle = (el) => clean(el.closest('.form-item')?.querySelector('.item-title')?.textContent || '기타 항목');
+    const getDetail = (el) => {
+        const name = el.name || el.id || '';
+        if (/^s3_acc_type_\d+$/.test(name)) return '계정과목';
+
+        const explicitLabel = el.closest('.input-box')?.querySelector('label')?.textContent;
+        if (explicitLabel) return clean(explicitLabel);
+        if (el.type === 'checkbox') {
+            const lbl = document.querySelector(`label[for="${el.id}"]`)?.textContent;
+            if (lbl) return clean(lbl);
+        }
+        const td = el.closest('td');
+        const tr = el.closest('tr');
+        const table = el.closest('table');
+        if (td && tr && table) {
+            const rowLabel = clean(tr.cells?.[0]?.textContent || '');
+            const colLabel = clean(table.querySelectorAll('thead th')?.[td.cellIndex]?.textContent || '');
+            const combined = clean([rowLabel, colLabel].filter(Boolean).join(' / '));
+            if (combined) return combined;
+        }
+        return clean(name || '값');
+    };
+
+    const shouldSkipLeft = (name) => {
+        if (!name) return true;
+        if (/^s2_1_/.test(name)) return true;
+        if (/^s2_2_[lc]_\d+$/.test(name)) return true;
+        if (/^s4_1_(last|curr)_(cost|time)$/.test(name)) return true;
+        if (/^s2_4_(promo|val|per)\d+$/.test(name)) return true;
+        if (['s2_3_og_time','as_t1','s2_3_del_time','s2_3_waste_rate'].includes(name)) return true;
+        if (/^s3_(last|curr|res)_\d+$/.test(name)) return true;
+        return false;
+    };
+
+    const rows = [];
+    let firstAccountType = '';
+
+    controls.forEach((el) => {
+        const name = el.name || el.id;
+        if (!name || el.type === 'file' || el.classList.contains('section-hide-toggle')) return;
+
+        if (/^s3_acc_type_\d+$/.test(name) && !firstAccountType) {
+            const av = sanitizeValue(name, el.value);
+            if (av) firstAccountType = av;
+        }
+
+        if (shouldSkipLeft(name)) return;
+
+        const step = getStepLabel(el);
+        const item = getItemTitle(el);
+        const detail = getDetail(el);
+
+        if (el.type === 'radio') {
+            if (radioHandled.has(name)) return;
+            radioHandled.add(name);
+            const checked = form.querySelector(`input[type="radio"][name="${name}"]:checked`);
+            rows.push({ step, item, detail, value: sanitizeValue(name, checked ? checked.value : ''), kind: 'text' });
+            return;
+        }
+
+        if (el.type === 'checkbox') {
+            rows.push({ step, item, detail, value: el.checked ? '예' : '아니오', kind: 'text' });
+            return;
+        }
+
+        const value = sanitizeValue(name, el.value || '');
+        const isTextBlock = el.tagName === 'TEXTAREA' || value.length > 70;
+        rows.push({ step, item, detail, value, kind: isTextBlock ? 'memo' : (isNumericLike(value) ? 'number' : 'text') });
+    });
+
+    if (firstAccountType) {
+        rows.push({
+            step: 'Step 3. 손익 관련',
+            item: '1. 계정과목별 분석 (최근 확인된 점포 손익계산서 기준)',
+            detail: '계정과목',
+            value: firstAccountType,
+            kind: 'text'
+        });
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    workbook.creator = 'SMC Report';
+    const storeNameRaw = document.getElementById('storeNameInput')?.value || '점포';
+    const dateRaw = document.getElementById('inspectionDate')?.value || '';
+    const dateForSheet = dateRaw ? dateRaw.replace(/-/g, '.') : '일자미상';
+    const safeSheetName = `${storeNameRaw}(${dateForSheet})`.replace(/[\/:*?\[\]]/g, '_').slice(0, 31);
+    const ws = workbook.addWorksheet(safeSheetName || '컨설팅리포트');
+
+    ws.columns = [
+        { header: '메인 섹션', key: 'step', width: 28 },
+        { header: '항목', key: 'item', width: 34 },
+        { header: '세부 항목', key: 'detail', width: 40 },
+        { header: '값', key: 'value', width: 58 },
+        { key: 'spacer', width: 2 },
+        { key: 'r1', width: 18 },
+        { key: 'r2', width: 18 },
+        { key: 'r3', width: 18 },
+        { key: 'r4', width: 18 },
+        { key: 'r5', width: 18 },
+        { key: 'r6', width: 18 },
+    ];
+
+    const headerRow = ws.getRow(1);
+    ['A1','B1','C1','D1'].forEach((a) => {
+        const c = ws.getCell(a);
+        c.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+        c.alignment = { vertical: 'middle', horizontal: 'center' };
+        c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '0F6A3A' } };
+        c.border = { top: {style:'thin'}, left:{style:'thin'}, right:{style:'thin'}, bottom:{style:'thin'} };
+    });
+
+    const grouped = {};
+    rows.forEach((r) => {
+        if (!grouped[r.step]) grouped[r.step] = [];
+        grouped[r.step].push(r);
+    });
+
+    let rIdx = 2;
+    Object.entries(grouped).forEach(([step, items]) => {
+        const stepStart = rIdx;
+        let i = 0;
+        while (i < items.length) {
+            const itemGroup = [items[i]];
+            while (i + itemGroup.length < items.length && items[i + itemGroup.length].item === items[i].item) {
+                itemGroup.push(items[i + itemGroup.length]);
+            }
+            const itemStart = rIdx;
+
+            itemGroup.forEach((row) => {
+                ws.getCell(`A${rIdx}`).value = step;
+                ws.getCell(`B${rIdx}`).value = row.item;
+
+                if (row.kind === 'memo') {
+                    ws.getCell(`C${rIdx}`).value = row.value || '-';
+                    ws.mergeCells(`C${rIdx}:D${rIdx}`);
+                    ws.getCell(`C${rIdx}`).alignment = { vertical: 'top', horizontal: 'left', wrapText: true };
+                    ws.getCell(`C${rIdx}`).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFBEA' } };
+                } else {
+                    ws.getCell(`C${rIdx}`).value = row.detail;
+                    if (row.kind === 'number' && row.value !== '') {
+                        ws.getCell(`D${rIdx}`).value = toNum(row.value);
+                        ws.getCell(`D${rIdx}`).numFmt = '#,##0';
+                        ws.getCell(`D${rIdx}`).alignment = { vertical: 'middle', horizontal: 'right' };
+                    } else {
+                        ws.getCell(`D${rIdx}`).value = row.value;
+                        ws.getCell(`D${rIdx}`).alignment = { vertical: 'middle', horizontal: 'left', wrapText: true };
+                    }
+                }
+                ['A','B','C','D'].forEach(col => {
+                    const cell = ws.getCell(`${col}${rIdx}`);
+                    if (!cell.border) cell.border = { top:{style:'thin'}, left:{style:'thin'}, right:{style:'thin'}, bottom:{style:'thin'} };
+                });
+                rIdx++;
+            });
+
+            if (rIdx - 1 > itemStart) ws.mergeCells(`B${itemStart}:B${rIdx - 1}`);
+            ws.getCell(`B${itemStart}`).alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+            i += itemGroup.length;
+        }
+
+        if (rIdx - 1 > stepStart) ws.mergeCells(`A${stepStart}:A${rIdx - 1}`);
+        ws.getCell(`A${stepStart}`).alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+        const blank = ws.getRow(rIdx++);
+        blank.height = 8;
+    });
+
+    const rightStartCol = 6; // F
+    const rightHeaderFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '006D3B' } };
+    const rightSubFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'EAF4EE' } };
+
+    const setBorder = (r1, c1, r2, c2) => {
+        for (let r = r1; r <= r2; r++) {
+            for (let c = c1; c <= c2; c++) {
+                ws.getCell(r, c).border = { top:{style:'thin'}, left:{style:'thin'}, right:{style:'thin'}, bottom:{style:'thin'} };
+            }
+        }
+    };
+
+    const addTable = (startRow, title, headers, dataRows, opts = {}) => {
+        const c0 = rightStartCol;
+        const cEnd = c0 + headers.length - 1;
+
+        ws.mergeCells(startRow, c0, startRow, cEnd);
+        ws.getCell(startRow, c0).value = title;
+        ws.getCell(startRow, c0).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+        ws.getCell(startRow, c0).fill = rightHeaderFill;
+        ws.getCell(startRow, c0).alignment = { vertical: 'middle', horizontal: 'center' };
+
+        headers.forEach((h, i) => {
+            const cell = ws.getCell(startRow + 1, c0 + i);
+            cell.value = h;
+            cell.font = { bold: true };
+            cell.fill = rightSubFill;
+            cell.alignment = { vertical: 'middle', horizontal: 'center' };
+        });
+
+        dataRows.forEach((row, idx) => {
+            const rr = startRow + 2 + idx;
+            row.forEach((v, i) => {
+                const cell = ws.getCell(rr, c0 + i);
+                if (v && typeof v === 'object' && v.formula) {
+                    cell.value = { formula: v.formula, result: v.result ?? null };
+                } else {
+                    cell.value = v;
+                }
+                if (typeof v === 'number') {
+                    cell.numFmt = '#,##0';
+                    cell.alignment = { vertical: 'middle', horizontal: i === 0 ? 'center' : 'right' };
+                } else {
+                    cell.alignment = { vertical: 'middle', horizontal: i === 0 ? 'center' : 'left', wrapText: true };
+                }
+            });
+        });
+
+        const endRow = startRow + 1 + dataRows.length;
+        setBorder(startRow, c0, endRow, cEnd);
+        if (opts.numberCols) {
+            opts.numberCols.forEach((colIdx) => {
+                for (let rr = startRow + 2; rr <= endRow; rr++) {
+                    ws.getCell(rr, c0 + colIdx).numFmt = '#,##0';
+                    ws.getCell(rr, c0 + colIdx).alignment = { vertical: 'middle', horizontal: 'right' };
+                }
+            });
+        }
+        return endRow + 2;
+    };
+
+    let tRow = 2;
+
+    const lastTotal = toNum(getValue('s2_1_last_total'));
+    const currTotal = toNum(getValue('s2_1_curr_total'));
+    const lastExt = toNum(getValue('s2_1_last_ext'));
+    const currExt = toNum(getValue('s2_1_curr_ext'));
+    const lastDel = toNum(getValue('s2_1_last_del'));
+    const currDel = toNum(getValue('s2_1_curr_del'));
+    const lastGrp = toNum(getValue('s2_1_last_grp'));
+    const currGrp = toNum(getValue('s2_1_curr_grp'));
+
+    tRow = addTable(tRow, '전년/금년 비교표 - 1. 매출 실적 분석',
+        ['구분','매출','외부채널','배달','단체','증감','증감율'],
+        [
+            ['전년', lastTotal, lastExt, lastDel, lastGrp, '', ''],
+            ['금년', currTotal, currExt, currDel, currGrp, '', ''],
+            ['증감', {formula:`G${tRow+3}-G${tRow+2}`}, {formula:`H${tRow+3}-H${tRow+2}`}, {formula:`I${tRow+3}-I${tRow+2}`}, {formula:`J${tRow+3}-J${tRow+2}`}, {formula:`G${tRow+3}-G${tRow+2}`}, {formula:`IF(G${tRow+2}=0,0,(G${tRow+3}-G${tRow+2})/G${tRow+2})`}],
+        ],
+        { numberCols:[1,2,3,4,5], percentCols:[6] }
+    );
+    ws.getCell(`L${tRow-1}`).numFmt = '0.0%';
+
+    const cats = [
+        ['싱글','s2_2_l_1','s2_2_c_1'],['더즌','s2_2_l_2','s2_2_c_2'],['커피','s2_2_l_3','s2_2_c_3'],['프로즌','s2_2_l_4','s2_2_c_4'],
+        ['기타음료','s2_2_l_5','s2_2_c_5'],['베이크드','s2_2_l_6','s2_2_c_6'],['판매용품','s2_2_l_7','s2_2_c_7'],['기타','s2_2_l_8','s2_2_c_8']
+    ];
+    const blockRows = cats.map(([nm,l,c]) => {
+        const lv = toNum(getValue(l));
+        const cv = toNum(getValue(c));
+        return [nm, lv, cv, cv-lv, lv ? (cv-lv)/lv : 0];
+    });
+    const sumLast = blockRows.reduce((a,r)=>a+r[1],0);
+    const sumCurr = blockRows.reduce((a,r)=>a+r[2],0);
+    blockRows.push(['합계', sumLast, sumCurr, sumCurr-sumLast, sumLast ? (sumCurr-sumLast)/sumLast : 0]);
+    tRow = addTable(tRow, '전년/금년 비교표 - 2. 블럭별 매출 분석', ['항목','전년','금년','증감','증감율'], blockRows, { numberCols:[1,2,3] });
+    for (let rr=tRow-2-blockRows.length+1; rr<=tRow-2; rr++) ws.getCell(rr, rightStartCol+4).numFmt='0.0%';
+
+    const lc = toNum(getValue('s4_1_last_cost')), cc = toNum(getValue('s4_1_curr_cost'));
+    const lt = toNum(getValue('s4_1_last_time')), ct = toNum(getValue('s4_1_curr_time'));
+    tRow = addTable(tRow, '동일형태점포/컨설팅점포 비교표 - 4. 인력 운영 적정성',
+        ['구분','메이트 인건비(천원)','사용 시간(H)','증감','증감율'],
+        [
+            ['동일형태점포', lc, lt, '', ''],
+            ['컨설팅점포', cc, ct, '', ''],
+            ['증감(인건비)', cc-lc, '', cc-lc, lc ? (cc-lc)/lc : 0],
+            ['증감(시간)', '', ct-lt, ct-lt, lt ? (ct-lt)/lt : 0],
+        ],
+        { numberCols:[1,2,3] }
+    );
+    for (let rr=tRow-4; rr<=tRow-2; rr++) ws.getCell(rr, rightStartCol+4).numFmt='0.0%';
+
+    const p1 = toNum(getValue('s2_4_val1')), p2 = toNum(getValue('s2_4_val2'));
+    const per1 = toNum(getValue('s2_4_per1')), per2 = toNum(getValue('s2_4_per2'));
+    tRow = addTable(tRow, '점포 판촉운영 데이터',
+        ['항목','매출(천원)','비율(%)','증감','증감율'],
+        [
+            [clean(getValue('s2_4_promo1') || '판촉1'), p1, per1, '', ''],
+            [clean(getValue('s2_4_promo2') || '판촉2'), p2, per2, p2-p1, p1 ? (p2-p1)/p1 : 0],
+            ['합계', p1+p2, (per1+per2), '', ''],
+        ],
+        { numberCols:[1,2,3] }
+    );
+    for (let rr=tRow-3; rr<=tRow-2; rr++) ws.getCell(rr, rightStartCol+4).numFmt='0.0%';
+
+    tRow = addTable(tRow, '도넛 품절/폐기 핵심지표',
+        ['OG 품절','어쏘티드 품절1','배달 품절 시간','폐기율(%)'],
+        [[
+            sanitizeValue('s2_3_og_time', getValue('s2_3_og_time')),
+            sanitizeValue('as_t1', getValue('as_t1')),
+            sanitizeValue('s2_3_del_time', getValue('s2_3_del_time')),
+            sanitizeValue('s2_3_waste_rate', getValue('s2_3_waste_rate'))
+        ]]
+    );
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const a = document.createElement('a');
+    const storeName = storeNameRaw || '점포';
+    const date = dateRaw || '일자미상';
+    a.href = URL.createObjectURL(blob);
+    a.download = `컨설팅리포트_${storeName}_${date}.xlsx`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+
     function resetForm() { if(confirm("초기화 하시겠습니까?")) { localStorage.removeItem('temp_report_data'); location.reload(); } }
 async function saveAsPDF() {
     const container = document.querySelector('.container');
@@ -1461,7 +1902,6 @@ async function saveAsPDF() {
     const body = document.body;
     const sections = document.querySelectorAll('.step-section, #outsideArea');
 
-    // 숨김 처리된 섹션에 no-print 적용
     sections.forEach(section => {
         if (section.classList.contains('section-hidden')) {
             section.classList.add('no-print');
@@ -1470,7 +1910,6 @@ async function saveAsPDF() {
         }
     });
 
-    // PDF 준비: 배경 크림색 제거, 여백 제거
     const origBodyBg = body.style.background;
     const origBodyPad = body.style.padding;
     const origContainerMaxW = container.style.maxWidth;
@@ -1482,7 +1921,6 @@ async function saveAsPDF() {
 
     if (btnGroup) btnGroup.style.display = 'none';
 
-    // textarea → div 교체 (내용 잘림 방지)
     const replacements = [];
     const activeTextareas = document.querySelectorAll('.step-section:not(.no-print) textarea, #outsideArea:not(.no-print) textarea');
 
@@ -1515,60 +1953,13 @@ async function saveAsPDF() {
         ta.style.display = 'none';
     });
 
-    // form-item에 잘림 방지 속성 추가
     const formItems = document.querySelectorAll('.step-section:not(.no-print) .form-item');
     formItems.forEach(fi => {
         fi.dataset.origStyle = fi.style.cssText;
-        fi.style.pageBreakInside = 'avoid';
-        fi.style.breakInside = 'avoid';
+        fi.style.pageBreakInside = 'auto';
+        fi.style.breakInside = 'auto';
     });
 
-    // PDF 강제 페이지 분할 마커 생성 (Step 제목은 페이지 시작)
-    const manualBreaks = [];
-    const insertManualBreakBefore = (target) => {
-        if (!target || !target.parentNode) return;
-        const marker = document.createElement('div');
-        marker.className = 'html2pdf__page-break pdf-force-break';
-        marker.style.cssText = 'height:0; margin:0; padding:0; border:0;';
-        target.parentNode.insertBefore(marker, target);
-        manualBreaks.push(marker);
-    };
-
-    // 각 Step 섹션은 항상 새 페이지에서 시작
-    const printableSections = Array.from(container.querySelectorAll('.step-section:not(.no-print)'));
-    printableSections.forEach((section, idx) => {
-        if (idx === 0) return;
-
-        // (수정) STEP을 항상 새 페이지로 보내면 공란이 커질 수 있어,
-        // 현재 페이지의 남은 공간이 충분하면(=헤더+최소 콘텐츠가 들어갈 만큼) 같은 페이지에 이어서 배치합니다.
-        // 남은 공간이 부족할 때만 페이지를 넘깁니다.
-        const rect = section.getBoundingClientRect();
-        const sectionTopInDoc = rect.top + window.scrollY;
-
-        // 페이지 높이(px) 추정: 기존 container 기준으로 A4(여백 포함) 계산
-        const printableWidthMm = 210 - 16;  // A4 폭 - 좌우 여백(8mm*2)
-        const printableHeightMm = 297 - 16; // A4 높이 - 상하 여백(8mm*2)
-        const pxPerMm = container.offsetWidth / printableWidthMm;
-        const pageHeightPx = printableHeightMm * pxPerMm;
-
-        const containerTop = container.getBoundingClientRect().top + window.scrollY;
-        const topInContainer = sectionTopInDoc - containerTop;
-
-        const pageStart = Math.floor(topInContainer / pageHeightPx) * pageHeightPx;
-        const pageEnd = pageStart + pageHeightPx;
-
-        // 이 STEP을 같은 페이지에 시작할 수 있는 최소 여유 공간(px)
-        // (헤더 + 첫 줄/첫 블록 정도). 필요시 숫자만 조정하면 됨.
-        const minHeadroomPx = 220;
-
-        const remaining = pageEnd - topInContainer;
-
-        if (remaining < minHeadroomPx) {
-            insertManualBreakBefore(section);
-        }
-    });
-
-    // Step 내부 자동 분할 로직은 공란 과다 발생으로 비활성화됨
 
     const storeName = document.getElementById('storeNameInput')?.value || '미입력';
     const date = document.getElementById('inspectionDate')?.value || '일자미상';
@@ -1588,9 +1979,8 @@ async function saveAsPDF() {
         },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
         pagebreak: {
-            mode: ['css', 'legacy'],
-            before: ['.pdf-force-break'],
-            avoid: ['.step-header', '.form-item', '.data-table', '.pdf-text-replacement']
+            mode: ['css'],
+                        avoid: ['.step-header', '.data-table', '.pdf-text-replacement']
         }
     };
 
@@ -1600,7 +1990,6 @@ async function saveAsPDF() {
         console.error("PDF 생성 실패:", error);
         alert("PDF 생성 중 오류가 발생했습니다.");
     } finally {
-        // 원래 상태 복구
         replacements.forEach(({ div, ta }) => {
             ta.style.display = 'block';
             div.remove();
@@ -1608,21 +1997,21 @@ async function saveAsPDF() {
         formItems.forEach(fi => {
             fi.style.cssText = fi.dataset.origStyle || '';
         });
-        manualBreaks.forEach((marker) => marker.remove());
-        sections.forEach(section => section.classList.remove('no-print'));
+                sections.forEach(section => section.classList.remove('no-print'));
         body.style.background = origBodyBg;
         body.style.padding = origBodyPad;
         container.style.maxWidth = origContainerMaxW;
         container.style.margin = origContainerMar;
-        if (btnGroup) btnGroup.style.display = 'flex';
+        if (btnGroup) btnGroup.style.display = 'grid';
         toggleStoreMode();
     }
 }
+
 // 공유 모달 열기 - 파일 첨부 지원
 function openShareModal() {
     const storeName = document.getElementById('storeNameInput')?.value || "점포";
     const date = document.getElementById('inspectionDate')?.value || "";
-    const solution = document.getElementsByName('s4_5_solution_final')[0]?.value || '';
+    const solution = document.getElementsByName('s4_4_solution_final')[0]?.value || '';
     const marketChange = document.getElementsByName('s1_6_comment')[0]?.value || '';
     const profitAnalysis = document.getElementsByName('s3_2_comment')[0]?.value || '';
     const laborAnalysis = document.getElementsByName('s4_1_comment')[0]?.value || '';
@@ -1658,9 +2047,6 @@ ${solution.substring(0, 220)}
 
     document.getElementById('shareSubject').value = subjectText;
     document.getElementById('shareMessage').value = defaultMsg;
-    if (!document.getElementById('shareEmail').value.trim()) {
-        document.getElementById('shareEmail').value = 'sc@lotte.net';
-    }
     document.getElementById('shareModal').classList.add('open');
 }
 
@@ -1696,28 +2082,13 @@ async function doNativeShare() {
     }
 }
 
-// 이메일 발송 - type: 'outlook365' | 'outlookcom' | 'default'
+// 이메일 발송 - Outlook 365 오류 방지를 위해 mailto 기반으로 실행
 function doEmailShare(type) {
-    const inputEl = document.getElementById('shareEmail');
-    let toEmail = (inputEl.value || '').trim();
+    const toEmail = document.getElementById('shareEmail').value || '';
     const subject = document.getElementById('shareSubject').value;
     const message = document.getElementById('shareMessage').value;
     const fileInput = document.getElementById('shareAttachFiles');
 
-    if (!toEmail) {
-        toEmail = 'sc@lotte.net';
-    } else if (!/@/.test(toEmail)) {
-        toEmail = `${toEmail}@lotte.net`;
-    }
-
-    if (!/@lotte\.net$/i.test(toEmail)) {
-        alert('회사 메일(lotte.net) 주소만 사용 가능합니다.');
-        return;
-    }
-
-    inputEl.value = toEmail;
-
-    // 첨부파일 있을 경우 먼저 다운로드
     if (fileInput.files && fileInput.files.length > 0) {
         Array.from(fileInput.files).forEach(file => {
             const url = URL.createObjectURL(file);
@@ -1735,16 +2106,10 @@ function doEmailShare(type) {
     const encTo = encodeURIComponent(toEmail);
     const encSubject = encodeURIComponent(subject);
     const encBody = encodeURIComponent(message);
+    const mailtoUrl = `mailto:${encTo}?subject=${encSubject}&body=${encBody}`;
 
-    let url;
-    if (type === 'outlook365') {
-        // Office 365 Outlook Web
-        url = `https://outlook.office.com/mail/deeplink/compose?to=${encTo}&subject=${encSubject}&body=${encBody}`;
-        window.open(url, '_blank');
-    } else {
-        url = `https://outlook.office.com/mail/deeplink/compose?to=${encTo}&subject=${encSubject}&body=${encBody}`;
-        window.open(url, '_blank');
-    }
+    // Outlook 365 버튼도 웹 deeplink 대신 mailto 사용 (outlook.office.com HTTP 500 회피)
+    window.location.href = mailtoUrl;
     closeShareModal();
 }
 function openPrevConsultingModal() {
@@ -1768,7 +2133,7 @@ function openPrevConsultingModal() {
         listEl.innerHTML = filtered.map((item, idx) => `
             <div style="border:1px solid #ddd; border-radius:8px; padding:10px; background:#fff;">
                 <div><strong>${item.inspection_date}</strong> / ${item.store_name} / ${item.sc_name}</div>
-                <div style="font-size:12px; color:#666; margin:6px 0;">${(item.payload?.s4_5_solution_final || '').substring(0, 90)}</div>
+                <div style="font-size:12px; color:#666; margin:6px 0;">${(item.payload?.s4_4_solution_final || '').substring(0, 90)}</div>
                 <button type="button" class="btn-share-email" style="width:100%; background:#2d7a2d;" onclick="applyPrevConsulting(${idx})">이 내용 불러오기</button>
             </div>
         `).join('');
@@ -1820,7 +2185,7 @@ function fillTestData() {
         });
         document.getElementById('interview_check').checked = true;
         document.getElementById('interview_check').dispatchEvent(new Event('change'));
-        document.getElementById('improvement_check').checked = true;
+        if (document.getElementById('improvement_check')) document.getElementById('improvement_check').checked = true;
         document.getElementById('haccp_check').checked = true;
 
         // [데이터 입력] 주요 항목 우선 입력
@@ -1834,9 +2199,6 @@ function fillTestData() {
             's2_1_curr_total': '52,300', 's2_1_curr_ext': '5,100', 's2_1_curr_del': '12,400', 's2_1_curr_grp': '3,200',
             's2_1_comment': '배달 비중 급증으로 인한 라이더 대기 공간 확보 및 전용 패키징 속도 개선 솔루션 필요. [cite: 66]',
             's2_3_waste_rate': '2.8',
-            's2_3_og_time': '14:00',
-            'as_t1': '15:00',
-            's2_3_del_time': '16:00',
             's2_2_l_1':'6,200','s2_2_l_2':'11,400','s2_2_l_3':'3,300','s2_2_l_4':'2,800','s2_2_l_5':'1,900','s2_2_l_6':'2,500','s2_2_l_7':'900','s2_2_l_8':'700',
             's2_2_c_1':'7,100','s2_2_c_2':'12,300','s2_2_c_3':'3,900','s2_2_c_4':'3,100','s2_2_c_5':'2,100','s2_2_c_6':'2,800','s2_2_c_7':'1,200','s2_2_c_8':'800',
             's2_2_comment':'싱글/더즌 중심으로 안정 성장, 음료군은 여름 시즌 반영으로 완만 상승.',
@@ -1853,7 +2215,7 @@ function fillTestData() {
             'interview_name': '이현우', 'interview_position': '점장',
             's4_2_comment': '메이트 숙련도 향상으로 1인당 생산성 개선됨. 장기 근무 메이트에 대한 복리후생 강화 논의. [cite: 131]',
             's4_3_special_comment': '가맹본부 핵심 정책 준수 상태 양호하며 점주 소통 활발함. [cite: 133]',
-            's4_5_solution_final': '[김해봉황점 최종 솔루션]\n1. 피크타임(14~16시) 제조 인력 집중 배치로 품절 방지.\n2. 인근 관광지 연계 단체 주문 영업 강화 및 고객 피드백 상시 모니터링.\n3. 매장 청결도 유지를 위한 시간대별 체크리스트 이행 엄수. [cite: 137]',
+            's4_4_solution_final': '[김해봉황점 최종 솔루션]\n1. 피크타임(14~16시) 제조 인력 집중 배치로 품절 방지.\n2. 인근 관광지 연계 단체 주문 영업 강화 및 고객 피드백 상시 모니터링.\n3. 매장 청결도 유지를 위한 시간대별 체크리스트 이행 엄수. [cite: 137]',
 
             // Step 5. 생산형 지표 (제조출고점 기준 데이터 포함) [cite: 138, 139]
             's5_yield_mix': '98', 's5_yield_6x': '95', 's5_yield_sugar': '99', 's5_labor_cost': '450',
@@ -1873,14 +2235,19 @@ function fillTestData() {
         // 누락 방지: 전체 폼의 빈 입력값 자동 보완
         const form = document.getElementById('inspectionForm');
         if (form) {
-            const longChunk = ' 점검 코멘트 상세내용을 길게 입력하여 PDF 줄바꿈/페이지 분할 여부를 검증합니다.';
+            const isEligible = (el) => {
+                if (el.closest('#outsideArea')) return false;
+                if (el.closest('.section-hidden')) return false;
+                return true;
+            };
+
             form.querySelectorAll('textarea').forEach((ta, idx) => {
-                const base = ta.value.trim() || `테스트 코멘트 ${idx + 1}`;
-                ta.value = base + longChunk.repeat(5);
-                ta.dispatchEvent(new Event('input'));
+                if (!isEligible(ta)) return;
+                if (!ta.value.trim()) ta.value = `테스트 코멘트 ${idx + 1}`;
             });
 
             form.querySelectorAll('input[type="text"], input[type="number"], input[type="date"], input[type="email"]').forEach((input) => {
+                if (!isEligible(input)) return;
                 if (input.value) return;
                 if (input.type === 'date') input.value = '2026-02-10';
                 else if (input.type === 'number') input.value = '1';
@@ -1890,6 +2257,7 @@ function fillTestData() {
             });
 
             form.querySelectorAll('select').forEach((sel) => {
+                if (!isEligible(sel)) return;
                 if (sel.value) return;
                 const candidate = Array.from(sel.options).find((opt) => opt.value && opt.value !== '유형 선택' && opt.value !== '지점 선택' && opt.value !== 'SC 선택');
                 if (candidate) {
@@ -1899,16 +2267,15 @@ function fillTestData() {
             });
 
             form.querySelectorAll('input[type="checkbox"]').forEach((cb) => {
-                if (cb.classList.contains('section-hide-toggle')) {
-                    cb.checked = false;
-                } else if (!cb.checked) {
-                    cb.checked = true;
-                }
+                if (!isEligible(cb)) return;
+                if (cb.classList.contains('section-hide-toggle')) return;
+                if (!cb.checked) cb.checked = true;
                 cb.dispatchEvent(new Event('change'));
             });
 
             const groupedRadio = {};
             form.querySelectorAll('input[type="radio"]').forEach((radio) => {
+                if (!isEligible(radio)) return;
                 if (!groupedRadio[radio.name]) groupedRadio[radio.name] = [];
                 groupedRadio[radio.name].push(radio);
             });
