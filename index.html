@@ -1827,10 +1827,9 @@ async function saveAsExcel() {
             node.insertAdjacentText('beforeend', '\n');
         });
 
-        let text = String(tmp.textContent || tmp.innerText || '')
-            .replace(/ /g, ' ')
-            .replace(/
-/g, '');
+        let text = String(tmp.textContent || tmp.innerText || '');
+        text = text.split('\u00a0').join(' ');
+        text = text.split('\r').join('');
 
         text = text
             .split('\n')
