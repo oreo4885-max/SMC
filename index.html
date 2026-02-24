@@ -674,6 +674,9 @@
         color: #000000 !important;
     }
 }
+
+
+
     </style>
 </head>
 <body>
@@ -689,6 +692,9 @@
         </div>
     </div>
 </div>
+
+
+
 
 <div class="container">
     <div class="header-logo">
@@ -766,7 +772,7 @@
                 <div class="file-input-group">
                     <div class="file-input-item">
                         <span>📷 사진 삽입:</span>
-                        <input type="file" name="file_s1_3_file" accept="image/*" onchange="previewImage(this, 'preview_s1_3')">
+                        <input type="file" name="file_s1_3_file" accept="image/*" capture="environment" onchange="previewImage(this, 'preview_s1_3')">
                     </div>
                 </div>
                 <div id="preview_s1_3" class="img-preview-container"></div>
@@ -780,7 +786,7 @@
                 <div class="file-input-group">
                     <div class="file-input-item">
                         <span>📷 사진 삽입:</span>
-                        <input type="file" name="file_s1_4_file" accept="image/*" onchange="previewImage(this, 'preview_s1_4')">
+                        <input type="file" name="file_s1_4_file" accept="image/*" capture="environment" onchange="previewImage(this, 'preview_s1_4')">
                     </div>
                 </div>
                 <div id="preview_s1_4" class="img-preview-container"></div>
@@ -794,7 +800,7 @@
                 <div class="file-input-group">
                     <div class="file-input-item">
                         <span>📷 사진 삽입:</span>
-                        <input type="file" name="file_s1_6_file" accept="image/*" onchange="previewImage(this, 'preview_s1_6')">
+                        <input type="file" name="file_s1_6_file" accept="image/*" capture="environment" onchange="previewImage(this, 'preview_s1_6')">
                     </div>
                 </div>
                 <div id="preview_s1_6" class="img-preview-container"></div>
@@ -988,7 +994,7 @@
                                 </div>
                                 <div class="file-upload-box">
                                     <div class="file-input-group">
-                                        <div class="file-input-item"><span>파일 선택:</span><input type="file" name="file_interview_file" accept="image/*"></div>
+                                        <div class="file-input-item"><span>파일 선택:</span><input type="file" name="file_interview_file" accept="image/*" capture="environment"></div>
                                     </div>
                                 </div>
                             </div>
@@ -1023,7 +1029,7 @@
                             <label class="item-title">2. 제조출고 영업점 기기 상태 및 수리 확인</label>
                             <div class="file-upload-box">
                                 <div class="file-input-group">
-                                    <div class="file-input-item"><span>파일 선택:</span><input type="file" name="file_s5_machine_file" accept="image/*"></div>
+                                    <div class="file-input-item"><span>파일 선택:</span><input type="file" name="file_s5_machine_file" accept="image/*" capture="environment"></div>
                                 </div>
                             </div>
                             <textarea name="s5_2_comment" style="margin-top:10px;"></textarea>
@@ -1084,7 +1090,14 @@
             <span style="cursor:pointer; font-size:1.1em;" onclick="closePrevConsultingModal()">✖</span>
         </div>
         <div class="share-modal-body">
-            <div class="sub-desc" style="display:block; margin-bottom:12px;">점포명/지점/유형/SC가 동일하고, 현재 점검일 이전 데이터만 표시됩니다.</div>
+            <div class="sub-desc" style="display:block; margin-bottom:8px;">점포명/지점/유형/SC 동일 데이터 기준으로 조회됩니다.</div>
+            <div style="display:flex; gap:8px; align-items:flex-end; margin-bottom:12px; flex-wrap:wrap;">
+                <div style="display:flex; flex-direction:column; gap:4px; min-width:160px;">
+                    <label for="prevConsultingDateFilter" style="font-size:12px; color:#666;">조회 날짜(선택)</label>
+                    <input type="date" id="prevConsultingDateFilter">
+                </div>
+                <button type="button" class="btn-share-email" style="background:#2d7a2d;" onclick="applyPrevConsultingFilter()">조회</button>
+            </div>
             <div id="prevConsultingList" style="display:flex; flex-direction:column; gap:10px;"></div>
             <div class="share-btn-row" style="margin-top:8px;">
                 <button class="btn-share-cancel" onclick="closePrevConsultingModal()">닫기</button>
@@ -1095,22 +1108,19 @@
 
 <div class="btn-group">
     <button type="button" class="icon-btn" id="btnSaveTemp" onclick="saveTempData()">
-        🗂️<span>데이터저장</span>
+        🗂️<span>리포트저장</span>
     </button>
-    <button type="button" class="icon-btn" id="btnPdf" onclick="saveAsPDF()">
-        🧾<span>PDF저장</span>
+    <button type="button" class="icon-btn" id="btnLoadPrev" onclick="openPrevConsultingModal()">
+        🕘<span>리포트불러오기</span>
     </button>
     <button type="button" class="icon-btn" id="btnExcel" onclick="saveAsExcel()">
         📈<span>엑셀저장</span>
     </button>
+    <button type="button" class="icon-btn" id="btnPdf" onclick="saveAsPDF()">
+        🧾<span>PDF저장</span>
+    </button>
     <button type="button" class="icon-btn" id="btnShare" onclick="openShareModal()">
         📨<span>공유/발송</span>
-    </button>
-    <button type="button" class="icon-btn" id="btnLoadPrev" onclick="openPrevConsultingModal()">
-        🕘<span>이전불러오기</span>
-    </button>
-    <button type="button" class="icon-btn" id="btnFillData" onclick="fillTestData()">
-        🧪<span>테스트입력</span>
     </button>
     <button type="button" class="icon-btn btn-reset" id="btnReset" onclick="resetForm()">
         ♻️<span>초기화</span>
@@ -1120,18 +1130,13 @@
 <div id="rightStepFloat" class="right-step-float" aria-label="스텝 바로가기"></div>
  <script>
 
+
+
 function toggleStoreMode() {
     const val = document.getElementById("storeTypeSelect").value;
     const mainSteps = document.getElementById("mainSteps");
     const outsideArea = document.getElementById("outsideArea");
     const btnGroup = document.querySelector('.btn-group');
-    const btnSaveTemp = document.getElementById('btnSaveTemp');
-    const btnPdf = document.getElementById('btnPdf');
-    const btnShare = document.getElementById('btnShare');
-    const btnExcel = document.getElementById('btnExcel');
-    const btnFillData = document.getElementById('btnFillData');
-    const btnLoadPrev = document.getElementById('btnLoadPrev');
-    const btnReset = document.getElementById('btnReset');
 
     // 하위 섹션 참조
     const step3 = document.getElementById("step3Section");
@@ -1141,66 +1146,35 @@ function toggleStoreMode() {
     const titleS25 = document.getElementById("title_s2_5");
     const titleS44 = document.getElementById("title_s4_4");
 
-    // 1. 기본 초기화 (모두 보임 상태로 시작)
+    // 기본 초기화
     mainSteps.style.display = "block";
     outsideArea.style.display = "none";
     if (step3) step3.style.display = "block";
     if (step5) step5.style.display = "block";
 
-    // 2. 점포 유형별 분기 처리
     if (val === "외부활동(미점검)") {
         mainSteps.style.display = "none";
         outsideArea.style.display = "block";
-        if (btnSaveTemp) btnSaveTemp.style.display = "none";
-        if (btnFillData) btnFillData.style.display = "none";
-        if (btnLoadPrev) btnLoadPrev.style.display = "none";
-        if (btnPdf) btnPdf.style.display = "flex";
-        if (btnExcel) btnExcel.style.display = "flex";
-        if (btnShare) btnShare.style.display = "flex";
-        if (btnReset) btnReset.style.display = "flex";
         if (editorInstance) editorInstance.refresh();
-    } 
-    else if (val === "가맹점(영업점)") {
-        if (btnSaveTemp) btnSaveTemp.style.display = "flex";
-        if (btnFillData) btnFillData.style.display = "flex";
-        if (btnLoadPrev) btnLoadPrev.style.display = "flex";
-        if (btnPdf) btnPdf.style.display = "flex";
-        if (btnExcel) btnExcel.style.display = "flex";
-        if (btnShare) btnShare.style.display = "flex";
-        if (btnReset) btnReset.style.display = "flex";
+    } else if (val === "가맹점(영업점)") {
         if (step3) step3.style.display = "none";
         if (step5) step5.style.display = "none";
         if (titleS25) titleS25.innerText = "5. 가맹점 도넛 수불 및 정량 정시 현황";
         if (titleS44) titleS44.innerText = "4. 가맹점 최종 솔루션 및 권고안";
-    } 
-    else if (val === "영업점") {
-        if (btnSaveTemp) btnSaveTemp.style.display = "flex";
-        if (btnFillData) btnFillData.style.display = "flex";
-        if (btnLoadPrev) btnLoadPrev.style.display = "flex";
-        if (btnPdf) btnPdf.style.display = "flex";
-        if (btnExcel) btnExcel.style.display = "flex";
-        if (btnShare) btnShare.style.display = "flex";
-        if (btnReset) btnReset.style.display = "flex";
+    } else if (val === "영업점") {
         if (step5) step5.style.display = "none";
         if (titleS25) titleS25.innerText = "5. 단체주문(CR 활동)";
         if (titleS44) titleS44.innerText = "4. 점포 컨설팅 결과에 따른 솔루션 전달(최종 권고안)";
-    } else {
-        if (btnSaveTemp) btnSaveTemp.style.display = "flex";
-        if (btnFillData) btnFillData.style.display = "flex";
-        if (btnLoadPrev) btnLoadPrev.style.display = "flex";
-        if (btnPdf) btnPdf.style.display = "flex";
-        if (btnExcel) btnExcel.style.display = "flex";
-        if (btnShare) btnShare.style.display = "flex";
-        if (btnReset) btnReset.style.display = "flex";
     }
 
-    // [핵심] 어떤 모드에서도 플로팅 버튼 항상 표시
+    // 플로팅 버튼은 항상 2열 grid 유지
     if (btnGroup) {
         btnGroup.style.removeProperty('display');
-        btnGroup.style.setProperty('display', 'flex', 'important');
+        btnGroup.style.removeProperty('grid-template-columns');
     }
 }
-    // 2. 수식 계산 로직 (유틸리티)
+
+// 2. 수식 계산 로직 (유틸리티)
     function uncomma(str) {
         return Number(String(str || "0").replace(/,/g, ""));
     }
@@ -1366,37 +1340,115 @@ function renderLatestConsultingPopup(item) {
     document.getElementById('prevConsultingModal').classList.add('open');
 }
 
+function tryParseJson(value) {
+    if (typeof value !== 'string') return value;
+    const text = value.trim();
+    if (!text) return value;
+    try { return JSON.parse(text); } catch { return value; }
+}
+
+function normalizeSnapshotData(raw) {
+    const MAX_DEPTH = 4;
+
+    function unwrap(input, depth = 0) {
+        if (depth > MAX_DEPTH) return {};
+
+        let data = tryParseJson(input);
+        if (!data || typeof data !== 'object') return {};
+
+        const payloadCandidate = data.payload ?? data.data ?? data.payload_json ?? data.report_data;
+        if (payloadCandidate !== undefined) {
+            const nested = unwrap(payloadCandidate, depth + 1);
+            if (Object.keys(nested).length) {
+                const merged = { ...data, ...nested };
+                delete merged.payload;
+                delete merged.data;
+                delete merged.payload_json;
+                delete merged.report_data;
+                return merged;
+            }
+        }
+
+        return { ...data };
+    }
+
+    const normalized = unwrap(raw);
+
+    if (!normalized.inspection_store_name && normalized.store_name) normalized.inspection_store_name = normalized.store_name;
+    if (!normalized.branch_name && normalized.branch) normalized.branch_name = normalized.branch;
+    if (!normalized.sc_name && normalized.sc) normalized.sc_name = normalized.sc;
+    if (!normalized.inspection_date && normalized.date) normalized.inspection_date = normalized.date;
+
+    return normalized;
+}
+
+function applySnapshotData(rawData = {}) {
+    const data = normalizeSnapshotData(rawData);
+
+    Object.keys(data).forEach((key) => {
+        const elements = Array.from(document.getElementsByName(key));
+        if (!elements.length) return;
+
+        const first = elements[0];
+        if (first.type === 'radio') {
+            const val = String(data[key] ?? '');
+            const target = elements.find((el) => String(el.value) === val);
+            if (target) {
+                target.checked = true;
+                target.dispatchEvent(new Event('input'));
+                target.dispatchEvent(new Event('change'));
+            }
+            return;
+        }
+
+        elements.forEach((el) => {
+            if (el.type === 'checkbox') {
+                el.checked = data[key] === 'on' || data[key] === true || data[key] === 'true' || data[key] === 1;
+            } else {
+                el.value = data[key] ?? '';
+            }
+            el.dispatchEvent(new Event('input'));
+            el.dispatchEvent(new Event('change'));
+        });
+    });
+
+    if (data.branch_name) {
+        const branchEl = document.getElementById('branchSelect');
+        if (branchEl) {
+            branchEl.value = data.branch_name;
+            branchEl.dispatchEvent(new Event('change'));
+        }
+    }
+
+    if (data.sc_name) {
+        const scEl = document.getElementById('scSelect');
+        if (scEl) {
+            scEl.value = data.sc_name;
+            scEl.dispatchEvent(new Event('change'));
+        }
+    }
+
+    if (editorInstance && data.outside_comment_html) {
+        editorInstance.setContents(sanitizeOutsideHtml(data.outside_comment_html));
+    }
+
+    calcS2_1();
+    calcS2_2();
+    calcS4_1();
+    toggleStoreMode();
+    initAutoGrowTextareas();
+}
+
 function applyLatestConsultingFromPopup() {
     const item = window.__latestConsultingItem;
-    if (!item || !item.payload) return;
-    const data = item.payload;
-    Object.keys(data).forEach((key) => {
-        const el = document.getElementsByName(key)[0];
-        if (!el) return;
-        if (el.type === 'checkbox') el.checked = data[key] === 'on' || data[key] === true;
-        else el.value = data[key];
-        el.dispatchEvent(new Event('input'));
-        el.dispatchEvent(new Event('change'));
-    });
-    if (editorInstance && data.outside_comment_html) editorInstance.setContents(sanitizeOutsideHtml(data.outside_comment_html));
-    calcS2_1(); calcS2_2(); calcS4_1(); initAutoGrowTextareas();
+    if (!item) return;
+    applySnapshotData(item);
     closePrevConsultingModal();
 }
 
-async function openLatestConsultingByStore() {
-    const storeName = document.getElementById('storeNameInput')?.value?.trim();
-    if (!storeName) return;
-    const history = JSON.parse(localStorage.getItem('consulting_history') || '[]');
-    const local = history
-        .filter(item => item.store_name === storeName)
-        .sort((a,b)=>(b.inspection_date||'').localeCompare(a.inspection_date||''))[0];
-    if (local) {
-        renderLatestConsultingPopup(local);
-        return;
-    }
-    const remote = await fetchLatestFromGoogleSheet(storeName);
-    if (remote && remote.payload) renderLatestConsultingPopup(remote);
-}
+
+
+
 
 
     function autoGrowTextarea(el) {
@@ -1437,8 +1489,26 @@ function sanitizeOutsideHtml(html = '') {
 }
 
     function getCurrentFormSnapshot() {
-        const formData = new FormData(document.getElementById('inspectionForm'));
-        const data = Object.fromEntries(formData.entries());
+        const form = document.getElementById('inspectionForm');
+        const data = {};
+        const controls = Array.from(form.querySelectorAll('input, select, textarea'));
+
+        controls.forEach((el) => {
+            const name = el.name;
+            if (!name) return;
+            if (el.type === 'file' || el.type === 'button' || el.type === 'submit' || el.type === 'reset') return;
+            if (el.classList.contains('section-hide-toggle')) return;
+
+            if (el.type === 'radio') {
+                if (el.checked) data[name] = el.value;
+                else if (!(name in data)) data[name] = '';
+            } else if (el.type === 'checkbox') {
+                data[name] = !!el.checked;
+            } else {
+                data[name] = el.value ?? '';
+            }
+        });
+
         data.outside_comment_html = editorInstance ? sanitizeOutsideHtml(editorInstance.getContents()) : '';
         return data;
     }
@@ -1514,7 +1584,6 @@ window.onload = function() {
             }
         });
 
-        document.getElementById("storeNameInput").addEventListener("change", openLatestConsultingByStore);
 
         // 직원 면담 체크박스 연동 (정상화)
         document.getElementById("interview_check").addEventListener("change", function() {
@@ -1553,28 +1622,13 @@ window.onload = function() {
 
     function loadTempData() {
         const savedData = localStorage.getItem('temp_report_data');
-        if (savedData) {
+        if (!savedData) return;
+        try {
             const data = JSON.parse(savedData);
-            Object.keys(data).forEach(key => {
-                const el = document.getElementsByName(key)[0];
-                if (el) {
-                    if (el.type === 'radio') {
-                        const radio = document.querySelector(`input[name="${key}"][value="${data[key]}"]`);
-                        if (radio) radio.checked = true;
-                    } else {
-                        el.value = data[key];
-                    }
-                }
-            });
-            if (editorInstance && data.outside_comment_html) {
-                editorInstance.setContents(sanitizeOutsideHtml(data.outside_comment_html));
-            }
-            // 로드 후 수식 재계산
-            calcS2_1();
-            calcS2_2();
-            calcS4_1();
-            toggleStoreMode();
-            initAutoGrowTextareas();
+            if (!data || typeof data !== 'object') return;
+            applySnapshotData(data);
+        } catch (err) {
+            console.warn('임시저장 데이터 로드 실패:', err);
         }
     }
 
@@ -2328,38 +2382,64 @@ function doEmailShare(type) {
     const encBody = encodeURIComponent(message);
     const mailtoUrl = `mailto:${encTo}?subject=${encSubject}&body=${encBody}`;
 
-    // Outlook 365 버튼도 웹 deeplink 대신 mailto 사용 (outlook.office.com HTTP 500 회피)
-    window.location.href = mailtoUrl;
+    if (type === 'outlook365') {
+        const outlookComposeUrl = `https://outlook.office.com/mail/deeplink/compose?to=${encTo}&subject=${encSubject}&body=${encBody}`;
+        const opened = window.open(outlookComposeUrl, '_blank', 'noopener');
+        // 브라우저 정책 등으로 새 창이 차단되면 mailto 폴백
+        if (!opened) window.location.href = mailtoUrl;
+    } else {
+        window.location.href = mailtoUrl;
+    }
+
     closeShareModal();
 }
-function openPrevConsultingModal() {
+function renderPrevConsultingList(filtered) {
     const listEl = document.getElementById('prevConsultingList');
+    if (!listEl) return;
+    if (!filtered.length) {
+        listEl.innerHTML = '<div class="sub-desc" style="display:block;">조건에 맞는 이전 컨설팅 데이터가 없습니다.</div>';
+        window.__filteredPrevConsulting = [];
+        return;
+    }
+
+    listEl.innerHTML = filtered.map((item, idx) => `
+        <div style="border:1px solid #ddd; border-radius:8px; padding:10px; background:#fff;">
+            <div><strong>${item.inspection_date || '-'}</strong> / ${item.store_name || ''} / ${item.sc_name || ''}</div>
+            <div style="font-size:12px; color:#666; margin:6px 0;">${(item.payload?.s4_4_solution_final || '').substring(0, 90)}</div>
+            <button type="button" class="btn-share-email" style="width:100%; background:#2d7a2d;" onclick="applyPrevConsulting(${idx})">이 내용 불러오기</button>
+        </div>
+    `).join('');
+    window.__filteredPrevConsulting = filtered;
+}
+
+function applyPrevConsultingFilter() {
     const history = JSON.parse(localStorage.getItem('consulting_history') || '[]');
     const currDate = document.getElementById('inspectionDate')?.value || '9999-12-31';
+    const selectedDate = document.getElementById('prevConsultingDateFilter')?.value || '';
     const currStore = document.getElementById('storeNameInput')?.value || '';
     const currBranch = document.getElementById('branchSelect')?.value || '';
     const currType = document.getElementById('storeTypeSelect')?.value || '';
     const currSc = document.getElementById('scSelect')?.value || '';
 
-    const filtered = history.filter((item) =>
-        item.inspection_date && item.inspection_date < currDate &&
+    let filtered = history.filter((item) =>
         item.store_name === currStore && item.branch_name === currBranch &&
         item.store_type === currType && item.sc_name === currSc
     );
 
-    if (!filtered.length) {
-        listEl.innerHTML = '<div class="sub-desc" style="display:block;">조건에 맞는 이전 컨설팅 데이터가 없습니다.</div>';
+    if (selectedDate) {
+        filtered = filtered.filter((item) => item.inspection_date === selectedDate);
     } else {
-        listEl.innerHTML = filtered.map((item, idx) => `
-            <div style="border:1px solid #ddd; border-radius:8px; padding:10px; background:#fff;">
-                <div><strong>${item.inspection_date}</strong> / ${item.store_name} / ${item.sc_name}</div>
-                <div style="font-size:12px; color:#666; margin:6px 0;">${(item.payload?.s4_4_solution_final || '').substring(0, 90)}</div>
-                <button type="button" class="btn-share-email" style="width:100%; background:#2d7a2d;" onclick="applyPrevConsulting(${idx})">이 내용 불러오기</button>
-            </div>
-        `).join('');
-        window.__filteredPrevConsulting = filtered;
+        filtered = filtered.filter((item) => item.inspection_date && item.inspection_date < currDate);
     }
 
+    filtered.sort((a, b) => (b.inspection_date || '').localeCompare(a.inspection_date || ''));
+    renderPrevConsultingList(filtered);
+}
+
+function openPrevConsultingModal() {
+    const dateFilter = document.getElementById('prevConsultingDateFilter');
+    if (dateFilter) dateFilter.value = '';
+    applyPrevConsultingFilter();
     document.getElementById('prevConsultingModal').classList.add('open');
 }
 
@@ -2370,150 +2450,14 @@ function closePrevConsultingModal() {
 function applyPrevConsulting(idx) {
     const list = window.__filteredPrevConsulting || [];
     const item = list[idx];
-    if (!item || !item.payload) return;
-    const data = item.payload;
-    Object.keys(data).forEach((key) => {
-        const el = document.getElementsByName(key)[0];
-        if (!el) return;
-        if (el.type === 'checkbox') el.checked = data[key] === 'on' || data[key] === true;
-        else el.value = data[key];
-        el.dispatchEvent(new Event('input'));
-        el.dispatchEvent(new Event('change'));
-    });
-    if (editorInstance && data.outside_comment_html) editorInstance.setContents(sanitizeOutsideHtml(data.outside_comment_html));
-    calcS2_1(); calcS2_2(); calcS4_1(); initAutoGrowTextareas();
+    if (!item) return;
+    applySnapshotData(item);
     closePrevConsultingModal();
     alert('이전 컨설팅 데이터를 불러왔습니다.');
 }
 
-function fillTestData() {
-    // [Step 0] 담당 지점 및 SC 정보
-    document.getElementById('inspectionDate').value = '2026-02-10';
-    document.getElementById('storeNameInput').value = '김해봉황점';
-    document.getElementById('storeTypeSelect').value = '영업점';
-    document.getElementById('branchSelect').value = '서부지점';
-    document.getElementById('branchSelect').dispatchEvent(new Event('change'));
 
-    setTimeout(() => {
-        document.getElementById('scSelect').value = '송정훈 SC';
-        
-        // [라디오/체크박스] 일괄 '예' 및 '5점' 설정
-        const radios = ['s4_overtime']; // 점수 버튼은 삭제되었으므로 체크박스 위주
-        radios.forEach(name => {
-            const el = document.querySelector(`input[name="${name}"][value="예"]`);
-            if(el) el.checked = true;
-        });
-        document.getElementById('interview_check').checked = true;
-        document.getElementById('interview_check').dispatchEvent(new Event('change'));
-        if (document.getElementById('improvement_check')) document.getElementById('improvement_check').checked = true;
-        document.getElementById('haccp_check').checked = true;
 
-        // [데이터 입력] 주요 항목 우선 입력
-        const allStepsData = {
-            // Step 1. 시설/환경
-            's1_3_add_comment': '매장 전면 윈도우 시트지 노후로 인한 재제작 요청. 내부 메뉴판 조명 교체 완료 및 고지물 위치 재조정 필요. [cite: 14]',
-            's1_6_comment': '봉황리단길 인근 카페 거리 확장으로 주말 젊은 층 유입 비중 20% 증가 추세 확인됨. [cite: 52]',
-            
-            // Step 2. 매출 관련 (천원 단위) [cite: 55, 56]
-            's2_1_last_total': '45,800', 's2_1_last_ext': '4,200', 's2_1_last_del': '8,500', 's2_1_last_grp': '1,500',
-            's2_1_curr_total': '52,300', 's2_1_curr_ext': '5,100', 's2_1_curr_del': '12,400', 's2_1_curr_grp': '3,200',
-            's2_1_comment': '배달 비중 급증으로 인한 라이더 대기 공간 확보 및 전용 패키징 속도 개선 솔루션 필요. [cite: 66]',
-            's2_3_waste_rate': '2.8',
-            's2_2_l_1':'6,200','s2_2_l_2':'11,400','s2_2_l_3':'3,300','s2_2_l_4':'2,800','s2_2_l_5':'1,900','s2_2_l_6':'2,500','s2_2_l_7':'900','s2_2_l_8':'700',
-            's2_2_c_1':'7,100','s2_2_c_2':'12,300','s2_2_c_3':'3,900','s2_2_c_4':'3,100','s2_2_c_5':'2,100','s2_2_c_6':'2,800','s2_2_c_7':'1,200','s2_2_c_8':'800',
-            's2_2_comment':'싱글/더즌 중심으로 안정 성장, 음료군은 여름 시즌 반영으로 완만 상승.',
-            's2_4_promo1': '발렌타인 한정 더즌', 's2_4_val1': '3,500', 's2_4_per1': '12',
-            's2_5_comment': '인근 시청 및 교육지원청 대상 분기별 단체 주문 영업(DM) 진행 중. [cite: 98]',
-            
-            // Step 3. 손익 관련 [cite: 99, 100]
-            's3_2_comment': '원재료비 상승 및 배달 수수료 증가로 인한 영업이익 감소분 발생. 자체 판촉 강화 필요. [cite: 114]',
-            's3_3_comment': '테이크아웃 비중 확대를 위한 픽업 전용 키오스크 운영 및 전용 세트 메뉴 강화 제안. [cite: 116]',
-            
-            // Step 4. 인사 및 기타 [cite: 117, 118, 119]
-            's4_1_last_cost': '12,500', 's4_1_curr_cost': '11,800', 
-            's4_1_last_time': '1,150', 's4_1_curr_time': '1,080',
-            'interview_name': '이현우', 'interview_position': '점장',
-            's4_2_comment': '메이트 숙련도 향상으로 1인당 생산성 개선됨. 장기 근무 메이트에 대한 복리후생 강화 논의. [cite: 131]',
-            's4_3_special_comment': '가맹본부 핵심 정책 준수 상태 양호하며 점주 소통 활발함. [cite: 133]',
-            's4_4_solution_final': '[김해봉황점 최종 솔루션]\n1. 피크타임(14~16시) 제조 인력 집중 배치로 품절 방지.\n2. 인근 관광지 연계 단체 주문 영업 강화 및 고객 피드백 상시 모니터링.\n3. 매장 청결도 유지를 위한 시간대별 체크리스트 이행 엄수. [cite: 137]',
-
-            // Step 5. 생산형 지표 (제조출고점 기준 데이터 포함) [cite: 138, 139]
-            's5_yield_mix': '98', 's5_yield_6x': '95', 's5_yield_sugar': '99', 's5_labor_cost': '450',
-            's5_2_comment': '글레이저 및 튀김기 정기 점검 완료. 노후 벨트 부품 다음 달 교체 예정. [cite: 151]',
-            's5_4_suggestion': '생산 자동화 기기 도입을 통한 제조 인건비 추가 절감 방안 검토 요청함. [cite: 156]'
-        };
-
-        // 주요 데이터 적용
-        Object.keys(allStepsData).forEach(key => {
-            const el = document.getElementsByName(key)[0];
-            if(el) { 
-                el.value = allStepsData[key]; 
-                el.dispatchEvent(new Event('input')); // 수치 자동 계산 실행 [cite: 63]
-            }
-        });
-
-        // 누락 방지: 전체 폼의 빈 입력값 자동 보완
-        const form = document.getElementById('inspectionForm');
-        if (form) {
-            const isEligible = (el) => {
-                if (el.closest('#outsideArea')) return false;
-                if (el.closest('.section-hidden')) return false;
-                return true;
-            };
-
-            form.querySelectorAll('textarea').forEach((ta, idx) => {
-                if (!isEligible(ta)) return;
-                if (!ta.value.trim()) ta.value = `테스트 코멘트 ${idx + 1}`;
-            });
-
-            form.querySelectorAll('input[type="text"], input[type="number"], input[type="date"], input[type="email"]').forEach((input) => {
-                if (!isEligible(input)) return;
-                if (input.value) return;
-                if (input.type === 'date') input.value = '2026-02-10';
-                else if (input.type === 'number') input.value = '1';
-                else if (input.type === 'email') input.value = 'test@example.com';
-                else input.value = '테스트값';
-                input.dispatchEvent(new Event('input'));
-            });
-
-            form.querySelectorAll('select').forEach((sel) => {
-                if (!isEligible(sel)) return;
-                if (sel.value) return;
-                const candidate = Array.from(sel.options).find((opt) => opt.value && opt.value !== '유형 선택' && opt.value !== '지점 선택' && opt.value !== 'SC 선택');
-                if (candidate) {
-                    sel.value = candidate.value;
-                    sel.dispatchEvent(new Event('change'));
-                }
-            });
-
-            form.querySelectorAll('input[type="checkbox"]').forEach((cb) => {
-                if (!isEligible(cb)) return;
-                if (cb.classList.contains('section-hide-toggle')) return;
-                if (!cb.checked) cb.checked = true;
-                cb.dispatchEvent(new Event('change'));
-            });
-
-            const groupedRadio = {};
-            form.querySelectorAll('input[type="radio"]').forEach((radio) => {
-                if (!isEligible(radio)) return;
-                if (!groupedRadio[radio.name]) groupedRadio[radio.name] = [];
-                groupedRadio[radio.name].push(radio);
-            });
-            Object.values(groupedRadio).forEach((radios) => {
-                if (!radios.some((r) => r.checked)) {
-                    radios[0].checked = true;
-                    radios[0].dispatchEvent(new Event('change'));
-                }
-            });
-        }
-
-        calcS2_1();
-        calcS2_2();
-        calcS4_1();
-        initAutoGrowTextareas();
-        alert('모든 스텝(Step 0-5)에 대한 테스트 데이터가 누락 없이 입력되었습니다. [cite: 156]');
-    }, 200);
-}
 </script>
 </body>
 </html>
