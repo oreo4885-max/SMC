@@ -855,7 +855,7 @@
                                 <tr class="bg-gray">
                                     <td>증감</td>
                                     <td id="s2_1_diff_total">0</td>
-                                    <td id="s2_1_diff_ext">0</td><td id="s2_1_diff_del">0</td><td>-</td><td id="s2_1_diff_pure">0</td>
+                                    <td id="s2_1_diff_ext">0</td><td id="s2_1_diff_del">0</td><td id="s2_1_diff_grp">0</td><td id="s2_1_diff_pure">0</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -970,7 +970,7 @@
                         <div class="form-item">
                             <label class="item-title">1. 인력 운영 적정성 (52시간, 인건비 등)</label>
                             <div class="input-group-row" style="margin:10px 0;">
-                                <div class="input-box">
+                                <div class="input-box" style="flex:0 0 25%; max-width:25%; min-width:220px;">
                                     <label>동일형태점포</label>
                                     <input type="text" name="s4_1_peer_store" placeholder="동일형태 점포명 입력">
                                 </div>
@@ -1257,6 +1257,10 @@ function toggleStoreMode() {
         const perD = lastD ? ((diffD / lastD) * 100).toFixed(1) : 0;
         document.getElementById('s2_1_diff_del').innerText = `${diffD.toLocaleString()} (${perD}%)`;
 
+        const diffG = currG - lastG;
+        const perG = lastG ? ((diffG / lastG) * 100).toFixed(1) : 0;
+        document.getElementById('s2_1_diff_grp').innerText = `${diffG.toLocaleString()} (${perG}%)`;
+
         const diffP = currPure - lastPure;
         const perP = lastPure ? ((diffP / lastPure) * 100).toFixed(1) : 0;
         document.getElementById('s2_1_diff_pure').innerText = `${diffP.toLocaleString()} (${perP}%)`;
@@ -1286,7 +1290,7 @@ function toggleStoreMode() {
                     <span style="cursor:pointer; font-size:12px; border:1px solid #ff0000; padding:2px 6px; border-radius:4px; color:#ff0000;" onclick="this.parentElement.parentElement.remove()">항목삭제</span>
                 </div>
                 <table class="data-table">
-                    <tr><th>계정과목 선택</th><th>전년실적</th><th>금년실적</th><th>증감율</th></tr>
+                    <tr><th>계정과목 선택</th><th>전년실적</th><th>금년실적</th><th>증감</th><th>증감율</th></tr>
                     <tr>
                         <td>
                             <select name="s3_acc_type_${accCount}">
@@ -1297,6 +1301,7 @@ function toggleStoreMode() {
                         </td>
                         <td><input type="text" class="comma-input" id="s3_last_${accCount}" name="s3_last_${accCount}" oninput="calcS3(${accCount})"></td>
                         <td><input type="text" class="comma-input" id="s3_curr_${accCount}" name="s3_curr_${accCount}" oninput="calcS3(${accCount})"></td>
+                        <td id="s3_diff_${accCount}" class="bg-gray">0</td>
                         <td id="s3_res_${accCount}" class="bg-gray">0%</td>
                     </tr>
                 </table>
@@ -1308,7 +1313,9 @@ function toggleStoreMode() {
     function calcS3(idx) {
         const last = uncomma(document.getElementById(`s3_last_${idx}`).value);
         const curr = uncomma(document.getElementById(`s3_curr_${idx}`).value);
-        const res = last ? (((curr - last) / last) * 100).toFixed(1) : 0;
+        const diff = curr - last;
+        const res = last ? (((diff) / last) * 100).toFixed(1) : 0;
+        document.getElementById(`s3_diff_${idx}`).innerText = diff.toLocaleString();
         document.getElementById(`s3_res_${idx}`).innerText = res + '%';
     }
 
@@ -1813,7 +1820,28 @@ async function saveAsExcel() {
     const htmlToText = (html = '') => {
         const tmp = document.createElement('div');
         tmp.innerHTML = sanitizeOutsideHtml(html || '');
-        return String(tmp.textContent || tmp.innerText || '').replace(/ /g, ' ').trim();
+
+        tmp.querySelectorAll('br').forEach((br) => br.replaceWith('\n'));
+        tmp.querySelectorAll('p, div, li, h1, h2, h3, h4, h5, h6').forEach((node) => {
+            if (!node.textContent?.trim()) return;
+            node.insertAdjacentText('beforeend', '\n');
+        });
+
+        let text = String(tmp.textContent || tmp.innerText || '')
+            .replace(/ /g, ' ')
+            .replace(/
+/g, '');
+
+        text = text
+            .split('\n')
+            .map((line) => line.replace(/[ 	]+$/g, ''))
+            .join('\n');
+
+        while (text.includes('\n\n\n')) {
+            text = text.replace('\n\n\n', '\n\n');
+        }
+
+        return text.trim();
     };
 
     if (storeType === '외부활동(미점검)') {
