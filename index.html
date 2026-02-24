@@ -531,8 +531,19 @@
     padding: 20px;
     box-sizing: border-box;
 }
-#shareModal.open, #prevConsultingModal.open { display: flex; }
+#shareModal.open, #prevConsultingModal.open, #step2GuideModal.open { display: flex; }
 #prevConsultingModal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.6);
+    z-index: 3000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    box-sizing: border-box;
+}
+#step2GuideModal {
     display: none;
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
@@ -813,7 +824,11 @@
         <input type="checkbox" class="section-hide-toggle" style="width:15px; height:15px; accent-color: #f39c12;"> 섹션 숨김
     </label></div>
                 <div class="step-content">
-                    
+                    <p class="sub-desc" style="display:flex; align-items:center; justify-content:space-between; gap:8px; background:#fff3cd; color:#856404; border:1px solid #ffeeba;">
+                        <span>※ 매출 관련 (작성기준은 팝업에서 확인)</span>
+                        <button type="button" class="btn-share-email" style="padding:6px 10px; min-width:auto; width:auto; background:#2d7a2d;" onclick="openStep2GuideModal()">작성기준 보기</button>
+                    </p>
+
                     <div class="form-item">
                         <label class="item-title">1. 매출 실적 분석 (단위: 천원)</label>
                         <table class="data-table" id="salesTable">
@@ -840,7 +855,7 @@
                                 <tr class="bg-gray">
                                     <td>증감</td>
                                     <td id="s2_1_diff_total">0</td>
-                                    <td colspan="4" style="text-align:right; padding-right:20px;">순수래점 증감: <span id="s2_1_diff_pure">0</span></td>
+                                    <td id="s2_1_diff_ext">0</td><td id="s2_1_diff_del">0</td><td>-</td><td id="s2_1_diff_pure">0</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -848,10 +863,10 @@
                     </div>
 
                     <div class="form-item">
-                        <label class="item-title">2. 블럭별 매출 분석</label>
+                        <label class="item-title">2. 블럭별 매출 분석 (더즌/싱글/세트/커피/프로즌/판매용품/베이크드/기타)</label>
                         <table class="data-table" id="blockAnalysisTable">
                             <thead>
-                                <tr><th>구분</th><th>싱글</th><th>더즌</th><th>커피</th><th>프로즌</th><th>기타음료</th><th>베이크드</th><th>판매용품</th><th>기타</th></tr>
+                                <tr><th>구분</th><th>더즌</th><th>싱글</th><th>세트</th><th>커피</th><th>프로즌</th><th>판매용품</th><th>베이크드</th><th>기타</th></tr>
                             </thead>
                             <tbody>
                                 <tr>
@@ -934,6 +949,7 @@
         <input type="checkbox" class="section-hide-toggle" style="width:15px; height:15px; accent-color: #f39c12;"> 섹션 숨김
     </label></div>
                     <div class="step-content">
+                        <p class="sub-desc" style="display:block; background:#fff3cd; color:#856404; border:1px solid #ffeeba;">※ 손익 관련<br>1. 계정과목별 분석 - 계정과목별로 손익 이슈사항이 있을 경우 비교하시면 됩니다.<br>2. 손익 분석 - 영업이익에 대한 전체적인 분석을 하시면 됩니다.<br>3. 자체 손익(외부채널 제외) 개선 방안 - 외부채널 제외한 점포 자체 손익 확인 후 개선 가능 여부를 확인하시면 됩니다. (손익 자체가 늦게 나오기에 추정 필요)</p>
                         <div class="form-item">
                             <label class="item-title">1. 계정과목별 분석 (최근 확인된 점포 손익계산서 기준)</label>
                             <div id="accountTableContainer"></div>
@@ -950,8 +966,15 @@
         <input type="checkbox" class="section-hide-toggle" style="width:15px; height:15px; accent-color: #f39c12;"> 섹션 숨김
     </label></div>
                     <div class="step-content">
+                        <p class="sub-desc" style="display:block; background:#fff3cd; color:#856404; border:1px solid #ffeeba;">※ 인사 및 기타 점검<br>인력 운영 적정성은 동일형태점포 기준으로 비교해 주세요.<br>4번은 최종 종합하여 솔루션 전달해 주세요.</p>
                         <div class="form-item">
                             <label class="item-title">1. 인력 운영 적정성 (52시간, 인건비 등)</label>
+                            <div class="input-group-row" style="margin:10px 0;">
+                                <div class="input-box">
+                                    <label>동일형태점포</label>
+                                    <input type="text" name="s4_1_peer_store" placeholder="동일형태 점포명 입력">
+                                </div>
+                            </div>
 <table class="data-table">
     <thead>
         <tr>
@@ -1013,6 +1036,7 @@
         <input type="checkbox" class="section-hide-toggle" style="width:15px; height:15px; accent-color: #f39c12;"> 섹션 숨김
     </label></div>
                     <div class="step-content">
+                        <p class="sub-desc" style="display:block; background:#fff3cd; color:#856404; border:1px solid #ffeeba;">※ 생산형 점포 수율 및 개당 인건비 확인<br>- 수율 및 개당 인건비는 PM팀 자료 참고 하시면 됩니다.</p>
                         <div class="form-item">
                             <label class="item-title">1. 생산형 점포 수율 및 개당 인건비</label>
                             <div class="input-group-row">
@@ -1101,6 +1125,28 @@
             <div id="prevConsultingList" style="display:flex; flex-direction:column; gap:10px;"></div>
             <div class="share-btn-row" style="margin-top:8px;">
                 <button class="btn-share-cancel" onclick="closePrevConsultingModal()">닫기</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="step2GuideModal">
+    <div class="share-modal-content">
+        <div class="share-modal-header">
+            <span>SETP2. 데이터 작성기준</span>
+            <span style="cursor:pointer; font-size:1.1em;" onclick="closeStep2GuideModal()">✖</span>
+        </div>
+        <div class="share-modal-body" style="line-height:1.55; white-space:pre-line;">※ 매출 관련
+1. 매출 실적분석
+- 순수래점 매출은 외부채널매출을 제외한 매출입니다
+2. 블럭별 매출 분석
+- 점포시스템에서 제품별 매출 상세 조회를 통해 진행합니다
+- 조회기간은 컨설팅일 전날기준 누계이며, 판매형태외부채널코드는 제외합니다. 엑셀저장하시고 피벗테이블 순매출, 1분류 기준으로 재정리하시면 됩니다
+3. 도넛 품절, 폐기 및 배달 실적
+- OG, 어쏘티드(최초 품절제품), 배달품절시간
+  (18시 이후 2시간 이상 배달이 없는 경우로 배달 품절시간으로 산정합니다)
+            <div class="share-btn-row" style="margin-top:12px;">
+                <button type="button" class="btn-share-cancel" onclick="closeStep2GuideModal()">닫기</button>
             </div>
         </div>
     </div>
@@ -1202,6 +1248,14 @@ function toggleStoreMode() {
         const diffT = currT - lastT;
         const perT = lastT ? ((diffT / lastT) * 100).toFixed(1) : 0;
         document.getElementById('s2_1_diff_total').innerText = `${diffT.toLocaleString()} (${perT}%)`;
+
+        const diffE = currE - lastE;
+        const perE = lastE ? ((diffE / lastE) * 100).toFixed(1) : 0;
+        document.getElementById('s2_1_diff_ext').innerText = `${diffE.toLocaleString()} (${perE}%)`;
+
+        const diffD = currD - lastD;
+        const perD = lastD ? ((diffD / lastD) * 100).toFixed(1) : 0;
+        document.getElementById('s2_1_diff_del').innerText = `${diffD.toLocaleString()} (${perD}%)`;
 
         const diffP = currPure - lastPure;
         const perP = lastPure ? ((diffP / lastPure) * 100).toFixed(1) : 0;
@@ -2103,8 +2157,8 @@ async function saveAsExcel() {
     ws.getCell(`L${tRow-1}`).numFmt = '0.0%';
 
     const cats = [
-        ['싱글','s2_2_l_1','s2_2_c_1'],['더즌','s2_2_l_2','s2_2_c_2'],['커피','s2_2_l_3','s2_2_c_3'],['프로즌','s2_2_l_4','s2_2_c_4'],
-        ['기타음료','s2_2_l_5','s2_2_c_5'],['베이크드','s2_2_l_6','s2_2_c_6'],['판매용품','s2_2_l_7','s2_2_c_7'],['기타','s2_2_l_8','s2_2_c_8']
+        ['더즌','s2_2_l_1','s2_2_c_1'],['싱글','s2_2_l_2','s2_2_c_2'],['세트','s2_2_l_3','s2_2_c_3'],['커피','s2_2_l_4','s2_2_c_4'],
+        ['프로즌','s2_2_l_5','s2_2_c_5'],['판매용품','s2_2_l_6','s2_2_c_6'],['베이크드','s2_2_l_7','s2_2_c_7'],['기타','s2_2_l_8','s2_2_c_8']
     ];
     const blockRows = cats.map(([nm,l,c]) => {
         const lv = toNum(getValue(l));
@@ -2445,6 +2499,14 @@ function openPrevConsultingModal() {
 
 function closePrevConsultingModal() {
     document.getElementById('prevConsultingModal').classList.remove('open');
+}
+
+function openStep2GuideModal() {
+    document.getElementById('step2GuideModal').classList.add('open');
+}
+
+function closeStep2GuideModal() {
+    document.getElementById('step2GuideModal').classList.remove('open');
 }
 
 function applyPrevConsulting(idx) {
