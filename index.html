@@ -1869,112 +1869,6 @@ async function saveAsExcel() {
     };
 
 
-    const storeType = document.getElementById('storeTypeSelect')?.value || '';
-    const htmlToText = (html = '') => {
-        const tmp = document.createElement('div');
-        tmp.innerHTML = sanitizeOutsideHtml(html || '');
-
-        tmp.querySelectorAll('br').forEach((br) => br.replaceWith('\n'));
-        tmp.querySelectorAll('p, div, li, h1, h2, h3, h4, h5, h6').forEach((node) => {
-            if (!node.textContent?.trim()) return;
-            node.insertAdjacentText('beforeend', '\n');
-        });
-
-        let text = String(tmp.textContent || tmp.innerText || '');
-        text = text.split('\u00a0').join(' ');
-        text = text.split('\r').join('');
-
-        text = text
-            .split('\n')
-            .map((line) => line.replace(/[ 	]+$/g, ''))
-            .join('\n');
-
-        while (text.includes('\n\n\n')) {
-            text = text.replace('\n\n\n', '\n\n');
-        }
-
-        return text.trim();
-    };
-
-    if (storeType === '외부활동(미점검)') {
-        const workbook = new ExcelJS.Workbook();
-        const storeNameRaw = document.getElementById('storeNameInput')?.value || '점포';
-        const dateRaw = document.getElementById('inspectionDate')?.value || '';
-        const dateForSheet = dateRaw ? dateRaw.replace(/-/g, '.') : '일자미상';
-        const safeSheetName = `${storeNameRaw}(${dateForSheet})`.replace(/[\/:*?\[\]]/g, '_').slice(0, 31);
-        const ws = workbook.addWorksheet(safeSheetName || '컨설팅리포트');
-
-        ws.columns = [
-            { header: '메인 섹션', width: 26 },
-            { header: '항목', width: 34 },
-            { header: '세부 항목', width: 36 },
-            { header: '값', width: 74 },
-        ];
-
-        const headerRow = ws.getRow(1);
-        headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-        headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
-        headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '0F6A3A' } };
-        headerRow.eachCell((c) => {
-            c.border = { top: {style:'thin'}, left:{style:'thin'}, right:{style:'thin'}, bottom:{style:'thin'} };
-        });
-
-        const step0 = [
-            ['Step 0. 담당 지점 및 SC', '기타 항목', '점검일자', getValue('inspection_date')],
-            ['Step 0. 담당 지점 및 SC', '기타 항목', '점검 점포', getValue('inspection_store_name')],
-            ['Step 0. 담당 지점 및 SC', '기타 항목', '점포 유형', getValue('store_type')],
-            ['Step 0. 담당 지점 및 SC', '기타 항목', '담당 지점', getValue('branch_name')],
-            ['Step 0. 담당 지점 및 SC', '기타 항목', '담당 SC', getValue('sc_name')],
-        ];
-
-        const step0Start = 2;
-        step0.forEach((r) => ws.addRow(r));
-        const step0End = ws.lastRow.number;
-        ws.mergeCells(`A${step0Start}:A${step0End}`);
-        ws.mergeCells(`B${step0Start}:B${step0End}`);
-        ws.getCell(`A${step0Start}`).alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
-        ws.getCell(`B${step0Start}`).alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
-
-        const outTitleRow = ws.addRow(['Out Step', '점포 컨설팅 미진행 특이사항', '상세 내용', '']);
-        outTitleRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-        ['A','B','C','D'].forEach(col => {
-            const cell = ws.getCell(`${col}${outTitleRow.number}`);
-            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '006D3B' } };
-            cell.alignment = { vertical: 'middle', horizontal: 'center' };
-            cell.border = { top: {style:'thin'}, left:{style:'thin'}, right:{style:'thin'}, bottom:{style:'thin'} };
-        });
-
-        const outText = htmlToText(editorInstance ? editorInstance.getContents() : getValue('outside_comment_html')) || '-';
-        const textRow = ws.addRow(['Out Step', '미점검 상세 코멘트', outText, '']);
-        ws.mergeCells(`C${textRow.number}:D${textRow.number}`);
-        ws.getCell(`C${textRow.number}`).alignment = { vertical: 'top', horizontal: 'left', wrapText: true };
-        ws.getCell(`A${textRow.number}`).alignment = { vertical: 'middle', horizontal: 'center' };
-        ws.getCell(`B${textRow.number}`).alignment = { vertical: 'middle', horizontal: 'center' };
-        ws.getCell(`C${textRow.number}`).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFBEA' } };
-        ws.getRow(textRow.number).height = 140;
-
-        ws.eachRow((row, rno) => {
-            if (rno < 2) return;
-            row.eachCell({ includeEmpty: true }, (cell) => {
-                if (!cell.border) cell.border = { top: {style:'thin'}, left:{style:'thin'}, right:{style:'thin'}, bottom:{style:'thin'} };
-            });
-        });
-
-        await appendImageSheet(workbook, storeNameRaw, dateRaw);
-    const buffer = await workbook.xlsx.writeBuffer();
-        const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-        const a = document.createElement('a');
-        const storeName = storeNameRaw || '점포';
-        const date = dateRaw || '일자미상';
-        a.href = URL.createObjectURL(blob);
-        a.download = `컨설팅리포트_${storeName}_${date}.xlsx`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-        return;
-    }
-
     const sanitizeValue = (name, value) => {
         const raw = String(value || '').trim();
         if (!raw) return '';
@@ -2076,17 +1970,10 @@ async function saveAsExcel() {
     const ws = workbook.addWorksheet(safeSheetName || '컨설팅리포트');
 
     ws.columns = [
-        { header: '메인 섹션', key: 'step', width: 28 },
-        { header: '항목', key: 'item', width: 34 },
-        { header: '세부 항목', key: 'detail', width: 40 },
-        { header: '값', key: 'value', width: 58 },
-        { key: 'spacer', width: 2 },
-        { key: 'r1', width: 18 },
-        { key: 'r2', width: 18 },
-        { key: 'r3', width: 18 },
-        { key: 'r4', width: 18 },
-        { key: 'r5', width: 18 },
-        { key: 'r6', width: 18 },
+        { header: '메인 섹션', key: 'step', width: 26 },
+        { header: '항목', key: 'item', width: 30 },
+        { header: '세부 항목', key: 'detail', width: 36 },
+        { header: '값', key: 'value', width: 48 },
     ];
 
     const headerRow = ws.getRow(1);
@@ -2097,12 +1984,24 @@ async function saveAsExcel() {
         c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '0F6A3A' } };
         c.border = { top: {style:'thin'}, left:{style:'thin'}, right:{style:'thin'}, bottom:{style:'thin'} };
     });
+    headerRow.height = 24;
 
     const grouped = {};
     rows.forEach((r) => {
         if (!grouped[r.step]) grouped[r.step] = [];
         grouped[r.step].push(r);
     });
+
+    const estimateRowHeight = (text, colWidth, minH = 22, maxH = 180) => {
+        const content = String(text || '');
+        const logicalLines = content.split(/\n/);
+        let lines = 1;
+        logicalLines.forEach((line) => {
+            const perLine = Math.max(1, Math.floor(colWidth * 1.5));
+            lines += Math.max(0, Math.ceil(line.length / perLine) - 1);
+        });
+        return Math.min(maxH, Math.max(minH, lines * 16));
+    };
 
     let rIdx = 2;
     Object.entries(grouped).forEach(([step, items]) => {
@@ -2124,20 +2023,26 @@ async function saveAsExcel() {
                     ws.mergeCells(`C${rIdx}:D${rIdx}`);
                     ws.getCell(`C${rIdx}`).alignment = { vertical: 'top', horizontal: 'left', wrapText: true };
                     ws.getCell(`C${rIdx}`).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFBEA' } };
+                    ws.getRow(rIdx).height = estimateRowHeight(row.value, 84, 28, 240);
                 } else {
                     ws.getCell(`C${rIdx}`).value = row.detail;
+                    ws.getCell(`C${rIdx}`).alignment = { vertical: 'top', horizontal: 'left', wrapText: true };
                     if (row.kind === 'number' && row.value !== '') {
                         ws.getCell(`D${rIdx}`).value = toNum(row.value);
                         ws.getCell(`D${rIdx}`).numFmt = '#,##0';
                         ws.getCell(`D${rIdx}`).alignment = { vertical: 'middle', horizontal: 'right' };
                     } else {
                         ws.getCell(`D${rIdx}`).value = row.value;
-                        ws.getCell(`D${rIdx}`).alignment = { vertical: 'middle', horizontal: 'left', wrapText: true };
+                        ws.getCell(`D${rIdx}`).alignment = { vertical: 'top', horizontal: 'left', wrapText: true };
                     }
+                    const hC = estimateRowHeight(row.detail, 36);
+                    const hD = estimateRowHeight(row.value, 48);
+                    ws.getRow(rIdx).height = Math.max(hC, hD, 22);
                 }
                 ['A','B','C','D'].forEach(col => {
                     const cell = ws.getCell(`${col}${rIdx}`);
                     if (!cell.border) cell.border = { top:{style:'thin'}, left:{style:'thin'}, right:{style:'thin'}, bottom:{style:'thin'} };
+                    if (!cell.alignment) cell.alignment = { vertical: 'middle', horizontal: 'left', wrapText: true };
                 });
                 rIdx++;
             });
@@ -2153,45 +2058,46 @@ async function saveAsExcel() {
         blank.height = 8;
     });
 
-    const rightStartCol = 6; // F
-    const rightHeaderFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '006D3B' } };
-    const rightSubFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'EAF4EE' } };
+    const dataSheetName = `${storeNameRaw}_${dateRaw || '일자미상'}_데이터테이블`.replace(/[\/:*?\[\]]/g, '_').slice(0, 31);
+    const wsData = workbook.addWorksheet(dataSheetName || '데이터테이블');
+    wsData.columns = [{ width: 18 }, { width: 18 }, { width: 18 }, { width: 18 }, { width: 14 }, { width: 14 }, { width: 14 }];
 
-    const setBorder = (r1, c1, r2, c2) => {
+    const tableHeaderFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '006D3B' } };
+    const tableSubFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'EAF4EE' } };
+
+    const setBorder = (sheet, r1, c1, r2, c2) => {
         for (let r = r1; r <= r2; r++) {
             for (let c = c1; c <= c2; c++) {
-                ws.getCell(r, c).border = { top:{style:'thin'}, left:{style:'thin'}, right:{style:'thin'}, bottom:{style:'thin'} };
+                sheet.getCell(r, c).border = { top:{style:'thin'}, left:{style:'thin'}, right:{style:'thin'}, bottom:{style:'thin'} };
             }
         }
     };
 
-    const addTable = (startRow, title, headers, dataRows, opts = {}) => {
-        const c0 = rightStartCol;
+    const addTable = (sheet, startRow, title, headers, dataRows, opts = {}) => {
+        const c0 = 1;
         const cEnd = c0 + headers.length - 1;
 
-        ws.mergeCells(startRow, c0, startRow, cEnd);
-        ws.getCell(startRow, c0).value = title;
-        ws.getCell(startRow, c0).font = { bold: true, color: { argb: 'FFFFFFFF' } };
-        ws.getCell(startRow, c0).fill = rightHeaderFill;
-        ws.getCell(startRow, c0).alignment = { vertical: 'middle', horizontal: 'center' };
+        sheet.mergeCells(startRow, c0, startRow, cEnd);
+        sheet.getCell(startRow, c0).value = title;
+        sheet.getCell(startRow, c0).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+        sheet.getCell(startRow, c0).fill = tableHeaderFill;
+        sheet.getCell(startRow, c0).alignment = { vertical: 'middle', horizontal: 'center' };
+        sheet.getRow(startRow).height = 22;
 
         headers.forEach((h, i) => {
-            const cell = ws.getCell(startRow + 1, c0 + i);
+            const cell = sheet.getCell(startRow + 1, c0 + i);
             cell.value = h;
             cell.font = { bold: true };
-            cell.fill = rightSubFill;
-            cell.alignment = { vertical: 'middle', horizontal: 'center' };
+            cell.fill = tableSubFill;
+            cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
         });
+        sheet.getRow(startRow + 1).height = 22;
 
         dataRows.forEach((row, idx) => {
             const rr = startRow + 2 + idx;
             row.forEach((v, i) => {
-                const cell = ws.getCell(rr, c0 + i);
-                if (v && typeof v === 'object' && v.formula) {
-                    cell.value = { formula: v.formula, result: v.result ?? null };
-                } else {
-                    cell.value = v;
-                }
+                const cell = sheet.getCell(rr, c0 + i);
+                cell.value = v;
                 if (typeof v === 'number') {
                     cell.numFmt = '#,##0';
                     cell.alignment = { vertical: 'middle', horizontal: i === 0 ? 'center' : 'right' };
@@ -2199,18 +2105,31 @@ async function saveAsExcel() {
                     cell.alignment = { vertical: 'middle', horizontal: i === 0 ? 'center' : 'left', wrapText: true };
                 }
             });
+            sheet.getRow(rr).height = 21;
         });
 
         const endRow = startRow + 1 + dataRows.length;
-        setBorder(startRow, c0, endRow, cEnd);
-        if (opts.numberCols) {
-            opts.numberCols.forEach((colIdx) => {
-                for (let rr = startRow + 2; rr <= endRow; rr++) {
-                    ws.getCell(rr, c0 + colIdx).numFmt = '#,##0';
-                    ws.getCell(rr, c0 + colIdx).alignment = { vertical: 'middle', horizontal: 'right' };
+        setBorder(sheet, startRow, c0, endRow, cEnd);
+
+        (opts.numberCols || []).forEach((colIdx) => {
+            for (let rr = startRow + 2; rr <= endRow; rr++) {
+                const cell = sheet.getCell(rr, c0 + colIdx);
+                if (typeof cell.value === 'number') {
+                    cell.numFmt = '#,##0';
+                    cell.alignment = { vertical: 'middle', horizontal: 'right' };
                 }
-            });
-        }
+            }
+        });
+
+        (opts.percentCols || []).forEach((colIdx) => {
+            for (let rr = startRow + 2; rr <= endRow; rr++) {
+                const cell = sheet.getCell(rr, c0 + colIdx);
+                if (typeof cell.value === 'number') {
+                    cell.numFmt = '0.0%';
+                    cell.alignment = { vertical: 'middle', horizontal: 'right' };
+                }
+            }
+        });
         return endRow + 2;
     };
 
@@ -2224,17 +2143,17 @@ async function saveAsExcel() {
     const currDel = toNum(getValue('s2_1_curr_del'));
     const lastGrp = toNum(getValue('s2_1_last_grp'));
     const currGrp = toNum(getValue('s2_1_curr_grp'));
+    const diffTotal = currTotal - lastTotal;
 
-    tRow = addTable(tRow, '전년/금년 비교표 - 1. 매출 실적 분석',
+    tRow = addTable(wsData, tRow, '전년/금년 비교표 - 1. 매출 실적 분석',
         ['구분','매출','외부채널','배달','단체','증감','증감율'],
         [
             ['전년', lastTotal, lastExt, lastDel, lastGrp, '', ''],
             ['금년', currTotal, currExt, currDel, currGrp, '', ''],
-            ['증감', {formula:`G${tRow+3}-G${tRow+2}`}, {formula:`H${tRow+3}-H${tRow+2}`}, {formula:`I${tRow+3}-I${tRow+2}`}, {formula:`J${tRow+3}-J${tRow+2}`}, {formula:`G${tRow+3}-G${tRow+2}`}, {formula:`IF(G${tRow+2}=0,0,(G${tRow+3}-G${tRow+2})/G${tRow+2})`}],
+            ['증감', diffTotal, currExt-lastExt, currDel-lastDel, currGrp-lastGrp, diffTotal, lastTotal ? diffTotal/lastTotal : 0],
         ],
         { numberCols:[1,2,3,4,5], percentCols:[6] }
     );
-    ws.getCell(`L${tRow-1}`).numFmt = '0.0%';
 
     const cats = [
         ['더즌','s2_2_l_1','s2_2_c_1'],['싱글','s2_2_l_2','s2_2_c_2'],['세트','s2_2_l_3','s2_2_c_3'],['커피','s2_2_l_4','s2_2_c_4'],
@@ -2248,12 +2167,11 @@ async function saveAsExcel() {
     const sumLast = blockRows.reduce((a,r)=>a+r[1],0);
     const sumCurr = blockRows.reduce((a,r)=>a+r[2],0);
     blockRows.push(['합계', sumLast, sumCurr, sumCurr-sumLast, sumLast ? (sumCurr-sumLast)/sumLast : 0]);
-    tRow = addTable(tRow, '전년/금년 비교표 - 2. 블럭별 매출 분석', ['항목','전년','금년','증감','증감율'], blockRows, { numberCols:[1,2,3] });
-    for (let rr=tRow-2-blockRows.length+1; rr<=tRow-2; rr++) ws.getCell(rr, rightStartCol+4).numFmt='0.0%';
+    tRow = addTable(wsData, tRow, '전년/금년 비교표 - 2. 블럭별 매출 분석', ['항목','전년','금년','증감','증감율'], blockRows, { numberCols:[1,2,3], percentCols:[4] });
 
     const lc = toNum(getValue('s4_1_last_cost')), cc = toNum(getValue('s4_1_curr_cost'));
     const lt = toNum(getValue('s4_1_last_time')), ct = toNum(getValue('s4_1_curr_time'));
-    tRow = addTable(tRow, '동일형태점포/컨설팅점포 비교표 - 4. 인력 운영 적정성',
+    tRow = addTable(wsData, tRow, '동일형태점포/컨설팅점포 비교표 - 4. 인력 운영 적정성',
         ['구분','메이트 인건비(천원)','사용 시간(H)','증감','증감율'],
         [
             ['동일형태점포', lc, lt, '', ''],
@@ -2261,9 +2179,8 @@ async function saveAsExcel() {
             ['증감(인건비)', cc-lc, '', cc-lc, lc ? (cc-lc)/lc : 0],
             ['증감(시간)', '', ct-lt, ct-lt, lt ? (ct-lt)/lt : 0],
         ],
-        { numberCols:[1,2,3] }
+        { numberCols:[1,2,3], percentCols:[4] }
     );
-    for (let rr=tRow-4; rr<=tRow-2; rr++) ws.getCell(rr, rightStartCol+4).numFmt='0.0%';
 
     const promoRows = [];
     document.querySelectorAll('#promoTableBody tr').forEach((tr) => {
@@ -2271,21 +2188,21 @@ async function saveAsExcel() {
         const nm = clean(getValue(`s2_4_name_${idx}`) || `판촉${idx}`);
         const store = toNum(getValue(`s2_4_store_${idx}`));
         const promo = toNum(getValue(`s2_4_promo_${idx}`));
-        const ratio = store ? (promo / store) * 100 : toNum(getValue(`s2_4_ratio_${idx}`));
+        const ratio = store ? (promo / store) : (toNum(getValue(`s2_4_ratio_${idx}`)) / 100);
         promoRows.push([nm, store, promo, ratio]);
     });
     if (!promoRows.length) promoRows.push(['판촉1', 0, 0, 0]);
     const totalStore = promoRows.reduce((a,r)=>a+r[1],0);
     const totalPromo = promoRows.reduce((a,r)=>a+r[2],0);
-    const totalRatio = totalStore ? (totalPromo / totalStore) * 100 : 0;
+    const totalRatio = totalStore ? (totalPromo / totalStore) : 0;
     promoRows.push(['합계', totalStore, totalPromo, totalRatio]);
-    tRow = addTable(tRow, '점포 판촉운영 데이터',
+    tRow = addTable(wsData, tRow, '점포 판촉운영 데이터',
         ['판촉명','점포매출','판촉매출','매출구성비(%)'],
         promoRows,
-        { numberCols:[1,2,3] }
+        { numberCols:[1,2], percentCols:[3] }
     );
 
-    tRow = addTable(tRow, '도넛 품절/폐기 핵심지표',
+    tRow = addTable(wsData, tRow, '도넛 품절/폐기 핵심지표',
         ['OG 품절','어쏘티드 품절1','배달 품절 시간','폐기율(%)'],
         [[
             sanitizeValue('s2_3_og_time', getValue('s2_3_og_time')),
