@@ -531,19 +531,8 @@
     padding: 20px;
     box-sizing: border-box;
 }
-#shareModal.open, #prevConsultingModal.open, #step2GuideModal.open { display: flex; }
+#shareModal.open, #prevConsultingModal.open { display: flex; }
 #prevConsultingModal {
-    display: none;
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.6);
-    z-index: 3000;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    box-sizing: border-box;
-}
-#step2GuideModal {
     display: none;
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
@@ -783,7 +772,7 @@
                 <div class="file-input-group">
                     <div class="file-input-item">
                         <span>📷 사진 삽입:</span>
-                        <input type="file" name="file_s1_3_file" accept="image/*" capture="environment" onchange="previewImage(this, 'preview_s1_3')">
+                        <input type="file" name="file_s1_3_file" accept="image/*" capture="environment" multiple data-max-files="3" onchange="limitFiles(this); previewImage(this, 'preview_s1_3')">
                     </div>
                 </div>
                 <div id="preview_s1_3" class="img-preview-container"></div>
@@ -797,7 +786,7 @@
                 <div class="file-input-group">
                     <div class="file-input-item">
                         <span>📷 사진 삽입:</span>
-                        <input type="file" name="file_s1_4_file" accept="image/*" capture="environment" onchange="previewImage(this, 'preview_s1_4')">
+                        <input type="file" name="file_s1_4_file" accept="image/*" capture="environment" multiple data-max-files="3" onchange="limitFiles(this); previewImage(this, 'preview_s1_4')">
                     </div>
                 </div>
                 <div id="preview_s1_4" class="img-preview-container"></div>
@@ -811,7 +800,7 @@
                 <div class="file-input-group">
                     <div class="file-input-item">
                         <span>📷 사진 삽입:</span>
-                        <input type="file" name="file_s1_6_file" accept="image/*" capture="environment" onchange="previewImage(this, 'preview_s1_6')">
+                        <input type="file" name="file_s1_6_file" accept="image/*" capture="environment" multiple data-max-files="3" onchange="limitFiles(this); previewImage(this, 'preview_s1_6')">
                     </div>
                 </div>
                 <div id="preview_s1_6" class="img-preview-container"></div>
@@ -824,10 +813,14 @@
         <input type="checkbox" class="section-hide-toggle" style="width:15px; height:15px; accent-color: #f39c12;"> 섹션 숨김
     </label></div>
                 <div class="step-content">
-                    <p class="sub-desc" style="display:flex; align-items:center; justify-content:space-between; gap:8px; background:#fff3cd; color:#856404; border:1px solid #ffeeba;">
-                        <span>※ 매출 관련 (작성기준은 팝업에서 확인)</span>
-                        <button type="button" class="btn-share-email" style="padding:6px 10px; min-width:auto; width:auto; background:#2d7a2d;" onclick="openStep2GuideModal()">작성기준 보기</button>
-                    </p>
+                    <p class="sub-desc" style="display:block; background:#fff3cd; color:#856404; border:1px solid #ffeeba; white-space:pre-line; line-height:1.55;">※ 매출 관련
+1. 매출 실적분석
+- 순수래점 매출은 외부채널매출을 제외한 매출입니다
+2. 블럭별 매출 분석
+- TF업무로 진행_전년, 금년(블럭별 매출_외부채널 매출제외) 자료 제공
+3. 도넛 품절, 폐기 및 배달 실적(확인기준은 컨설팅날 전일기준입니다)
+- OG, 어쏘티드(최초 품절제품), 배달품절시간
+  (18시 이후 2시간 이상 배달이 없는 경우로 배달 품절시간으로 산정합니다)</p>
 
                     <div class="form-item">
                         <label class="item-title">1. 매출 실적 분석 (단위: 천원)</label>
@@ -1015,7 +1008,7 @@
                                 </div>
                                 <div class="file-upload-box">
                                     <div class="file-input-group">
-                                        <div class="file-input-item"><span>파일 선택:</span><input type="file" name="file_interview_file" accept="image/*" capture="environment"></div>
+                                        <div class="file-input-item"><span>파일 선택:</span><input type="file" name="file_interview_file" accept="image/*" capture="environment" multiple data-max-files="3" onchange="limitFiles(this)"></div>
                                     </div>
                                 </div>
                             </div>
@@ -1051,7 +1044,7 @@
                             <label class="item-title">2. 제조출고 영업점 기기 상태 및 수리 확인</label>
                             <div class="file-upload-box">
                                 <div class="file-input-group">
-                                    <div class="file-input-item"><span>파일 선택:</span><input type="file" name="file_s5_machine_file" accept="image/*" capture="environment"></div>
+                                    <div class="file-input-item"><span>파일 선택:</span><input type="file" name="file_s5_machine_file" accept="image/*" capture="environment" multiple data-max-files="3" onchange="limitFiles(this)"></div>
                                 </div>
                             </div>
                             <textarea name="s5_2_comment" style="margin-top:10px;"></textarea>
@@ -1123,28 +1116,6 @@
             <div id="prevConsultingList" style="display:flex; flex-direction:column; gap:10px;"></div>
             <div class="share-btn-row" style="margin-top:8px;">
                 <button class="btn-share-cancel" onclick="closePrevConsultingModal()">닫기</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div id="step2GuideModal">
-    <div class="share-modal-content">
-        <div class="share-modal-header">
-            <span>SETP2. 데이터 작성기준</span>
-            <span style="cursor:pointer; font-size:1.1em;" onclick="closeStep2GuideModal()">✖</span>
-        </div>
-        <div class="share-modal-body" style="line-height:1.55; white-space:pre-line;">※ 매출 관련
-1. 매출 실적분석
-- 순수래점 매출은 외부채널매출을 제외한 매출입니다
-2. 블럭별 매출 분석
-- 점포시스템에서 제품별 매출 상세 조회를 통해 진행합니다
-- 조회기간은 컨설팅일 전날기준 누계이며, 판매형태외부채널코드는 제외합니다. 엑셀저장하시고 피벗테이블 순매출, 1분류 기준으로 재정리하시면 됩니다
-3. 도넛 품절, 폐기 및 배달 실적
-- OG, 어쏘티드(최초 품절제품), 배달품절시간
-  (18시 이후 2시간 이상 배달이 없는 경우로 배달 품절시간으로 산정합니다)
-            <div class="share-btn-row" style="margin-top:12px;">
-                <button type="button" class="btn-share-cancel" onclick="closeStep2GuideModal()">닫기</button>
             </div>
         </div>
     </div>
@@ -1746,23 +1717,34 @@ window.onload = function() {
         }
     }
 
+// 사진 삽입 최대 개수 제한
+function limitFiles(input) {
+    const maxFiles = Number(input.dataset.maxFiles || 3);
+    const files = Array.from(input.files || []);
+    if (files.length <= maxFiles) return;
+    alert(`사진은 최대 ${maxFiles}개까지 등록 가능합니다.`);
+    const dt = new DataTransfer();
+    files.slice(0, maxFiles).forEach((f) => dt.items.add(f));
+    input.files = dt.files;
+}
+
 // 사진 삽입 시 화면에 미리보기 출력
 function previewImage(input, previewId) {
     const previewContainer = document.getElementById(previewId);
+    if (!previewContainer) return;
     previewContainer.innerHTML = ""; // 기존 미리보기 삭제
 
-    if (input.files && input.files[0]) {
+    const files = Array.from(input.files || []);
+    files.slice(0, 3).forEach((file) => {
         const reader = new FileReader();
-        
         reader.onload = function(e) {
             const img = document.createElement("img");
             img.src = e.target.result;
             img.classList.add("img-preview"); // PDF 저장 시 참조할 클래스
             previewContainer.appendChild(img);
         };
-        
-        reader.readAsDataURL(input.files[0]);
-    }
+        reader.readAsDataURL(file);
+    });
 }
 
 
@@ -1795,6 +1777,7 @@ async function saveAsExcel() {
         fileInputs.forEach((input) => {
             const files = Array.from(input.files || []);
             if (!files.length) return;
+            if (/^file_interview_/.test(input.name || '')) return;
             const step = clean(input.closest('.step-section')?.querySelector('.step-header')?.textContent || 'Out Step');
             const item = clean(input.closest('.form-item')?.querySelector('.item-title')?.textContent || '이미지 항목');
             files.forEach((file, idx) => {
@@ -1912,6 +1895,8 @@ async function saveAsExcel() {
         if (/^s2_4_(name|store|promo|ratio)_\d+$/.test(name)) return true;
         if (['s2_3_og_time','as_t1','s2_3_del_time','s2_3_waste_rate'].includes(name)) return true;
         if (/^s3_(last|curr|res)_\d+$/.test(name)) return true;
+        if (/^interview_/.test(name)) return true;
+        if (['s4_interview_yn','s4_2_comment'].includes(name)) return true;
         return false;
     };
 
@@ -2505,13 +2490,6 @@ function closePrevConsultingModal() {
     document.getElementById('prevConsultingModal').classList.remove('open');
 }
 
-function openStep2GuideModal() {
-    document.getElementById('step2GuideModal').classList.add('open');
-}
-
-function closeStep2GuideModal() {
-    document.getElementById('step2GuideModal').classList.remove('open');
-}
 
 function applyPrevConsulting(idx) {
     const list = window.__filteredPrevConsulting || [];
