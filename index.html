@@ -901,19 +901,19 @@
                                     <td>
                                         <select name="s2_3_og_time">
                                             <option value="미발생">미발생</option>
-                                            <script>for(let i=16; i<=22; i++) document.write(`<option value="${i}:00">${i}:00</option>`);</script>
+                                            <script>for(let i=12; i<=21; i++) document.write(`<option value="${i}:00">${i}:00</option>`);</script>
                                         </select>
                                     </td>
                                     <td>
                                         <select name="as_t1">
                                             <option value="미발생">미발생</option>
-                                            <script>for(let i=16; i<=22; i++) document.write(`<option value="${i}:00">${i}:00</option>`);</script>
+                                            <script>for(let i=12; i<=21; i++) document.write(`<option value="${i}:00">${i}:00</option>`);</script>
                                         </select>
                                     </td>
                                     <td>
                                         <select name="s2_3_del_time">
                                             <option value="미발생">미발생</option>
-                                            <script>for(let i=18; i<=22; i++) document.write(`<option value="${i}:00">${i}:00</option>`);</script>
+                                            <script>for(let i=12; i<=21; i++) document.write(`<option value="${i}:00">${i}:00</option>`);</script>
                                         </select>
                                     </td>
                                     <td><input type="number" name="s2_3_waste_rate" step="0.1" style="width:90%;"></td>
@@ -926,12 +926,10 @@
                     <div class="form-item">
                         <label class="item-title">4. 판촉 운영 (점포판촉 / CRM / 외부채널)</label>
                         <table class="data-table">
-                            <thead><tr><th>판촉명</th><th>추가매출</th><th>매출구성비(%)</th></tr></thead>
-                            <tbody>
-                                <tr><td><input type="text" name="s2_4_promo1"></td><td><input type="text" class="comma-input" name="s2_4_val1"></td><td><input type="number" name="s2_4_per1"></td></tr>
-                                <tr><td><input type="text" name="s2_4_promo2"></td><td><input type="text" class="comma-input" name="s2_4_val2"></td><td><input type="number" name="s2_4_per2"></td></tr>
-                            </tbody>
+                            <thead><tr><th>판촉명</th><th>점포매출</th><th>판촉매출</th><th>매출구성비(%)</th><th>삭제</th></tr></thead>
+                            <tbody id="promoTableBody"></tbody>
                         </table>
+                        <button type="button" onclick="addPromoRow()" style="padding: 10px; background: var(--brand-blue); color: white; border: none; border-radius: 5px; cursor: pointer; margin: 8px 0 12px;">+ 판촉 추가하기</button>
                         <textarea name="s2_4_comment" placeholder="판촉 성과 및 향후 운영 계획"></textarea>
                     </div>
 
@@ -1264,6 +1262,51 @@ function toggleStoreMode() {
         const diffP = currPure - lastPure;
         const perP = lastPure ? ((diffP / lastPure) * 100).toFixed(1) : 0;
         document.getElementById('s2_1_diff_pure').innerText = `${diffP.toLocaleString()} (${perP}%)`;
+        calcPromoRatios();
+    }
+
+    function buildPromoRowHtml(idx) {
+        return `<tr data-idx="${idx}">
+            <td><input type="text" name="s2_4_name_${idx}" placeholder="판촉명"></td>
+            <td><input type="text" class="comma-input" name="s2_4_store_${idx}" oninput="calcPromoRatios()"></td>
+            <td><input type="text" class="comma-input" name="s2_4_promo_${idx}" oninput="calcPromoRatios()"></td>
+            <td><input type="text" name="s2_4_ratio_${idx}" readonly style="background:#f5f7f8;"></td>
+            <td><button type="button" class="btn-share-cancel" style="padding:6px 8px;" onclick="removePromoRow(${idx})">삭제</button></td>
+        </tr>`;
+    }
+
+    function ensurePromoRows() {
+        const body = document.getElementById('promoTableBody');
+        if (!body) return;
+        if (!body.querySelector('tr')) addPromoRow();
+    }
+
+    function addPromoRow() {
+        const body = document.getElementById('promoTableBody');
+        if (!body) return;
+        const next = Array.from(body.querySelectorAll('tr')).reduce((m, tr) => Math.max(m, Number(tr.dataset.idx || 0)), 0) + 1;
+        body.insertAdjacentHTML('beforeend', buildPromoRowHtml(next));
+    }
+
+    function removePromoRow(idx) {
+        const body = document.getElementById('promoTableBody');
+        if (!body) return;
+        const row = body.querySelector(`tr[data-idx="${idx}"]`);
+        if (row) row.remove();
+        if (!body.querySelector('tr')) addPromoRow();
+        calcPromoRatios();
+    }
+
+    function calcPromoRatios() {
+        const body = document.getElementById('promoTableBody');
+        if (!body) return;
+        body.querySelectorAll('tr').forEach((tr) => {
+            const idx = tr.dataset.idx;
+            const store = uncomma(document.getElementsByName(`s2_4_store_${idx}`)[0]?.value || 0);
+            const promo = uncomma(document.getElementsByName(`s2_4_promo_${idx}`)[0]?.value || 0);
+            const ratioEl = document.getElementsByName(`s2_4_ratio_${idx}`)[0];
+            if (ratioEl) ratioEl.value = store ? ((promo / store) * 100).toFixed(1) : '0.0';
+        });
     }
 
     // Step 2.2 블럭별 증감 계산
@@ -1668,6 +1711,9 @@ window.onload = function() {
         // 텍스트박스 자동 확장
         initAutoGrowTextareas();
 
+        // 판촉행 기본 생성
+        ensurePromoRows();
+
         // 임시저장 데이터 로드
         loadTempData();
     };
@@ -1687,7 +1733,14 @@ window.onload = function() {
         try {
             const data = JSON.parse(savedData);
             if (!data || typeof data !== 'object') return;
+            const promoKeys = Object.keys(data).filter((k) => /^s2_4_(name|store|promo|ratio)_\d+$/.test(k));
+            const promoIdx = promoKeys.map((k) => Number((k.match(/_(\d+)$/) || [0,0])[1])).filter(Boolean);
+            const needRows = promoIdx.length ? Math.max(...promoIdx) : 1;
+            ensurePromoRows();
+            const body = document.getElementById('promoTableBody');
+            for (let i = body.querySelectorAll('tr').length + 1; i <= needRows; i++) addPromoRow();
             applySnapshotData(data);
+            calcPromoRatios();
         } catch (err) {
             console.warn('임시저장 데이터 로드 실패:', err);
         }
@@ -1962,7 +2015,7 @@ async function saveAsExcel() {
         if (/^s2_1_/.test(name)) return true;
         if (/^s2_2_[lc]_\d+$/.test(name)) return true;
         if (/^s4_1_(last|curr)_(cost|time)$/.test(name)) return true;
-        if (/^s2_4_(promo|val|per)\d+$/.test(name)) return true;
+        if (/^s2_4_(name|store|promo|ratio)_\d+$/.test(name)) return true;
         if (['s2_3_og_time','as_t1','s2_3_del_time','s2_3_waste_rate'].includes(name)) return true;
         if (/^s3_(last|curr|res)_\d+$/.test(name)) return true;
         return false;
@@ -2212,18 +2265,25 @@ async function saveAsExcel() {
     );
     for (let rr=tRow-4; rr<=tRow-2; rr++) ws.getCell(rr, rightStartCol+4).numFmt='0.0%';
 
-    const p1 = toNum(getValue('s2_4_val1')), p2 = toNum(getValue('s2_4_val2'));
-    const per1 = toNum(getValue('s2_4_per1')), per2 = toNum(getValue('s2_4_per2'));
+    const promoRows = [];
+    document.querySelectorAll('#promoTableBody tr').forEach((tr) => {
+        const idx = tr.dataset.idx;
+        const nm = clean(getValue(`s2_4_name_${idx}`) || `판촉${idx}`);
+        const store = toNum(getValue(`s2_4_store_${idx}`));
+        const promo = toNum(getValue(`s2_4_promo_${idx}`));
+        const ratio = store ? (promo / store) * 100 : toNum(getValue(`s2_4_ratio_${idx}`));
+        promoRows.push([nm, store, promo, ratio]);
+    });
+    if (!promoRows.length) promoRows.push(['판촉1', 0, 0, 0]);
+    const totalStore = promoRows.reduce((a,r)=>a+r[1],0);
+    const totalPromo = promoRows.reduce((a,r)=>a+r[2],0);
+    const totalRatio = totalStore ? (totalPromo / totalStore) * 100 : 0;
+    promoRows.push(['합계', totalStore, totalPromo, totalRatio]);
     tRow = addTable(tRow, '점포 판촉운영 데이터',
-        ['항목','매출(천원)','비율(%)','증감','증감율'],
-        [
-            [clean(getValue('s2_4_promo1') || '판촉1'), p1, per1, '', ''],
-            [clean(getValue('s2_4_promo2') || '판촉2'), p2, per2, p2-p1, p1 ? (p2-p1)/p1 : 0],
-            ['합계', p1+p2, (per1+per2), '', ''],
-        ],
+        ['판촉명','점포매출','판촉매출','매출구성비(%)'],
+        promoRows,
         { numberCols:[1,2,3] }
     );
-    for (let rr=tRow-3; rr<=tRow-2; rr++) ws.getCell(rr, rightStartCol+4).numFmt='0.0%';
 
     tRow = addTable(tRow, '도넛 품절/폐기 핵심지표',
         ['OG 품절','어쏘티드 품절1','배달 품절 시간','폐기율(%)'],
