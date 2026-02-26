@@ -856,7 +856,11 @@
                     </div>
 
                     <div class="form-item">
-                        <label class="item-title">2. 블럭별 매출 분석 (더즌/싱글/세트/커피/프로즌/판매용품/베이크드/기타)</label>
+                        <label class="item-title">2. 블럭별 매출 분석</label>
+                        <div class="input-group-row" style="margin:10px 0;">
+                            <div class="input-box"><label>전년매출(천원)</label><input type="text" class="comma-input" name="s2_2_last_total" oninput="calcS2_2()"></div>
+                            <div class="input-box"><label>금년매출(천원)</label><input type="text" class="comma-input" name="s2_2_curr_total" oninput="calcS2_2()"></div>
+                        </div>
                         <table class="data-table" id="blockAnalysisTable">
                             <thead>
                                 <tr><th>구분</th><th>더즌</th><th>싱글</th><th>세트</th><th>커피</th><th>프로즌</th><th>판매용품</th><th>베이크드</th><th>기타</th></tr>
@@ -864,11 +868,11 @@
                             <tbody>
                                 <tr>
                                     <td>전년</td>
-                                    <script>for(let i=1;i<=8;i++) document.write(`<td><input type="text" name="s2_2_l_${i}" class="comma-input" oninput="calcS2_2()"></td>`);</script>
+                                    <script>for(let i=1;i<=8;i++) document.write(`<td><div style="display:flex; gap:6px; align-items:center;"><input type="text" name="s2_2_l_${i}" class="comma-input" style="flex:1;" oninput="calcS2_2()"><span id="s2_2_l_ratio_${i}" style="font-size:12px; color:#2d7a2d; min-width:52px; text-align:right;">0.0%</span></div></td>`);</script>
                                 </tr>
                                 <tr>
                                     <td>금년</td>
-                                    <script>for(let i=1;i<=8;i++) document.write(`<td><input type="text" name="s2_2_c_${i}" class="comma-input" oninput="calcS2_2()"></td>`);</script>
+                                    <script>for(let i=1;i<=8;i++) document.write(`<td><div style="display:flex; gap:6px; align-items:center;"><input type="text" name="s2_2_c_${i}" class="comma-input" style="flex:1;" oninput="calcS2_2()"><span id="s2_2_c_ratio_${i}" style="font-size:12px; color:#2d7a2d; min-width:52px; text-align:right;">0.0%</span></div></td>`);</script>
                                 </tr>
                                 <tr class="bg-gray" id="blockDiffRow">
                                     <td>증감</td><script>for(let i=1;i<=8;i++) document.write(`<td>0</td>`);</script>
@@ -989,6 +993,60 @@
         </tr>
     </tbody>
 </table>
+                            <div class="checkbox-wrapper" style="margin:10px 0 6px;"><input type="checkbox" id="s4_1_prod_toggle" checked onchange="document.getElementById('s4_1_prod_area').style.display=this.checked?'block':'none';"><label for="s4_1_prod_toggle">생산및프로세싱 메이트 인건비 표 표시</label></div>
+                            <div id="s4_1_prod_area">
+<table class="data-table">
+    <thead>
+        <tr>
+            <th>구분</th>
+            <th>생산및프로세싱 메이트 인건비(천원)</th>
+            <th>비용 증감(율)</th><th>사용 시간(H)</th>
+            <th>시간 증감(율)</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>동일형태점포</td>
+            <td><input type="text" name="s4_1p_last_cost" class="comma-input" oninput="calcS4_1()"></td>
+            <td rowspan="2" id="s4_1p_cost_diff" class="bg-gray">0<br>(0%)</td>
+            <td><input type="text" name="s4_1p_last_time" class="comma-input" oninput="calcS4_1()"></td>
+            <td rowspan="2" id="s4_1p_time_diff" class="bg-gray">0<br>(0%)</td>
+        </tr>
+        <tr>
+            <td>컨설팅점포</td>
+            <td><input type="text" name="s4_1p_curr_cost" class="comma-input" oninput="calcS4_1()"></td>
+            <td><input type="text" name="s4_1p_curr_time" class="comma-input" oninput="calcS4_1()"></td>
+        </tr>
+    </tbody>
+</table>
+                            </div>
+                            <div class="checkbox-wrapper" style="margin:10px 0 6px;"><input type="checkbox" id="s4_1_ext_toggle" checked onchange="document.getElementById('s4_1_ext_area').style.display=this.checked?'block':'none';"><label for="s4_1_ext_toggle">외부채널운영 메이트 인건비 표 표시</label></div>
+                            <div id="s4_1_ext_area">
+<table class="data-table">
+    <thead>
+        <tr>
+            <th>구분</th>
+            <th>외부채널운영 메이트 인건비(천원)</th>
+            <th>비용 증감(율)</th><th>사용 시간(H)</th>
+            <th>시간 증감(율)</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>동일형태점포</td>
+            <td><input type="text" name="s4_1e_last_cost" class="comma-input" oninput="calcS4_1()"></td>
+            <td rowspan="2" id="s4_1e_cost_diff" class="bg-gray">0<br>(0%)</td>
+            <td><input type="text" name="s4_1e_last_time" class="comma-input" oninput="calcS4_1()"></td>
+            <td rowspan="2" id="s4_1e_time_diff" class="bg-gray">0<br>(0%)</td>
+        </tr>
+        <tr>
+            <td>컨설팅점포</td>
+            <td><input type="text" name="s4_1e_curr_cost" class="comma-input" oninput="calcS4_1()"></td>
+            <td><input type="text" name="s4_1e_curr_time" class="comma-input" oninput="calcS4_1()"></td>
+        </tr>
+    </tbody>
+</table>
+                            </div>
                                                         <div class="option-wrapper">
                                 <span style="font-weight:bold; font-size:0.9em; margin-right:10px;">52시간 미초과 준수 여부 :</span>
                                 <label class="radio-label"><input type="radio" name="s4_overtime" value="예"> 예</label>
@@ -1283,12 +1341,20 @@ function toggleStoreMode() {
     // Step 2.2 블럭별 증감 계산
     function calcS2_2() {
         const row = document.getElementById('blockDiffRow');
+        const lastTotal = uncomma(document.getElementsByName('s2_2_last_total')[0]?.value || 0);
+        const currTotal = uncomma(document.getElementsByName('s2_2_curr_total')[0]?.value || 0);
         for(let i=1; i<=8; i++) {
             const last = uncomma(document.getElementsByName(`s2_2_l_${i}`)[0]?.value || 0);
             const curr = uncomma(document.getElementsByName(`s2_2_c_${i}`)[0]?.value || 0);
             const diff = curr - last;
-            const per = last ? ((diff/last)*100).toFixed(1) : 0;
+            const lastRatio = lastTotal ? ((last/lastTotal)*100) : 0;
+            const currRatio = currTotal ? ((curr/currTotal)*100) : 0;
+            const per = (currRatio - lastRatio).toFixed(1);
             row.cells[i].innerHTML = `${diff.toLocaleString()}<br>(${per}%)`;
+            const lr = document.getElementById(`s2_2_l_ratio_${i}`);
+            const cr = document.getElementById(`s2_2_c_ratio_${i}`);
+            if (lr) lr.innerText = `${lastRatio.toFixed(1)}%`;
+            if (cr) cr.innerText = `${currRatio.toFixed(1)}%`;
         }
     }
 
@@ -1335,18 +1401,23 @@ function toggleStoreMode() {
 
     // Step 4.1 인건비 계산
     function calcS4_1() {
-        const lastC = uncomma(document.getElementsByName('s4_1_last_cost')[0].value);
-        const currC = uncomma(document.getElementsByName('s4_1_curr_cost')[0].value);
-        const lastT = uncomma(document.getElementsByName('s4_1_last_time')[0].value);
-        const currT = uncomma(document.getElementsByName('s4_1_curr_time')[0].value);
-
-        const costDiff = currC - lastC;
-        const costPer = lastC ? ((costDiff / lastC) * 100).toFixed(1) : 0;
-        document.getElementById('s4_1_cost_diff').innerHTML = `${costDiff.toLocaleString()}<br>(${costPer}%)`;
-
-        const timeDiff = currT - lastT;
-        const timePer = lastT ? ((timeDiff / lastT) * 100).toFixed(1) : 0;
-        document.getElementById('s4_1_time_diff').innerHTML = `${timeDiff.toLocaleString()}<br>(${timePer}%)`;
+        const calcPair = (prefix) => {
+            const lastC = uncomma(document.getElementsByName(`${prefix}_last_cost`)[0]?.value || 0);
+            const currC = uncomma(document.getElementsByName(`${prefix}_curr_cost`)[0]?.value || 0);
+            const lastT = uncomma(document.getElementsByName(`${prefix}_last_time`)[0]?.value || 0);
+            const currT = uncomma(document.getElementsByName(`${prefix}_curr_time`)[0]?.value || 0);
+            const costDiff = currC - lastC;
+            const costPer = lastC ? ((costDiff / lastC) * 100).toFixed(1) : 0;
+            const timeDiff = currT - lastT;
+            const timePer = lastT ? ((timeDiff / lastT) * 100).toFixed(1) : 0;
+            const costEl = document.getElementById(`${prefix}_cost_diff`);
+            const timeEl = document.getElementById(`${prefix}_time_diff`);
+            if (costEl) costEl.innerHTML = `${costDiff.toLocaleString()}<br>(${costPer}%)`;
+            if (timeEl) timeEl.innerHTML = `${timeDiff.toLocaleString()}<br>(${timePer}%)`;
+        };
+        calcPair('s4_1');
+        calcPair('s4_1p');
+        calcPair('s4_1e');
     }
 
     // 3. 페이지 초기화 및 이벤트 바인딩
@@ -1755,10 +1826,15 @@ async function saveAsExcel() {
     }
 
     const form = document.getElementById('inspectionForm');
+    if (typeof editorInstance !== 'undefined' && editorInstance && document.getElementById('storeTypeSelect')?.value === '외부활동(미점검)') {
+        const hiddenOutside = document.getElementById('outsideCommentHtml');
+        if (hiddenOutside) hiddenOutside.value = sanitizeOutsideHtml(editorInstance.getContents());
+    }
     const controls = Array.from(form.querySelectorAll('input, select, textarea'));
     const radioHandled = new Set();
 
     const clean = (v = '') => String(v).replace(/\s+/g, ' ').trim();
+    const sanitizeExcelText = (v = '') => String(v).replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, '').trim();
     const isNumericLike = (v = '') => /^-?\d[\d,]*(\.\d+)?$/.test(String(v).trim());
     const toNum = (v = '') => Number(String(v || 0).replace(/,/g, '')) || 0;
     const getValue = (name) => document.getElementsByName(name)[0]?.value ?? '';
@@ -1854,14 +1930,102 @@ async function saveAsExcel() {
 
     const sanitizeValue = (name, value) => {
         const raw = String(value || '').trim();
+        if (/_html$/i.test(name || '')) {
+            const div = document.createElement('div');
+            div.innerHTML = raw;
+            return sanitizeExcelText((div.textContent || '').replace(/\s+/g, ' ').trim());
+        }
         if (!raw) return '';
         if (raw.includes('for(let') || raw.includes('document.write')) {
             const times = raw.match(/(미발생|\d{1,2}:00)/g);
             if (times && times.length) return times[0];
             return raw.split('for(let')[0].trim();
         }
-        return raw;
+        return sanitizeExcelText(raw);
     };
+
+
+
+    const storeType = document.getElementById('storeTypeSelect')?.value || '';
+    if (/외부활동/.test(storeType)) {
+        const workbook = new ExcelJS.Workbook();
+        workbook.creator = 'SMC Report';
+        const storeNameRaw = document.getElementById('storeNameInput')?.value || '점포';
+        const dateRaw = document.getElementById('inspectionDate')?.value || '';
+        const dateForSheet = dateRaw ? dateRaw.replace(/-/g, '.') : '일자미상';
+        const safeSheetName = `${storeNameRaw}(${dateForSheet})`.replace(/[\/:*?\[\]]/g, '_').slice(0, 31);
+        const ws = workbook.addWorksheet(safeSheetName || '컨설팅리포트');
+
+        ws.columns = [
+            { header: '메인 섹션', width: 26 },
+            { header: '항목', width: 34 },
+            { header: '세부 항목', width: 36 },
+            { header: '값', width: 74 },
+        ];
+
+        const headerRow = ws.getRow(1);
+        headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+        headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
+        headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '0F6A3A' } };
+        headerRow.eachCell((c) => {
+            c.border = { top: {style:'thin'}, left:{style:'thin'}, right:{style:'thin'}, bottom:{style:'thin'} };
+        });
+
+        const step0 = [
+            ['Step 0. 담당 지점 및 SC', '기타 항목', '점검일자', sanitizeExcelText(getValue('inspection_date'))],
+            ['Step 0. 담당 지점 및 SC', '기타 항목', '점검 점포', sanitizeExcelText(getValue('inspection_store_name'))],
+            ['Step 0. 담당 지점 및 SC', '기타 항목', '점포 유형', sanitizeExcelText(getValue('store_type'))],
+            ['Step 0. 담당 지점 및 SC', '기타 항목', '담당 지점', sanitizeExcelText(getValue('branch_name'))],
+            ['Step 0. 담당 지점 및 SC', '기타 항목', '담당 SC', sanitizeExcelText(getValue('sc_name'))],
+        ];
+
+        const step0Start = 2;
+        step0.forEach((r) => ws.addRow(r));
+        const step0End = ws.lastRow.number;
+        ws.mergeCells(`A${step0Start}:A${step0End}`);
+        ws.mergeCells(`B${step0Start}:B${step0End}`);
+        ws.getCell(`A${step0Start}`).alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+        ws.getCell(`B${step0Start}`).alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+
+        const outTitleRow = ws.addRow(['Out Step', '점포 컨설팅 미진행 특이사항', '상세 내용', '']);
+        outTitleRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+        ['A','B','C','D'].forEach(col => {
+            const cell = ws.getCell(`${col}${outTitleRow.number}`);
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '006D3B' } };
+            cell.alignment = { vertical: 'middle', horizontal: 'center' };
+            cell.border = { top: {style:'thin'}, left:{style:'thin'}, right:{style:'thin'}, bottom:{style:'thin'} };
+        });
+
+        const outText = sanitizeValue('outside_comment_html', getValue('outside_comment_html')) || '-';
+        const textRow = ws.addRow(['Out Step', '미점검 상세 코멘트', outText, '']);
+        ws.mergeCells(`C${textRow.number}:D${textRow.number}`);
+        ws.getCell(`C${textRow.number}`).alignment = { vertical: 'top', horizontal: 'left', wrapText: true };
+        ws.getCell(`A${textRow.number}`).alignment = { vertical: 'middle', horizontal: 'center' };
+        ws.getCell(`B${textRow.number}`).alignment = { vertical: 'middle', horizontal: 'center' };
+        ws.getCell(`C${textRow.number}`).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFBEA' } };
+        ws.getRow(textRow.number).height = 360;
+
+        ws.eachRow((row, rno) => {
+            if (rno < 2) return;
+            row.eachCell({ includeEmpty: true }, (cell) => {
+                if (!cell.border) cell.border = { top: {style:'thin'}, left:{style:'thin'}, right:{style:'thin'}, bottom:{style:'thin'} };
+            });
+        });
+
+        await appendImageSheet(workbook, storeNameRaw, dateRaw);
+        const buffer = await workbook.xlsx.writeBuffer();
+        const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const a = document.createElement('a');
+        const storeName = storeNameRaw || '점포';
+        const date = dateRaw || '일자미상';
+        a.href = URL.createObjectURL(blob);
+        a.download = `컨설팅리포트_${storeName}_${date}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+        return;
+    }
 
     const getStepLabel = (el) => clean(el.closest('.step-section')?.querySelector('.step-header')?.textContent || '공통');
     const getItemTitle = (el) => clean(el.closest('.form-item')?.querySelector('.item-title')?.textContent || '기타 항목');
@@ -1891,7 +2055,9 @@ async function saveAsExcel() {
         if (!name) return true;
         if (/^s2_1_/.test(name)) return true;
         if (/^s2_2_[lc]_\d+$/.test(name)) return true;
+        if (/^s2_2_(last|curr)_total$/.test(name)) return true;
         if (/^s4_1_(last|curr)_(cost|time)$/.test(name)) return true;
+        if (/^s4_1[pe]_(last|curr)_(cost|time)$/.test(name)) return true;
         if (/^s2_4_(name|store|promo|ratio)_\d+$/.test(name)) return true;
         if (['s2_3_og_time','as_t1','s2_3_del_time','s2_3_waste_rate'].includes(name)) return true;
         if (/^s3_(last|curr|res)_\d+$/.test(name)) return true;
@@ -2000,24 +2166,24 @@ async function saveAsExcel() {
             const itemStart = rIdx;
 
             itemGroup.forEach((row) => {
-                ws.getCell(`A${rIdx}`).value = step;
-                ws.getCell(`B${rIdx}`).value = row.item;
+                ws.getCell(`A${rIdx}`).value = sanitizeExcelText(step);
+                ws.getCell(`B${rIdx}`).value = sanitizeExcelText(row.item);
 
                 if (row.kind === 'memo') {
-                    ws.getCell(`C${rIdx}`).value = row.value || '-';
+                    ws.getCell(`C${rIdx}`).value = sanitizeExcelText(row.value || '-');
                     ws.mergeCells(`C${rIdx}:D${rIdx}`);
                     ws.getCell(`C${rIdx}`).alignment = { vertical: 'top', horizontal: 'left', wrapText: true };
                     ws.getCell(`C${rIdx}`).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFBEA' } };
                     ws.getRow(rIdx).height = estimateRowHeight(row.value, 84, 28, 240);
                 } else {
-                    ws.getCell(`C${rIdx}`).value = row.detail;
+                    ws.getCell(`C${rIdx}`).value = sanitizeExcelText(row.detail);
                     ws.getCell(`C${rIdx}`).alignment = { vertical: 'top', horizontal: 'left', wrapText: true };
                     if (row.kind === 'number' && row.value !== '') {
                         ws.getCell(`D${rIdx}`).value = toNum(row.value);
                         ws.getCell(`D${rIdx}`).numFmt = '#,##0';
                         ws.getCell(`D${rIdx}`).alignment = { vertical: 'middle', horizontal: 'right' };
                     } else {
-                        ws.getCell(`D${rIdx}`).value = row.value;
+                        ws.getCell(`D${rIdx}`).value = sanitizeExcelText(row.value);
                         ws.getCell(`D${rIdx}`).alignment = { vertical: 'top', horizontal: 'left', wrapText: true };
                     }
                     const hC = estimateRowHeight(row.detail, 36);
@@ -2098,7 +2264,7 @@ async function saveAsExcel() {
             const rr = startRow + 2 + idx;
             row.forEach((v, i) => {
                 const cell = sheet.getCell(rr, c0 + i);
-                cell.value = v;
+                cell.value = typeof v === 'string' ? sanitizeExcelText(v) : v;
                 if (typeof v === 'number') {
                     cell.numFmt = '#,##0';
                     cell.alignment = { vertical: 'middle', horizontal: i === 0 ? 'center' : 'right' };
@@ -2179,6 +2345,33 @@ async function saveAsExcel() {
             ['컨설팅점포', cc, ct, '', ''],
             ['증감(인건비)', cc-lc, '', cc-lc, lc ? (cc-lc)/lc : 0],
             ['증감(시간)', '', ct-lt, ct-lt, lt ? (ct-lt)/lt : 0],
+        ],
+        { numberCols:[1,2,3], percentCols:[4] }
+    );
+
+
+    const lcp = toNum(getValue('s4_1p_last_cost')), ccp = toNum(getValue('s4_1p_curr_cost'));
+    const ltp = toNum(getValue('s4_1p_last_time')), ctp = toNum(getValue('s4_1p_curr_time'));
+    tRow = addTable(wsData, tRow, '동일형태점포/컨설팅점포 비교표 - 생산및프로세싱 메이트 인건비',
+        ['구분','메이트 인건비(천원)','사용 시간(H)','증감','증감율'],
+        [
+            ['동일형태점포', lcp, ltp, '', ''],
+            ['컨설팅점포', ccp, ctp, '', ''],
+            ['증감(인건비)', ccp-lcp, '', ccp-lcp, lcp ? (ccp-lcp)/lcp : 0],
+            ['증감(시간)', '', ctp-ltp, ctp-ltp, ltp ? (ctp-ltp)/ltp : 0],
+        ],
+        { numberCols:[1,2,3], percentCols:[4] }
+    );
+
+    const lce = toNum(getValue('s4_1e_last_cost')), cce = toNum(getValue('s4_1e_curr_cost'));
+    const lte = toNum(getValue('s4_1e_last_time')), cte = toNum(getValue('s4_1e_curr_time'));
+    tRow = addTable(wsData, tRow, '동일형태점포/컨설팅점포 비교표 - 외부채널운영 메이트 인건비',
+        ['구분','메이트 인건비(천원)','사용 시간(H)','증감','증감율'],
+        [
+            ['동일형태점포', lce, lte, '', ''],
+            ['컨설팅점포', cce, cte, '', ''],
+            ['증감(인건비)', cce-lce, '', cce-lce, lce ? (cce-lce)/lce : 0],
+            ['증감(시간)', '', cte-lte, cte-lte, lte ? (cte-lte)/lte : 0],
         ],
         { numberCols:[1,2,3], percentCols:[4] }
     );
