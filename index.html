@@ -543,6 +543,9 @@
     padding: 20px;
     box-sizing: border-box;
 }
+#prevConsultingModal .share-modal-content {
+    max-width: min(1120px, 96vw);
+}
 .share-modal-content {
     background: white;
     width: 100%;
@@ -1163,15 +1166,17 @@
             <span style="cursor:pointer; font-size:1.1em;" onclick="closePrevConsultingModal()">✖</span>
         </div>
         <div class="share-modal-body">
-            <div class="sub-desc" style="display:block; margin-bottom:8px;">점포명/지점/유형/SC 동일 데이터 기준으로 조회됩니다.</div>
+            <div class="sub-desc" style="display:block; margin-bottom:8px;">기본은 담당 SC 기준으로 조회되며, 조회 날짜를 지정해 필터링할 수 있습니다.</div>
             <div style="display:flex; gap:8px; align-items:flex-end; margin-bottom:12px; flex-wrap:wrap;">
                 <div style="display:flex; flex-direction:column; gap:4px; min-width:160px;">
                     <label for="prevConsultingDateFilter" style="font-size:12px; color:#666;">조회 날짜(선택)</label>
                     <input type="date" id="prevConsultingDateFilter">
                 </div>
                 <button type="button" class="btn-share-email" style="background:#2d7a2d;" onclick="applyPrevConsultingFilter()">조회</button>
+                <button type="button" class="btn-share-cancel" style="background:#b94a48; color:#fff;" onclick="clearPrevConsultingAll()">전체 삭제</button>
             </div>
-            <div id="prevConsultingList" style="display:flex; flex-direction:column; gap:10px;"></div>
+            <div id="prevConsultingList"></div>
+            <div id="prevConsultingPagination" style="display:flex; justify-content:center; align-items:center; gap:8px; margin-top:12px;"></div>
             <div class="share-btn-row" style="margin-top:8px;">
                 <button class="btn-share-cancel" onclick="closePrevConsultingModal()">닫기</button>
             </div>
@@ -1662,8 +1667,10 @@ function sanitizeOutsideHtml(html = '') {
     function saveConsultingHistory(data) {
         const historyKey = 'consulting_history';
         const history = JSON.parse(localStorage.getItem(historyKey) || '[]');
+        const now = new Date().toISOString();
         const record = {
-            savedAt: new Date().toISOString(),
+            record_id: `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+            savedAt: now,
             inspection_date: data.inspection_date || '',
             store_name: data.inspection_store_name || '',
             branch_name: data.branch_name || '',
@@ -1671,7 +1678,27 @@ function sanitizeOutsideHtml(html = '') {
             sc_name: data.sc_name || '',
             payload: data
         };
-        history.unshift(record);
+
+        const matchIdx = history.findIndex((item) =>
+            (item.inspection_date || '') === record.inspection_date &&
+            (item.store_name || '') === record.store_name &&
+            (item.branch_name || '') === record.branch_name &&
+            (item.sc_name || '') === record.sc_name
+        );
+
+        if (matchIdx >= 0) {
+            const prev = history[matchIdx] || {};
+            history[matchIdx] = {
+                ...prev,
+                ...record,
+                record_id: prev.record_id || record.record_id,
+                savedAt: now
+            };
+        } else {
+            history.push(record);
+        }
+
+        history.sort((a, b) => (b.savedAt || '').localeCompare(a.savedAt || ''));
         localStorage.setItem(historyKey, JSON.stringify(history.slice(0, 50)));
     }
 
@@ -2655,44 +2682,82 @@ function doEmailShare(type) {
 }
 function renderPrevConsultingList(filtered) {
     const listEl = document.getElementById('prevConsultingList');
+    const pagerEl = document.getElementById('prevConsultingPagination');
+    const pageSize = 16;
     if (!listEl) return;
     if (!filtered.length) {
         listEl.innerHTML = '<div class="sub-desc" style="display:block;">조건에 맞는 이전 컨설팅 데이터가 없습니다.</div>';
+        if (pagerEl) pagerEl.innerHTML = '';
         window.__filteredPrevConsulting = [];
+        window.__prevConsultingPage = 1;
         return;
     }
 
-    listEl.innerHTML = filtered.map((item, idx) => `
-        <div style="border:1px solid #ddd; border-radius:8px; padding:10px; background:#fff;">
-            <div><strong>${item.inspection_date || '-'}</strong> / ${item.store_name || ''} / ${item.sc_name || ''}</div>
-            <div style="font-size:12px; color:#666; margin:6px 0;">${(item.payload?.s4_4_solution_final || '').substring(0, 90)}</div>
-            <button type="button" class="btn-share-email" style="width:100%; background:#2d7a2d;" onclick="applyPrevConsulting(${idx})">이 내용 불러오기</button>
+    const finalSolutionSummary = (item) => {
+        const solution = item.payload?.s4_4_solution_final || '';
+        if (!solution.trim()) return '-';
+        const div = document.createElement('div');
+        div.innerHTML = solution;
+        return (div.textContent || '').replace(/\s+/g, ' ').trim();
+    };
+
+    const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+    const currentPage = Math.min(Math.max(window.__prevConsultingPage || 1, 1), totalPages);
+    window.__prevConsultingPage = currentPage;
+    const start = (currentPage - 1) * pageSize;
+    const pageItems = filtered.slice(start, start + pageSize);
+
+    listEl.innerHTML = `
+        <div style="display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:10px; align-items:stretch;">
+            ${pageItems.map((item, idx) => {
+                const globalIdx = start + idx;
+                return `
+                <div style="border:1px solid #ddd; border-radius:8px; padding:10px; background:#fff; display:flex; flex-direction:column; min-height:145px;">
+                    <div><strong>${item.inspection_date || '-'}</strong> / ${item.store_name || ''} / ${item.sc_name || ''}</div>
+                    <div style="margin-top:auto; font-size:12px; color:#666; padding-top:8px;">최종솔루션 요약: ${finalSolutionSummary(item).substring(0, 70)}</div>
+                    <div style="display:flex; gap:6px; margin-top:8px;">
+                        <button type="button" class="btn-share-email" style="flex:1; background:#2d7a2d;" onclick="applyPrevConsulting(${globalIdx})">이 내용 불러오기</button>
+                        <button type="button" class="btn-share-cancel" style="flex:0 0 88px;" onclick="deletePrevConsulting(${globalIdx})">삭제</button>
+                    </div>
+                </div>
+                `;
+            }).join('')}
         </div>
-    `).join('');
+    `;
+
+    if (pagerEl) {
+        pagerEl.innerHTML = `
+            <button type="button" class="btn-share-cancel" style="padding:6px 10px;" onclick="movePrevConsultingPage(-1)" ${currentPage <= 1 ? 'disabled' : ''}>이전</button>
+            <span style="font-size:12px; color:#555; min-width:110px; text-align:center;">${currentPage} / ${totalPages} 페이지</span>
+            <button type="button" class="btn-share-cancel" style="padding:6px 10px;" onclick="movePrevConsultingPage(1)" ${currentPage >= totalPages ? 'disabled' : ''}>다음</button>
+        `;
+    }
+
     window.__filteredPrevConsulting = filtered;
+}
+
+function movePrevConsultingPage(direction) {
+    const nextPage = Math.max(1, (window.__prevConsultingPage || 1) + direction);
+    window.__prevConsultingPage = nextPage;
+    renderPrevConsultingList(window.__filteredPrevConsulting || []);
 }
 
 function applyPrevConsultingFilter() {
     const history = JSON.parse(localStorage.getItem('consulting_history') || '[]');
     const currDate = document.getElementById('inspectionDate')?.value || '9999-12-31';
     const selectedDate = document.getElementById('prevConsultingDateFilter')?.value || '';
-    const currStore = document.getElementById('storeNameInput')?.value || '';
-    const currBranch = document.getElementById('branchSelect')?.value || '';
-    const currType = document.getElementById('storeTypeSelect')?.value || '';
     const currSc = document.getElementById('scSelect')?.value || '';
 
-    let filtered = history.filter((item) =>
-        item.store_name === currStore && item.branch_name === currBranch &&
-        item.store_type === currType && item.sc_name === currSc
-    );
+    let filtered = history.filter((item) => item.sc_name === currSc);
 
     if (selectedDate) {
         filtered = filtered.filter((item) => item.inspection_date === selectedDate);
     } else {
-        filtered = filtered.filter((item) => item.inspection_date && item.inspection_date < currDate);
+        filtered = filtered.filter((item) => item.inspection_date && item.inspection_date <= currDate);
     }
 
-    filtered.sort((a, b) => (b.inspection_date || '').localeCompare(a.inspection_date || ''));
+    filtered.sort((a, b) => (b.savedAt || '').localeCompare(a.savedAt || ''));
+    window.__prevConsultingPage = 1;
     renderPrevConsultingList(filtered);
 }
 
@@ -2707,6 +2772,56 @@ function closePrevConsultingModal() {
     document.getElementById('prevConsultingModal').classList.remove('open');
 }
 
+
+function deletePrevConsulting(target) {
+    if (target === undefined || target === null) return;
+    if (!confirm('선택한 저장 리포트를 삭제하시겠습니까?')) return;
+
+    const historyKey = 'consulting_history';
+    const history = JSON.parse(localStorage.getItem(historyKey) || '[]');
+    const filtered = window.__filteredPrevConsulting || [];
+
+    const targetItem = (typeof target === 'number')
+        ? filtered[target]
+        : filtered.find((item) => (item.record_id || '') === String(target));
+
+    let removeIdx = -1;
+    if (targetItem?.record_id) {
+        removeIdx = history.findIndex((item) => item.record_id === targetItem.record_id);
+    } else if (targetItem) {
+        removeIdx = history.findIndex((item) =>
+            !item.record_id &&
+            (item.savedAt || '') === (targetItem.savedAt || '') &&
+            (item.inspection_date || '') === (targetItem.inspection_date || '') &&
+            (item.store_name || '') === (targetItem.store_name || '') &&
+            (item.sc_name || '') === (targetItem.sc_name || '') &&
+            ((item.payload?.s4_4_solution_final || '') === (targetItem.payload?.s4_4_solution_final || '')) &&
+            ((item.payload?.outside_comment_html || '') === (targetItem.payload?.outside_comment_html || ''))
+        );
+    }
+
+    if (removeIdx < 0 && typeof target === 'string') {
+        removeIdx = history.findIndex((item, idx) => {
+            const fallbackId = item.record_id || `${item.savedAt || ''}_${idx}`;
+            return fallbackId === target;
+        });
+    }
+
+    if (removeIdx < 0) {
+        alert('삭제할 리포트를 찾지 못했습니다. 조회 후 다시 시도해주세요.');
+        return;
+    }
+
+    history.splice(removeIdx, 1);
+    localStorage.setItem(historyKey, JSON.stringify(history));
+    applyPrevConsultingFilter();
+}
+
+function clearPrevConsultingAll() {
+    if (!confirm('저장된 이전 컨설팅 데이터를 모두 삭제하시겠습니까?')) return;
+    localStorage.removeItem('consulting_history');
+    applyPrevConsultingFilter();
+}
 
 function applyPrevConsulting(idx) {
     const list = window.__filteredPrevConsulting || [];
