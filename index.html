@@ -5,10 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>점포 관리 컨설팅 리포트</title>
     
+    <!-- [head/lib] html2pdf.js v0.10.1 (SRI 미적용: 외부 번들/의존성 체인 변경 가능성으로 운영중 해시 불일치 리스크) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- [head/lib] FileSaver.js v2.0.5 (SRI 미적용: 내부 캐시/CDN 미러 환경에서 해시 불일치 가능성 검토) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/suneditor@latest/dist/css/suneditor.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/suneditor@latest/dist/suneditor.min.js"></script>
+    <!-- [head/lib] SunEditor v2.46.3 (latest 고정) -->
+    <link href="https://cdn.jsdelivr.net/npm/suneditor@2.46.3/dist/css/suneditor.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/suneditor@2.46.3/dist/suneditor.min.js"></script>
+    <!-- [head/lib] ExcelJS v4.4.0 (SRI 미적용: dist 번들 변형/압축차로 해시 고정 검증 어려움) -->
     <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 
     <style>
@@ -463,6 +467,22 @@
         .icon-btn span { font-size: 11px; margin-top: 0; font-weight: 800; letter-spacing: -0.2px; line-height: 1.2; }
         .icon-btn:active { transform: scale(0.9); }
 
+        .menu-toggle-btn { display: none; background:#1f2937; }
+        @media (max-width: 900px) {
+            .right-step-float { display:none !important; }
+            .btn-group {
+                bottom: 12px;
+                right: 12px;
+                grid-template-columns: 1fr;
+                width: min(190px, calc(100vw - 24px));
+                gap: 6px;
+            }
+            .menu-toggle-btn { display:flex; justify-content:center; }
+            .btn-group.mobile-collapsed .action-btn,
+            .btn-group.mobile-collapsed input[type="file"] { display:none; }
+            .btn-group.mobile-expanded .action-btn { display:flex; }
+        }
+
 
         #historyModal {
             display: none;
@@ -517,6 +537,17 @@
     font-size: 0.85em;
     opacity: 0.9;
     font-weight: normal;
+}
+
+
+@media (max-width: 390px) {
+    .mobile-scroll-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; border:1px solid #e5e5e5; border-radius:8px; background:#fff; }
+    .mobile-scroll-wrap .data-table { min-width:760px; margin-bottom:0; }
+    .mobile-scroll-wrap .data-table th:first-child,
+    .mobile-scroll-wrap .data-table td:first-child { position:sticky; left:0; z-index:2; background:#f7faf8; }
+    .mobile-scroll-wrap .data-table th:first-child { z-index:3; }
+    [id^="s2_2_l_ratio_"], [id^="s2_2_c_ratio_"] { display:block !important; min-width:0 !important; text-align:left !important; font-size:11px !important; margin-top:3px; }
+    input.comma-input { min-height:42px; font-size:16px; }
 }
 
 /* 공유/발송 모달 스타일 */
@@ -620,6 +651,19 @@
     border: 1px solid #ddd;
 }
 
+
+        /* 저장 상태/검증/JSON 인계 UI */
+        .status-strip { display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin:12px 0; }
+        .save-status-badge { display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px; font-size:12px; font-weight:700; border:1px solid var(--line); background:#fff; }
+        .save-status-badge.saved { color:#1b5e20; border-color:#a5d6a7; background:#e8f5e9; }
+        .save-status-badge.dirty { color:#b71c1c; border-color:#ef9a9a; background:#ffebee; }
+        .save-status-text { font-size:12px; color:#555; }
+        .json-transfer-row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin:8px 0 2px; }
+        .validation-alert { display:none; border:1px solid #ef9a9a; background:#fff3f3; color:#8a1f1f; border-radius:10px; padding:10px 12px; margin:10px 0 14px; }
+        .validation-alert strong { display:block; margin-bottom:6px; }
+        .validation-alert ul { margin:0; padding-left:18px; }
+
+
 /* PDF 출력용 설정 */
 @media print {
     body {
@@ -705,7 +749,16 @@
         <div style="font-size: 0.9em; opacity: 0.9; margin-top:5px;">점포 관리 컨설팅 리포트</div>
     </div>
 
+    <div class="status-strip">
+        <div>
+            <span id="saveStatusBadge" class="save-status-badge dirty">● 미저장</span>
+            <span id="saveStatusText" class="save-status-text">마지막 저장 시각: -</span>
+        </div>
+        <div class="json-transfer-row" style="font-size:12px; color:#666;">작업파일(JSON) 기능은 하단 버튼 메뉴에서 사용하세요.</div>
+    </div>
+
     <form id="inspectionForm">
+        <div id="validationAlert" class="validation-alert" role="alert" aria-live="assertive"></div>
 
         <div class="step-section">
             <div class="step-header">Step 0. 담당 지점 및 SC</div>
@@ -855,6 +908,40 @@
                                 </tr>
                             </tbody>
                         </table>
+                        <div class="checkbox-wrapper" style="margin:10px 0 6px;">
+                            <input type="checkbox" id="s2_1_monthly_toggle" name="s2_1_monthly_toggle" onchange="toggleS2MonthlyTables()">
+                            <label for="s2_1_monthly_toggle">전월 비교표 표시</label>
+                        </div>
+                        <div id="s2_1_monthly_area" class="hidden-area" style="margin-top:8px;">
+                            <table class="data-table">
+                                <thead>
+                                    <tr><th>구분(천원)</th><th>매출</th><th>외부채널</th><th>배달</th><th>단체</th><th>순수래점</th></tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>전월</td>
+                                        <td><input type="text" name="s2_1_m_last_total" class="comma-input" oninput="calcS2_1()"></td>
+                                        <td><input type="text" name="s2_1_m_last_ext" class="comma-input" oninput="calcS2_1()"></td>
+                                        <td><input type="text" name="s2_1_m_last_del" class="comma-input" oninput="calcS2_1()"></td>
+                                        <td><input type="text" name="s2_1_m_last_grp" class="comma-input" oninput="calcS2_1()"></td>
+                                        <td class="bg-gray" id="s2_1_m_last_pure">0</td>
+                                    </tr>
+                                    <tr>
+                                        <td>당월</td>
+                                        <td><input type="text" name="s2_1_m_curr_total" class="comma-input" oninput="calcS2_1()"></td>
+                                        <td><input type="text" name="s2_1_m_curr_ext" class="comma-input" oninput="calcS2_1()"></td>
+                                        <td><input type="text" name="s2_1_m_curr_del" class="comma-input" oninput="calcS2_1()"></td>
+                                        <td><input type="text" name="s2_1_m_curr_grp" class="comma-input" oninput="calcS2_1()"></td>
+                                        <td class="bg-gray" id="s2_1_m_curr_pure">0</td>
+                                    </tr>
+                                    <tr class="bg-gray">
+                                        <td>증감</td>
+                                        <td id="s2_1_m_diff_total">0</td>
+                                        <td id="s2_1_m_diff_ext">0</td><td id="s2_1_m_diff_del">0</td><td id="s2_1_m_diff_grp">0</td><td id="s2_1_m_diff_pure">0</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                         <textarea name="s2_1_comment" placeholder="특이사항 및 분석 내용 입력"></textarea>
                     </div>
 
@@ -882,6 +969,34 @@
                                 </tr>
                             </tbody>
                         </table>
+                        <div class="checkbox-wrapper" style="margin:10px 0 6px;">
+                            <input type="checkbox" id="s2_2_monthly_toggle" name="s2_2_monthly_toggle" onchange="toggleS2MonthlyTables()">
+                            <label for="s2_2_monthly_toggle">전월 비교표 표시</label>
+                        </div>
+                        <div id="s2_2_monthly_area" class="hidden-area" style="margin-top:8px;">
+                            <div class="input-group-row" style="margin:10px 0;">
+                                <div class="input-box"><label>전월매출(천원)</label><input type="text" class="comma-input" name="s2_2_m_last_total" oninput="calcS2_2()"></div>
+                                <div class="input-box"><label>당월매출(천원)</label><input type="text" class="comma-input" name="s2_2_m_curr_total" oninput="calcS2_2()"></div>
+                            </div>
+                            <table class="data-table" id="blockAnalysisTableMonthly">
+                                <thead>
+                                    <tr><th>구분</th><th>더즌</th><th>싱글</th><th>세트</th><th>커피</th><th>프로즌</th><th>판매용품</th><th>베이크드</th><th>기타</th></tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>전월</td>
+                                        <script>for(let i=1;i<=8;i++) document.write(`<td><div style="display:flex; gap:6px; align-items:center;"><input type="text" name="s2_2_m_l_${i}" class="comma-input" style="flex:1;" oninput="calcS2_2()"><span id="s2_2_m_l_ratio_${i}" style="font-size:12px; color:#2d7a2d; min-width:52px; text-align:right;">0.0%</span></div></td>`);</script>
+                                    </tr>
+                                    <tr>
+                                        <td>당월</td>
+                                        <script>for(let i=1;i<=8;i++) document.write(`<td><div style="display:flex; gap:6px; align-items:center;"><input type="text" name="s2_2_m_c_${i}" class="comma-input" style="flex:1;" oninput="calcS2_2()"><span id="s2_2_m_c_ratio_${i}" style="font-size:12px; color:#2d7a2d; min-width:52px; text-align:right;">0.0%</span></div></td>`);</script>
+                                    </tr>
+                                    <tr class="bg-gray" id="blockDiffRowMonthly">
+                                        <td>증감</td><script>for(let i=1;i<=8;i++) document.write(`<td>0</td>`);</script>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                         <textarea name="s2_2_comment" placeholder="증감 원인 및 상세 분석"></textarea>
                     </div>
 
@@ -965,7 +1080,7 @@
     </label></div>
                     <div class="step-content">
                         <p class="sub-desc" style="display:block; background:#fff3cd; color:#856404; border:1px solid #ffeeba;">※ 인사 및 기타 점검<br>인력 운영 적정성은 동일형태점포 기준으로 비교해 주세요.<br>4번은 최종 종합하여 솔루션 전달해 주세요.</p>
-                        <div class="form-item">
+                        <div class="form-item" id="step4_1_block">
                             <label class="item-title">1. 인력 운영 적정성 (52시간, 인건비 등)</label>
                             <div class="input-group-row" style="margin:10px 0;">
                                 <div class="input-box" style="flex:0 0 25%; max-width:25%; min-width:220px;">
@@ -1143,7 +1258,8 @@
 
             <label>📎 파일 첨부</label>
             <div class="attach-hint">💡 첨부 파일을 선택하면 자동 다운로드 후 메일 앱에서 첨부하세요.</div>
-            <input type="file" id="shareAttachFiles" multiple accept="*/*" style="margin-bottom:14px;">
+            <input type="file" id="shareAttachFiles" multiple accept="*/*" style="margin-bottom:8px;">
+            <div id="shareFallbackHint" class="attach-hint" style="display:block; background:#fff8e1; color:#8a6d3b;"></div>
 
             <div style="font-size:0.8em; font-weight:bold; color:var(--brand-choco); margin-bottom:6px;">📬 메일 발송 방법 선택</div>
             <div class="share-btn-row">
@@ -1184,31 +1300,374 @@
     </div>
 </div>
 
-<div class="btn-group">
-    <button type="button" class="icon-btn" id="btnSaveTemp" onclick="saveTempData()">
+<div class="btn-group" id="actionBtnGroup" role="group" aria-label="주요 작업 메뉴">
+    <button type="button" class="icon-btn menu-toggle-btn" id="btnMenuToggle" onclick="toggleMobileActionMenu()" aria-expanded="false" aria-controls="actionBtnGroup" aria-label="작업 메뉴 열기">
+        ☰<span>메뉴</span>
+    </button>
+    <button type="button" class="icon-btn action-btn" id="btnSaveTemp" onclick="saveTempData()">
         🗂️<span>리포트저장</span>
     </button>
-    <button type="button" class="icon-btn" id="btnLoadPrev" onclick="openPrevConsultingModal()">
+    <button type="button" class="icon-btn action-btn" id="btnLoadPrev" onclick="openPrevConsultingModal()">
         🕘<span>리포트불러오기</span>
     </button>
-    <button type="button" class="icon-btn" id="btnExcel" onclick="saveAsExcel()">
+    <button type="button" class="icon-btn action-btn" id="btnExcel" onclick="saveAsExcel()">
         📈<span>엑셀저장</span>
     </button>
-    <button type="button" class="icon-btn" id="btnPdf" onclick="saveAsPDF()">
+    <button type="button" class="icon-btn action-btn" id="btnPdf" onclick="saveAsPDF()">
         🧾<span>PDF저장</span>
     </button>
-    <button type="button" class="icon-btn" id="btnShare" onclick="openShareModal()">
+    <button type="button" class="icon-btn action-btn" id="btnShare" onclick="openShareModal()">
         📨<span>공유/발송</span>
     </button>
-    <button type="button" class="icon-btn btn-reset" id="btnReset" onclick="resetForm()">
+    <button type="button" class="icon-btn action-btn" id="btnJsonSave" onclick="exportTransferJson()">
+        💾<span>작업파일저장</span>
+    </button>
+    <button type="button" class="icon-btn action-btn" id="btnJsonLoad" onclick="triggerImportTransferJson()">
+        📂<span>작업파일불러오기</span>
+    </button>
+    <input type="file" id="transferJsonInput" accept="application/json,.json" style="display:none;" onchange="importTransferJson(this)">
+    <button type="button" class="icon-btn btn-reset action-btn" id="btnReset" onclick="resetForm()">
         ♻️<span>초기화</span>
     </button>
 </div>
 
 <div id="rightStepFloat" class="right-step-float" aria-label="스텝 바로가기"></div>
  <script>
+/* ===================== [calculations] ===================== */
+
+let isDirty = true;
+let lastSavedAt = localStorage.getItem('temp_report_saved_at') || '';
+let lastGeneratedShareFileName = '-';
+const WORKFILE_SCHEMA = 'smc-report-workfile';
+const WORKFILE_VERSION = 2;
+
+function formatDateTime(iso) {
+    if (!iso) return '-';
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return '-';
+    const p = (n) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+
+function renderSaveStatus() {
+    const badge = document.getElementById('saveStatusBadge');
+    const txt = document.getElementById('saveStatusText');
+    if (!badge || !txt) return;
+    badge.classList.remove('saved', 'dirty');
+    if (isDirty) {
+        badge.classList.add('dirty');
+        badge.textContent = '● 미저장';
+    } else {
+        badge.classList.add('saved');
+        badge.textContent = '● 저장됨';
+    }
+    txt.textContent = `마지막 저장 시각: ${formatDateTime(lastSavedAt)}`;
+}
+
+function markDirty(flag = true) {
+    isDirty = !!flag;
+    renderSaveStatus();
+}
+
+function setSavedNow() {
+    isDirty = false;
+    lastSavedAt = new Date().toISOString();
+    localStorage.setItem('temp_report_saved_at', lastSavedAt);
+    renderSaveStatus();
+}
+
+function showValidationAlert(messages = []) {
+    const box = document.getElementById('validationAlert');
+    if (!box) return;
+    if (!messages.length) {
+        box.style.display = 'none';
+        box.innerHTML = '';
+        return;
+    }
+    box.style.display = 'block';
+    box.innerHTML = `<strong>필수 입력값을 확인해 주세요.</strong><ul>${messages.map((m) => `<li>${m}</li>`).join('')}</ul>`;
+    box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function validateCommonRequired() {
+    const required = [
+        { id: 'inspectionDate', label: '점검일자', name: 'inspection_date' },
+        { id: 'storeNameInput', label: '점검 점포', name: 'inspection_store_name' },
+        { id: 'storeTypeSelect', label: '점포 유형', name: 'store_type' },
+        { id: 'branchSelect', label: '담당 지점', name: 'branch_name' },
+        { id: 'scSelect', label: '담당 SC', name: 'sc_name' },
+    ];
+    const misses = required.filter((f) => !(document.getElementById(f.id)?.value || '').trim());
+    const msg = misses.map((m) => `${m.label}(${m.name})`);
+    showValidationAlert(msg);
+    return msg.length === 0;
+}
+
+function ensureCommonRequired(actionName) {
+    const ok = validateCommonRequired();
+    if (!ok) console.warn(`${actionName} 중단: Step 0 공통 필수값 누락`);
+    return ok;
+}
+
+function exportTransferJson() {
+    const data = getCurrentFormSnapshot();
+    const payload = {
+        schema: WORKFILE_SCHEMA,
+        version: WORKFILE_VERSION,
+        exported_at: new Date().toISOString(),
+        app: 'SMC-index-html',
+        data
+    };
+    const store = data.inspection_store_name || '점포';
+    const date = (data.inspection_date || '날짜미상').replace(/-/g, '');
+    const fileName = `${store}_${date}_인계.json`.replace(/[\/:*?"<>|]/g, '_');
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    alert(`작업파일(JSON) 저장이 완료되었습니다.
+파일명: ${fileName}
+- 다운로드 폴더에서 파일을 확인해 주세요.
+- 모바일에서는 Chrome 다운로드 목록 또는 Files 앱에서 확인 가능합니다.`);
+}
+
+function triggerImportTransferJson() {
+    const inp = document.getElementById('transferJsonInput');
+    if (inp) inp.click();
+}
+
+function normalizeWorkfileDefaults(data = {}) {
+    const next = { ...(data || {}) };
+    ['inspection_date', 'inspection_store_name', 'store_type', 'branch_name', 'sc_name'].forEach((k) => {
+        if (next[k] === undefined || next[k] === null) next[k] = '';
+    });
+    return next;
+}
+
+function migrateWorkfileV1ToV2(data = {}) {
+    const next = { ...(data || {}) };
+    const keyMap = {
+        inspectionDate: 'inspection_date',
+        inspection_store: 'inspection_store_name',
+        store_name: 'inspection_store_name',
+        branch: 'branch_name',
+        sc: 'sc_name',
+        storeType: 'store_type'
+    };
+    Object.entries(keyMap).forEach(([oldKey, newKey]) => {
+        if ((next[newKey] === undefined || next[newKey] === '') && next[oldKey] !== undefined) {
+            next[newKey] = next[oldKey];
+        }
+    });
+    return normalizeWorkfileDefaults(next);
+}
+
+function migrateWorkfileData(version, data) {
+    if (version === 1) return { version: 2, data: migrateWorkfileV1ToV2(data) };
+    throw new Error(`지원하지 않는 작업파일 버전입니다: v${version}`);
+}
+
+function parseAndMigrateWorkfile(raw) {
+    if (!raw || typeof raw !== 'object') throw new Error('작업파일 형식이 올바르지 않습니다.');
+
+    let version = Number(raw.version);
+    let data = raw.data ?? raw;
+
+    if (!version || Number.isNaN(version)) version = 1;
+    if (!data || typeof data !== 'object') throw new Error('작업파일 데이터가 비어 있습니다.');
+
+    while (version < WORKFILE_VERSION) {
+        const migrated = migrateWorkfileData(version, data);
+        version = migrated.version;
+        data = migrated.data;
+    }
+
+    if (version !== WORKFILE_VERSION) throw new Error('현재 앱에서 지원하지 않는 작업파일 버전입니다.');
+
+    return normalizeWorkfileDefaults(data);
+}
+
+function importTransferJson(inputEl) {
+    const file = inputEl?.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+        try {
+            const obj = JSON.parse(String(reader.result || '{}'));
+            const data = parseAndMigrateWorkfile(obj);
+            applySnapshotData(data);
+            calcS2_1(); calcS2_2(); calcS4_1(); calcPromoRatios();
+            markDirty(true);
+            alert(`작업파일(JSON) 불러오기가 완료되었습니다.
+파일명: ${file.name}`);
+        } catch (e) {
+            alert(`JSON 작업파일 불러오기에 실패했습니다.
+사유: ${e.message || '형식 오류'}`);
+        } finally {
+            inputEl.value = '';
+        }
+    };
+    reader.readAsText(file, 'utf-8');
+}
+
+function bindNumericMobileInputs() {
+    const scope = document.querySelectorAll('#step2Section input.comma-input, #step4Section input.comma-input, #step2Section input[type="number"], #step4Section input[type="number"]');
+    scope.forEach((el) => {
+        el.setAttribute('inputmode', 'numeric');
+        el.setAttribute('pattern', '[0-9,.-]*');
+        el.setAttribute('enterkeyhint', 'next');
+        el.setAttribute('autocomplete', 'off');
+        el.style.minHeight = '40px';
+        el.style.fontSize = '16px';
+        if (el.type === 'number') {
+            el.setAttribute('inputmode', 'decimal');
+            el.setAttribute('step', el.getAttribute('step') || 'any');
+        }
+    });
+}
+
+function setupMobileTableWrap() {
+    ['#step2Section .data-table', '#step4Section .data-table'].forEach((sel) => {
+        document.querySelectorAll(sel).forEach((table) => {
+            if (table.parentElement?.classList.contains('mobile-scroll-wrap')) return;
+            const wrap = document.createElement('div');
+            wrap.className = 'mobile-scroll-wrap';
+            table.parentNode.insertBefore(wrap, table);
+            wrap.appendChild(table);
+        });
+    });
+}
 
 
+function isMobileViewport() {
+    return window.matchMedia('(max-width: 900px)').matches;
+}
+
+function setMobileActionTabState(expanded) {
+    const actions = document.querySelectorAll('#actionBtnGroup .action-btn');
+    actions.forEach((btn) => {
+        if (expanded || !isMobileViewport()) btn.removeAttribute('tabindex');
+        else btn.setAttribute('tabindex', '-1');
+    });
+}
+
+function getFirstActionButton() {
+    return document.querySelector('#actionBtnGroup .action-btn');
+}
+
+function syncMobileActionMenu() {
+    const g = document.getElementById('actionBtnGroup');
+    const toggle = document.getElementById('btnMenuToggle');
+    if (!g) return;
+
+    if (isMobileViewport()) {
+        if (!g.classList.contains('mobile-expanded')) g.classList.add('mobile-collapsed');
+    } else {
+        g.classList.remove('mobile-collapsed', 'mobile-expanded');
+    }
+
+    const expanded = g.classList.contains('mobile-expanded');
+    if (toggle) {
+        toggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+        toggle.setAttribute('aria-label', expanded ? '작업 메뉴 닫기' : '작업 메뉴 열기');
+    }
+    setMobileActionTabState(expanded);
+}
+
+function toggleMobileActionMenu() {
+    const g = document.getElementById('actionBtnGroup');
+    const toggle = document.getElementById('btnMenuToggle');
+    if (!g || !isMobileViewport()) return;
+    const expanded = g.classList.contains('mobile-expanded');
+    g.classList.toggle('mobile-expanded', !expanded);
+    g.classList.toggle('mobile-collapsed', expanded);
+    syncMobileActionMenu();
+    if (!expanded) {
+        const first = getFirstActionButton();
+        if (first) first.focus();
+    } else if (toggle) {
+        toggle.focus();
+    }
+}
+
+function collapseMobileActionMenu(restoreFocus = false) {
+    const g = document.getElementById('actionBtnGroup');
+    const toggle = document.getElementById('btnMenuToggle');
+    if (!g || !isMobileViewport()) return;
+    g.classList.remove('mobile-expanded');
+    g.classList.add('mobile-collapsed');
+    syncMobileActionMenu();
+    if (restoreFocus && toggle) toggle.focus();
+}
+
+function getReportPolicy() {
+    const storeType = document.getElementById('storeTypeSelect')?.value || '';
+    return {
+        storeType,
+        isOutsideActivity: /외부활동/.test(storeType),
+        isFranchise: storeType === '가맹점(영업점)',
+        showS21Monthly: !!document.getElementById('s2_1_monthly_toggle')?.checked,
+        showS22Monthly: !!document.getElementById('s2_2_monthly_toggle')?.checked,
+        isSectionHidden: (el) => !!(el && (el.classList?.contains('section-hidden') || el.style?.display === 'none'))
+    };
+}
+
+function estimateRowHeight(text, colWidth, minH = 24, maxH = 420) {
+    const raw = String(text || '').replace(/\r/g, '');
+    const parts = raw.split('\n');
+    const approxPerLine = Math.max(8, Math.floor(colWidth * 1.3));
+    let lines = 0;
+    parts.forEach((p) => {
+        const weightedLen = (p || '').replace(/[\uAC00-\uD7A3]/g, 'aa').length;
+        lines += Math.max(1, Math.ceil(weightedLen / approxPerLine));
+    });
+    return Math.min(maxH, Math.max(minH, lines * 20));
+}
+
+function syncOutsideEditorToHidden() {
+    const hiddenOutside = document.getElementById('outsideCommentHtml');
+    if (!hiddenOutside) return;
+    if (editorInstance) hiddenOutside.value = sanitizeOutsideHtml(editorInstance.getContents());
+}
+
+function ensureOutsideEditor(initialHtml = '') {
+    const hostId = 'outsideEditor';
+    const hiddenOutside = document.getElementById('outsideCommentHtml');
+    if (!hiddenOutside) return null;
+
+    if (!editorInstance && typeof SUNEDITOR !== 'undefined') {
+        editorInstance = SUNEDITOR.create(hostId, {
+            buttonList: [['undo', 'redo', 'removeFormat'], ['font', 'fontSize', 'formatBlock'], ['bold', 'underline', 'italic', 'strike', 'subscript', 'superscript'], ['fontColor', 'hiliteColor'], ['align', 'list', 'lineHeight'], ['table', 'link', 'image', 'video'], ['fullScreen', 'showBlocks', 'codeView']],
+            width: '100%',
+            height: '380px',
+            minHeight: '320px',
+            resizingBar: true,
+            imageUploadSizeLimit: 5242880,
+            callBackSave: function () {
+                syncOutsideEditorToHidden();
+                markDirty(true);
+            }
+        });
+        const initial = sanitizeOutsideHtml(initialHtml || hiddenOutside.value || '');
+        if (initial) editorInstance.setContents(initial);
+        editorInstance.onChange = function () {
+            syncOutsideEditorToHidden();
+            markDirty(true);
+        };
+    } else if (editorInstance) {
+        requestAnimationFrame(() => {
+            try { editorInstance.refresh(); } catch (_) {}
+        });
+        if (initialHtml) editorInstance.setContents(sanitizeOutsideHtml(initialHtml));
+    }
+    syncOutsideEditorToHidden();
+    return editorInstance;
+}
 
 function toggleStoreMode() {
     const val = document.getElementById("storeTypeSelect").value;
@@ -1219,6 +1678,7 @@ function toggleStoreMode() {
     // 하위 섹션 참조
     const step3 = document.getElementById("step3Section");
     const step5 = document.getElementById("step5Section");
+    const step41 = document.getElementById("step4_1_block");
 
     // 제목 요소 참조
     const titleS25 = document.getElementById("title_s2_5");
@@ -1229,14 +1689,16 @@ function toggleStoreMode() {
     outsideArea.style.display = "none";
     if (step3) step3.style.display = "block";
     if (step5) step5.style.display = "block";
+    if (step41) step41.style.display = "block";
 
     if (val === "외부활동(미점검)") {
         mainSteps.style.display = "none";
         outsideArea.style.display = "block";
-        if (editorInstance) editorInstance.refresh();
+        ensureOutsideEditor(document.getElementById('outsideCommentHtml')?.value || '');
     } else if (val === "가맹점(영업점)") {
         if (step3) step3.style.display = "none";
         if (step5) step5.style.display = "none";
+        if (step41) step41.style.display = "none";
         if (titleS25) titleS25.innerText = "5. 가맹점 도넛 수불 및 정량 정시 현황";
         if (titleS44) titleS44.innerText = "4. 가맹점 최종 솔루션 및 권고안";
     } else if (val === "영업점") {
@@ -1257,49 +1719,70 @@ function toggleStoreMode() {
         return Number(String(str || "0").replace(/,/g, ""));
     }
 
+    function toggleS2MonthlyTables() {
+        const on1 = !!document.getElementById('s2_1_monthly_toggle')?.checked;
+        const on2 = !!document.getElementById('s2_2_monthly_toggle')?.checked;
+        const a1 = document.getElementById('s2_1_monthly_area');
+        const a2 = document.getElementById('s2_2_monthly_area');
+        if (a1) a1.style.display = on1 ? 'block' : 'none';
+        if (a2) a2.style.display = on2 ? 'block' : 'none';
+    }
+
+
     // Step 2.1 매출 실적 계산
     function calcS2_1() {
-        const getVal = (name) => uncomma(document.getElementsByName(name)[0]?.value);
-        
-        const lastT = getVal('s2_1_last_total');
-        const lastE = getVal('s2_1_last_ext');
-        const lastD = getVal('s2_1_last_del');
-        const lastG = getVal('s2_1_last_grp');
-        
-        const currT = getVal('s2_1_curr_total');
-        const currE = getVal('s2_1_curr_ext');
-        const currD = getVal('s2_1_curr_del');
-        const currG = getVal('s2_1_curr_grp');
+        const calcSalesPair = (prefix, ids) => {
+            const getVal = (name) => uncomma(document.getElementsByName(name)[0]?.value);
+            const base = `${prefix}`;
+            const lastT = getVal(`${base}_last_total`);
+            const lastE = getVal(`${base}_last_ext`);
+            const lastD = getVal(`${base}_last_del`);
+            const lastG = getVal(`${base}_last_grp`);
+            const currT = getVal(`${base}_curr_total`);
+            const currE = getVal(`${base}_curr_ext`);
+            const currD = getVal(`${base}_curr_del`);
+            const currG = getVal(`${base}_curr_grp`);
 
-        const lastPure = lastT - lastE - lastD - lastG;
-        const currPure = currT - currE - currD - currG;
+            const lastPure = lastT - lastE - lastD - lastG;
+            const currPure = currT - currE - currD - currG;
 
-        document.getElementById('s2_1_last_pure').innerText = lastPure.toLocaleString();
-        document.getElementById('s2_1_curr_pure').innerText = currPure.toLocaleString();
+            const setText = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
+            setText(ids.lastPure, lastPure.toLocaleString());
+            setText(ids.currPure, currPure.toLocaleString());
 
-        const diffT = currT - lastT;
-        const perT = lastT ? ((diffT / lastT) * 100).toFixed(1) : 0;
-        document.getElementById('s2_1_diff_total').innerText = `${diffT.toLocaleString()} (${perT}%)`;
+            const diffT = currT - lastT;
+            const perT = lastT ? ((diffT / lastT) * 100).toFixed(1) : 0;
+            setText(ids.diffTotal, `${diffT.toLocaleString()} (${perT}%)`);
 
-        const diffE = currE - lastE;
-        const perE = lastE ? ((diffE / lastE) * 100).toFixed(1) : 0;
-        document.getElementById('s2_1_diff_ext').innerText = `${diffE.toLocaleString()} (${perE}%)`;
+            const diffE = currE - lastE;
+            const perE = lastE ? ((diffE / lastE) * 100).toFixed(1) : 0;
+            setText(ids.diffExt, `${diffE.toLocaleString()} (${perE}%)`);
 
-        const diffD = currD - lastD;
-        const perD = lastD ? ((diffD / lastD) * 100).toFixed(1) : 0;
-        document.getElementById('s2_1_diff_del').innerText = `${diffD.toLocaleString()} (${perD}%)`;
+            const diffD = currD - lastD;
+            const perD = lastD ? ((diffD / lastD) * 100).toFixed(1) : 0;
+            setText(ids.diffDel, `${diffD.toLocaleString()} (${perD}%)`);
 
-        const diffG = currG - lastG;
-        const perG = lastG ? ((diffG / lastG) * 100).toFixed(1) : 0;
-        document.getElementById('s2_1_diff_grp').innerText = `${diffG.toLocaleString()} (${perG}%)`;
+            const diffG = currG - lastG;
+            const perG = lastG ? ((diffG / lastG) * 100).toFixed(1) : 0;
+            setText(ids.diffGrp, `${diffG.toLocaleString()} (${perG}%)`);
 
-        const diffP = currPure - lastPure;
-        const perP = lastPure ? ((diffP / lastPure) * 100).toFixed(1) : 0;
-        document.getElementById('s2_1_diff_pure').innerText = `${diffP.toLocaleString()} (${perP}%)`;
+            const diffP = currPure - lastPure;
+            const perP = lastPure ? ((diffP / lastPure) * 100).toFixed(1) : 0;
+            setText(ids.diffPure, `${diffP.toLocaleString()} (${perP}%)`);
+        };
+
+        calcSalesPair('s2_1', {
+            lastPure: 's2_1_last_pure', currPure: 's2_1_curr_pure',
+            diffTotal: 's2_1_diff_total', diffExt: 's2_1_diff_ext', diffDel: 's2_1_diff_del', diffGrp: 's2_1_diff_grp', diffPure: 's2_1_diff_pure'
+        });
+        calcSalesPair('s2_1_m', {
+            lastPure: 's2_1_m_last_pure', currPure: 's2_1_m_curr_pure',
+            diffTotal: 's2_1_m_diff_total', diffExt: 's2_1_m_diff_ext', diffDel: 's2_1_m_diff_del', diffGrp: 's2_1_m_diff_grp', diffPure: 's2_1_m_diff_pure'
+        });
         calcPromoRatios();
     }
 
-    function buildPromoRowHtml(idx) {
+function buildPromoRowHtml(idx) {
         return `<tr data-idx="${idx}">
             <td><input type="text" name="s2_4_name_${idx}" placeholder="판촉명"></td>
             <td><input type="text" class="comma-input" name="s2_4_store_${idx}" oninput="calcPromoRatios()"></td>
@@ -1345,25 +1828,31 @@ function toggleStoreMode() {
 
     // Step 2.2 블럭별 증감 계산
     function calcS2_2() {
-        const row = document.getElementById('blockDiffRow');
-        const lastTotal = uncomma(document.getElementsByName('s2_2_last_total')[0]?.value || 0);
-        const currTotal = uncomma(document.getElementsByName('s2_2_curr_total')[0]?.value || 0);
-        for(let i=1; i<=8; i++) {
-            const last = uncomma(document.getElementsByName(`s2_2_l_${i}`)[0]?.value || 0);
-            const curr = uncomma(document.getElementsByName(`s2_2_c_${i}`)[0]?.value || 0);
-            const diff = curr - last;
-            const lastRatio = lastTotal ? ((last/lastTotal)*100) : 0;
-            const currRatio = currTotal ? ((curr/currTotal)*100) : 0;
-            const per = (currRatio - lastRatio).toFixed(1);
-            row.cells[i].innerHTML = `${diff.toLocaleString()}<br>(${per}%)`;
-            const lr = document.getElementById(`s2_2_l_ratio_${i}`);
-            const cr = document.getElementById(`s2_2_c_ratio_${i}`);
-            if (lr) lr.innerText = `${lastRatio.toFixed(1)}%`;
-            if (cr) cr.innerText = `${currRatio.toFixed(1)}%`;
-        }
+        const calcBlockPair = (rowId, totalPrefix, valPrefix, ratioLastPrefix, ratioCurrPrefix) => {
+            const row = document.getElementById(rowId);
+            if (!row) return;
+            const lastTotal = uncomma(document.getElementsByName(`${totalPrefix}_last_total`)[0]?.value || 0);
+            const currTotal = uncomma(document.getElementsByName(`${totalPrefix}_curr_total`)[0]?.value || 0);
+            for (let i = 1; i <= 8; i++) {
+                const last = uncomma(document.getElementsByName(`${valPrefix}_l_${i}`)[0]?.value || 0);
+                const curr = uncomma(document.getElementsByName(`${valPrefix}_c_${i}`)[0]?.value || 0);
+                const diff = curr - last;
+                const lastRatio = lastTotal ? ((last / lastTotal) * 100) : 0;
+                const currRatio = currTotal ? ((curr / currTotal) * 100) : 0;
+                const per = (currRatio - lastRatio).toFixed(1);
+                row.cells[i].innerHTML = `${diff.toLocaleString()}<br>(${per}%)`;
+                const lr = document.getElementById(`${ratioLastPrefix}_${i}`);
+                const cr = document.getElementById(`${ratioCurrPrefix}_${i}`);
+                if (lr) lr.innerText = `${lastRatio.toFixed(1)}%`;
+                if (cr) cr.innerText = `${currRatio.toFixed(1)}%`;
+            }
+        };
+
+        calcBlockPair('blockDiffRow', 's2_2', 's2_2', 's2_2_l_ratio', 's2_2_c_ratio');
+        calcBlockPair('blockDiffRowMonthly', 's2_2_m', 's2_2_m', 's2_2_m_l_ratio', 's2_2_m_c_ratio');
     }
 
-    // Step 3 계정과목 동적 추가 및 계산
+// Step 3 계정과목 동적 추가 및 계산
     let accCount = 0;
     function addAccountTable() {
         accCount++;
@@ -1474,14 +1963,14 @@ function renderLatestConsultingPopup(item) {
     const s = getLatestConsultingSummary(payload);
     listEl.innerHTML = `
         <div style="border:1px solid #ddd; border-radius:10px; padding:12px; background:#fff;">
-            <div><strong>${item.inspection_date || '-'}</strong> / ${item.store_name || ''} / ${item.sc_name || ''}</div>
+            <div>${safeHeader(item.inspection_date, item.store_name, item.store_type, item.sc_name)}</div>
             <hr style="margin:10px 0; border:none; border-top:1px solid #eee;" />
-            <div><b>점포상권 변화</b><br>${(s.marketChange || '-').substring(0,160)}</div>
-            <div><b>도넛 품절/폐기</b><br>${(s.donutWaste || '-').substring(0,160)}</div>
-            <div><b>판촉운영</b><br>${(s.promotion || '-').substring(0,160)}</div>
-            <div><b>손익 관련</b><br>${(s.profit || '-').substring(0,160)}</div>
-            <div><b>인건비 적정성</b><br>${(s.labor || '-').substring(0,160)}</div>
-            <div><b>최종 솔루션</b><br>${(s.solution || '-').substring(0,180)}</div>
+            <div><b>점포상권 변화</b><br>${safeSnippet(s.marketChange, 160, '-')}</div>
+            <div><b>도넛 품절/폐기</b><br>${safeSnippet(s.donutWaste, 160, '-')}</div>
+            <div><b>판촉운영</b><br>${safeSnippet(s.promotion, 160, '-')}</div>
+            <div><b>손익 관련</b><br>${safeSnippet(s.profit, 160, '-')}</div>
+            <div><b>인건비 적정성</b><br>${safeSnippet(s.labor, 160, '-')}</div>
+            <div><b>최종 솔루션</b><br>${safeSnippet(s.solution, 180, '-')}</div>
             <div class="share-btn-row" style="margin-top:10px;">
               <button type="button" class="btn-share-email" style="background:#2d7a2d;" onclick="applyLatestConsultingFromPopup()">이 내용 불러오기</button>
               <button type="button" class="btn-share-cancel" onclick="closePrevConsultingModal()">닫기</button>
@@ -1579,13 +2068,18 @@ function applySnapshotData(rawData = {}) {
         }
     }
 
-    if (editorInstance && data.outside_comment_html) {
-        editorInstance.setContents(sanitizeOutsideHtml(data.outside_comment_html));
+    if (data.outside_comment_html !== undefined) {
+        const hiddenOutside = document.getElementById('outsideCommentHtml');
+        if (hiddenOutside) hiddenOutside.value = sanitizeOutsideHtml(data.outside_comment_html || '');
+        if (editorInstance || (document.getElementById('storeTypeSelect')?.value === '외부활동(미점검)')) {
+            ensureOutsideEditor(data.outside_comment_html || '');
+        }
     }
 
     calcS2_1();
     calcS2_2();
     calcS4_1();
+    toggleS2MonthlyTables();
     toggleStoreMode();
     initAutoGrowTextareas();
 }
@@ -1615,6 +2109,30 @@ function applyLatestConsultingFromPopup() {
         });
     }
 
+
+function escapeHtml(value = '') {
+    return String(value || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+
+function safeText(value, fallback = '') {
+    const v = value === undefined || value === null || value === '' ? fallback : value;
+    return escapeHtml(String(v));
+}
+
+function safeSnippet(value, maxLen = 120, fallback = '-') {
+    const base = value === undefined || value === null || value === '' ? fallback : String(value);
+    return safeText(base.substring(0, maxLen), fallback);
+}
+
+function safeHeader(date, store, storeType, sc) {
+    return `<strong>${safeText(date, '-')}</strong> / ${safeText(store, '')} / ${safeText(storeType || '-', '-')} / ${safeText(sc, '')}`;
+}
 
 function sanitizeOutsideHtml(html = '') {
     const wrap = document.createElement('div');
@@ -1660,7 +2178,10 @@ function sanitizeOutsideHtml(html = '') {
             }
         });
 
-        data.outside_comment_html = editorInstance ? sanitizeOutsideHtml(editorInstance.getContents()) : '';
+        const hiddenOutside = document.getElementById('outsideCommentHtml');
+        data.outside_comment_html = editorInstance
+            ? sanitizeOutsideHtml(editorInstance.getContents())
+            : sanitizeOutsideHtml(hiddenOutside?.value || '');
         return data;
     }
 
@@ -1722,18 +2243,6 @@ function buildRightStepFloat() {
 }
 
 window.onload = function() {
-        // 에디터 생성
-        if(typeof SUNEDITOR !== 'undefined') {
-            editorInstance = SUNEDITOR.create('outsideEditor', {
-                buttonList: [['undo', 'redo', 'removeFormat'], ['font', 'fontSize', 'formatBlock'], ['bold', 'underline', 'italic', 'strike', 'subscript', 'superscript'], ['fontColor', 'hiliteColor'], ['align', 'list', 'lineHeight'], ['table', 'link', 'image', 'video'], ['fullScreen', 'showBlocks', 'codeView']],
-                width: '100%',
-                height: '380px',
-                minHeight: '320px',
-                resizingBar: true,
-                imageUploadSizeLimit: 5242880
-            });
-        }
-        
         buildRightStepFloat();
 
         // 실시간 콤마 적용 이벤트
@@ -1779,20 +2288,62 @@ window.onload = function() {
         
         // 텍스트박스 자동 확장
         initAutoGrowTextareas();
+        bindNumericMobileInputs();
+        setupMobileTableWrap();
 
         // 판촉행 기본 생성
         ensurePromoRows();
+        toggleS2MonthlyTables();
 
         // 임시저장 데이터 로드
         loadTempData();
+        if (document.getElementById('storeTypeSelect')?.value === '외부활동(미점검)') {
+            ensureOutsideEditor(document.getElementById('outsideCommentHtml')?.value || '');
+        }
+
+        // 저장 상태/변경감지
+        markDirty(false);
+        const formEl = document.getElementById('inspectionForm');
+        if (formEl) {
+            ['input', 'change'].forEach((evt) => {
+                formEl.addEventListener(evt, (e) => {
+                    if (e.target && e.target.type !== 'file') {
+                        markDirty(true);
+                        showValidationAlert([]);
+                    }
+                });
+            });
+        }
+
+        window.addEventListener('beforeunload', function (e) {
+            if (!isDirty) return;
+            e.preventDefault();
+            e.returnValue = '';
+        });
+        const actionGroup = document.getElementById('actionBtnGroup');
+        if (actionGroup) {
+            actionGroup.addEventListener('click', (e) => {
+                const target = e.target.closest('.action-btn');
+                if (target && isMobileViewport()) setTimeout(() => collapseMobileActionMenu(false), 120);
+            });
+        }
+        window.addEventListener('resize', syncMobileActionMenu);
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') collapseMobileActionMenu(true);
+        });
+        syncMobileActionMenu();
+        renderSaveStatus();
     };
 
+    /* ===================== [storage] ===================== */
     // 임시저장 로직
     function saveTempData() {
+        if (!ensureCommonRequired('리포트저장')) return;
         const data = getCurrentFormSnapshot();
         localStorage.setItem('temp_report_data', JSON.stringify(data));
         saveConsultingHistory(data);
         saveToGoogleSheet(data);
+        setSavedNow();
         alert("데이터 저장되었습니다.");
     }
 
@@ -1846,12 +2397,15 @@ function previewImage(input, previewId) {
 }
 
 
+/* ===================== [export] ===================== */
 async function saveAsExcel() {
+    if (!ensureCommonRequired('엑셀저장')) return;
     if (typeof ExcelJS === 'undefined') {
         alert('엑셀 내보내기 모듈을 불러오지 못했습니다. 네트워크 상태를 확인해 주세요.');
         return;
     }
 
+    try {
     const form = document.getElementById('inspectionForm');
     if (typeof editorInstance !== 'undefined' && editorInstance && document.getElementById('storeTypeSelect')?.value === '외부활동(미점검)') {
         const hiddenOutside = document.getElementById('outsideCommentHtml');
@@ -1973,8 +2527,9 @@ async function saveAsExcel() {
 
 
 
-    const storeType = document.getElementById('storeTypeSelect')?.value || '';
-    if (/외부활동/.test(storeType)) {
+    const policy = getReportPolicy();
+    const storeType = policy.storeType;
+    if (policy.isOutsideActivity) {
         const workbook = new ExcelJS.Workbook();
         workbook.creator = 'SMC Report';
         const storeNameRaw = document.getElementById('storeNameInput')?.value || '점포';
@@ -2030,7 +2585,7 @@ async function saveAsExcel() {
         ws.getCell(`A${textRow.number}`).alignment = { vertical: 'middle', horizontal: 'center' };
         ws.getCell(`B${textRow.number}`).alignment = { vertical: 'middle', horizontal: 'center' };
         ws.getCell(`C${textRow.number}`).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFBEA' } };
-        ws.getRow(textRow.number).height = 360;
+        ws.getRow(textRow.number).height = estimateRowHeight(outText, 96, 64, 480);
 
         ws.eachRow((row, rno) => {
             if (rno < 2) return;
@@ -2047,6 +2602,7 @@ async function saveAsExcel() {
         const date = dateRaw || '일자미상';
         a.href = URL.createObjectURL(blob);
         a.download = `컨설팅리포트_${storeName}_${date}.xlsx`;
+    lastGeneratedShareFileName = a.download;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -2081,12 +2637,15 @@ async function saveAsExcel() {
     const shouldSkipLeft = (name) => {
         if (!name) return true;
         if (/^s2_1_/.test(name)) return true;
+        if (/^s2_1_m_/.test(name)) return true;
         if (/^s2_2_[lc]_\d+$/.test(name)) return true;
+        if (/^s2_2_m_[lc]_\d+$/.test(name)) return true;
         if (/^s2_2_(last|curr)_total$/.test(name)) return true;
+        if (/^s2_2_m_(last|curr)_total$/.test(name)) return true;
         if (/^s4_1_(last|curr)_(cost|time)$/.test(name)) return true;
         if (/^s4_1[pe]_(last|curr)_(cost|time)$/.test(name)) return true;
         if (/^s2_4_(name|store|promo|ratio)_\d+$/.test(name)) return true;
-        if (['s2_3_og_time','as_t1','s2_3_del_time','s2_3_waste_rate'].includes(name)) return true;
+        if (['s2_3_og_time','as_t1','s2_3_del_time','s2_3_waste_rate','s2_1_monthly_toggle','s2_2_monthly_toggle'].includes(name)) return true;
         if (/^s3_(last|curr|res)_\d+$/.test(name)) return true;
         if (/^interview_/.test(name)) return true;
         if (['s4_interview_yn','s4_2_comment'].includes(name)) return true;
@@ -2170,17 +2729,6 @@ async function saveAsExcel() {
         grouped[r.step].push(r);
     });
 
-    const estimateRowHeight = (text, colWidth, minH = 22, maxH = 180) => {
-        const content = String(text || '');
-        const logicalLines = content.split(/\n/);
-        let lines = 1;
-        logicalLines.forEach((line) => {
-            const perLine = Math.max(1, Math.floor(colWidth * 1.5));
-            lines += Math.max(0, Math.ceil(line.length / perLine) - 1);
-        });
-        return Math.min(maxH, Math.max(minH, lines * 16));
-    };
-
     let rIdx = 2;
     Object.entries(grouped).forEach(([step, items]) => {
         const stepStart = rIdx;
@@ -2201,7 +2749,7 @@ async function saveAsExcel() {
                     ws.mergeCells(`C${rIdx}:D${rIdx}`);
                     ws.getCell(`C${rIdx}`).alignment = { vertical: 'top', horizontal: 'left', wrapText: true };
                     ws.getCell(`C${rIdx}`).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFBEA' } };
-                    ws.getRow(rIdx).height = estimateRowHeight(row.value, 84, 28, 240);
+                    ws.getRow(rIdx).height = estimateRowHeight(row.value, 84, 36, 420);
                 } else {
                     ws.getCell(`C${rIdx}`).value = sanitizeExcelText(row.detail);
                     ws.getCell(`C${rIdx}`).alignment = { vertical: 'top', horizontal: 'left', wrapText: true };
@@ -2213,8 +2761,8 @@ async function saveAsExcel() {
                         ws.getCell(`D${rIdx}`).value = sanitizeExcelText(row.value);
                         ws.getCell(`D${rIdx}`).alignment = { vertical: 'top', horizontal: 'left', wrapText: true };
                     }
-                    const hC = estimateRowHeight(row.detail, 36);
-                    const hD = estimateRowHeight(row.value, 48);
+                    const hC = estimateRowHeight(row.detail, 36, 28, 360);
+                    const hD = estimateRowHeight(row.value, 48, 28, 420);
                     ws.getRow(rIdx).height = Math.max(hC, hD, 22);
                 }
                 ['A','B','C','D'].forEach(col => {
@@ -2241,7 +2789,7 @@ async function saveAsExcel() {
             ['A','B','C','D'].forEach(col => {
                 const cell = ws.getCell(`${col}${rIdx}`);
                 cell.border = { top:{style:'thin'}, left:{style:'thin'}, right:{style:'thin'}, bottom:{style:'thin'} };
-                if (!cell.fill && col !== 'C') cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFDF7' } };
+                if (col !== 'C') cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF2DCDB' } };
             });
             rIdx++;
         }
@@ -2363,6 +2911,40 @@ async function saveAsExcel() {
     blockRows.push(['합계', sumLast, sumCurr, sumCurr-sumLast, sumLast ? (sumCurr-sumLast)/sumLast : 0]);
     tRow = addTable(wsData, tRow, '전년/금년 비교표 - 2. 블럭별 매출 분석', ['항목','전년','금년','증감','증감율'], blockRows, { numberCols:[1,2,3], percentCols:[4] });
 
+
+    const mLastTotal = toNum(getValue('s2_1_m_last_total')), mCurrTotal = toNum(getValue('s2_1_m_curr_total'));
+    const mLastExt = toNum(getValue('s2_1_m_last_ext')), mCurrExt = toNum(getValue('s2_1_m_curr_ext'));
+    const mLastDel = toNum(getValue('s2_1_m_last_del')), mCurrDel = toNum(getValue('s2_1_m_curr_del'));
+    const mLastGrp = toNum(getValue('s2_1_m_last_grp')), mCurrGrp = toNum(getValue('s2_1_m_curr_grp'));
+    if (policy.showS21Monthly) {
+        tRow = addTable(wsData, tRow, '전월/당월 비교표 - 1. 매출 실적 분석',
+            ['구분','매출','외부채널','배달','단체','순수래점','증감율'],
+            [
+                ['전월', mLastTotal, mLastExt, mLastDel, mLastGrp, mLastTotal - mLastExt - mLastDel - mLastGrp, ''],
+                ['당월', mCurrTotal, mCurrExt, mCurrDel, mCurrGrp, mCurrTotal - mCurrExt - mCurrDel - mCurrGrp, ''],
+                ['증감', mCurrTotal - mLastTotal, mCurrExt - mLastExt, mCurrDel - mLastDel, mCurrGrp - mLastGrp, (mCurrTotal - mCurrExt - mCurrDel - mCurrGrp) - (mLastTotal - mLastExt - mLastDel - mLastGrp), mLastTotal ? (mCurrTotal - mLastTotal) / mLastTotal : 0],
+            ],
+            { numberCols:[1,2,3,4,5], percentCols:[6] }
+        );
+    }
+
+    const mCats = [
+        ['더즌','s2_2_m_l_1','s2_2_m_c_1'],['싱글','s2_2_m_l_2','s2_2_m_c_2'],['세트','s2_2_m_l_3','s2_2_m_c_3'],['커피','s2_2_m_l_4','s2_2_m_c_4'],
+        ['프로즌','s2_2_m_l_5','s2_2_m_c_5'],['판매용품','s2_2_m_l_6','s2_2_m_c_6'],['베이크드','s2_2_m_l_7','s2_2_m_c_7'],['기타','s2_2_m_l_8','s2_2_m_c_8']
+    ];
+    const mBlockRows = mCats.map(([nm,l,c]) => {
+        const lv = toNum(getValue(l));
+        const cv = toNum(getValue(c));
+        return [nm, lv, cv, cv-lv, lv ? (cv-lv)/lv : 0];
+    });
+    const mSumLast = mBlockRows.reduce((a,r)=>a+r[1],0);
+    const mSumCurr = mBlockRows.reduce((a,r)=>a+r[2],0);
+    mBlockRows.push(['합계', mSumLast, mSumCurr, mSumCurr-mSumLast, mSumLast ? (mSumCurr-mSumLast)/mSumLast : 0]);
+    if (policy.showS22Monthly) {
+        tRow = addTable(wsData, tRow, '전월/당월 비교표 - 2. 블럭별 매출 분석', ['항목','전월','당월','증감','증감율'], mBlockRows, { numberCols:[1,2,3], percentCols:[4] });
+    }
+
+    if (!policy.isFranchise) {
     const lc = toNum(getValue('s4_1_last_cost')), cc = toNum(getValue('s4_1_curr_cost'));
     const lt = toNum(getValue('s4_1_last_time')), ct = toNum(getValue('s4_1_curr_time'));
     tRow = addTable(wsData, tRow, '동일형태점포/컨설팅점포 비교표 - 4. 인력 운영 적정성',
@@ -2403,6 +2985,8 @@ async function saveAsExcel() {
         { numberCols:[1,2,3], percentCols:[4] }
     );
 
+    }
+
     const promoRows = [];
     document.querySelectorAll('#promoTableBody tr').forEach((tr) => {
         const idx = tr.dataset.idx;
@@ -2441,15 +3025,23 @@ async function saveAsExcel() {
     const date = dateRaw || '일자미상';
     a.href = URL.createObjectURL(blob);
     a.download = `컨설팅리포트_${storeName}_${date}.xlsx`;
+    lastGeneratedShareFileName = a.download;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    } catch (error) {
+        console.error('엑셀 저장 실패:', error);
+        alert(`엑셀 저장 중 오류가 발생했습니다.
+${error?.message || error}`);
+    }
 }
+
 
 
     function resetForm() { if(confirm("초기화 하시겠습니까?")) { localStorage.removeItem('temp_report_data'); location.reload(); } }
 async function saveAsPDF() {
+    if (!ensureCommonRequired('PDF저장')) return;
     const container = document.querySelector('.container');
     const btnGroup = document.querySelector('.btn-group');
     const body = document.body;
@@ -2516,6 +3108,7 @@ async function saveAsPDF() {
 
     const storeName = document.getElementById('storeNameInput')?.value || '미입력';
     const date = document.getElementById('inspectionDate')?.value || '일자미상';
+    lastGeneratedShareFileName = `컨설팅리포트_${storeName}_${date}.pdf`;
 
     const options = {
         margin: [8, 8, 8, 8],
@@ -2560,8 +3153,10 @@ async function saveAsPDF() {
     }
 }
 
+/* ===================== [share] ===================== */
 // 공유 모달 열기 - 파일 첨부 지원
 function openShareModal() {
+    if (!ensureCommonRequired('공유/발송')) return;
     const storeName = document.getElementById('storeNameInput')?.value || "점포";
     const date = document.getElementById('inspectionDate')?.value || "";
     const solution = document.getElementsByName('s4_4_solution_final')[0]?.value || '';
@@ -2608,6 +3203,8 @@ ${solution.substring(0, 220)}
 
     document.getElementById('shareSubject').value = subjectText;
     document.getElementById('shareMessage').value = defaultMsg;
+    const fallback = document.getElementById('shareFallbackHint');
+    if (fallback) fallback.textContent = navigator.share ? '' : '현재 브라우저는 앱 공유를 지원하지 않습니다. Outlook 365 버튼을 사용해 주세요.';
     document.getElementById('shareModal').classList.add('open');
 }
 
@@ -2617,6 +3214,7 @@ function closeShareModal() {
 
 // 네이티브 공유 (모바일 공유시트 - 파일 첨부 포함)
 async function doNativeShare() {
+    if (!ensureCommonRequired('공유/발송')) return;
     const title = document.getElementById('shareSubject').value || '컨설팅 리포트';
     const text = document.getElementById('shareMessage').value;
     const fileInput = document.getElementById('shareAttachFiles');
@@ -2639,12 +3237,15 @@ async function doNativeShare() {
             }
         }
     } else {
-        alert('이 브라우저는 앱 공유를 지원하지 않습니다.\n아래 메일 발송 버튼을 이용해 주세요.');
+        const fallback = document.getElementById('shareFallbackHint');
+        if (fallback) fallback.textContent = '현재 브라우저는 앱 공유를 지원하지 않습니다. Outlook 365 버튼을 사용해 주세요.';
+        alert('이 브라우저는 앱 공유를 지원하지 않습니다.\nOutlook 365 버튼을 이용해 주세요.');
     }
 }
 
 // 이메일 발송 - Outlook 365 오류 방지를 위해 mailto 기반으로 실행
 function doEmailShare(type) {
+    if (!ensureCommonRequired('공유/발송')) return;
     const toEmail = document.getElementById('shareEmail').value || '';
     const subject = document.getElementById('shareSubject').value;
     const message = document.getElementById('shareMessage').value;
@@ -2661,7 +3262,8 @@ function doEmailShare(type) {
             document.body.removeChild(a);
             setTimeout(() => URL.revokeObjectURL(url), 2000);
         });
-        setTimeout(() => alert('📎 파일이 다운로드되었습니다.\n메일 앱이 열리면 다운로드된 파일을 직접 첨부해 주세요.'), 300);
+        const names = Array.from(fileInput.files).map((f) => f.name).join(', ');
+        setTimeout(() => alert(`📎 파일이 다운로드되었습니다.\n생성/다운로드 파일명: ${names || '-'}\n1) 파일 생성 2) 다운로드 확인 3) 메일 앱에서 첨부`), 300);
     }
 
     const encTo = encodeURIComponent(toEmail);
@@ -2680,6 +3282,7 @@ function doEmailShare(type) {
 
     closeShareModal();
 }
+/* ===================== [helpers] ===================== */
 function renderPrevConsultingList(filtered) {
     const listEl = document.getElementById('prevConsultingList');
     const pagerEl = document.getElementById('prevConsultingPagination');
@@ -2713,8 +3316,8 @@ function renderPrevConsultingList(filtered) {
                 const globalIdx = start + idx;
                 return `
                 <div style="border:1px solid #ddd; border-radius:8px; padding:10px; background:#fff; display:flex; flex-direction:column; min-height:145px;">
-                    <div><strong>${item.inspection_date || '-'}</strong> / ${item.store_name || ''} / ${item.sc_name || ''}</div>
-                    <div style="margin-top:auto; font-size:12px; color:#666; padding-top:8px;">최종솔루션 요약: ${finalSolutionSummary(item).substring(0, 70)}</div>
+                    <div>${safeHeader(item.inspection_date, item.store_name, item.store_type, item.sc_name)}</div>
+                    <div style="margin-top:auto; font-size:12px; color:#666; padding-top:8px;">최종솔루션 요약: ${safeSnippet(finalSolutionSummary(item), 70, '-')}</div>
                     <div style="display:flex; gap:6px; margin-top:8px;">
                         <button type="button" class="btn-share-email" style="flex:1; background:#2d7a2d;" onclick="applyPrevConsulting(${globalIdx})">이 내용 불러오기</button>
                         <button type="button" class="btn-share-cancel" style="flex:0 0 88px;" onclick="deletePrevConsulting(${globalIdx})">삭제</button>
@@ -2832,6 +3435,32 @@ function applyPrevConsulting(idx) {
     alert('이전 컨설팅 데이터를 불러왔습니다.');
 }
 
+
+/*
+[나중용 설계 프롬프트 - 파일 분리안(구현 아님)]
+1) styles.css
+- :root 토큰, 공통 레이아웃(.container, .step-section, .data-table), 모달, 버튼, 반응형(@media), print 전용 스타일.
+
+2) app.js
+- 초기화(window.onload), Step 표시/숨김(toggleStoreMode), 계산(calcS2_1/calcS2_2/calcS3/calcS4_1/calcPromoRatios), UI 보조(autoGrow, 모바일 input/table 설정).
+
+3) storage.js
+- getCurrentFormSnapshot, applySnapshotData, saveTempData/loadTempData, saveConsultingHistory, 이전리포트 필터/렌더/삭제, 저장 상태 배지/dirty 관리, JSON 내보내기/가져오기.
+
+4) export.js
+- saveAsExcel, saveAsPDF, Excel 시트 구성/포맷 로직, PDF 변환 전후 치환/복원 로직.
+
+5) share.js
+- openShareModal/closeShareModal, doNativeShare, doEmailShare, 공유 폴백/안내 문구 처리.
+
+[분리 후 수동 테스트 체크리스트]
+- Step0 필수값 검증: 저장/엑셀/PDF/공유 공통 적용 여부
+- 저장 상태: 입력 시 미저장, 저장 시 저장됨+시각, 새로고침 이탈 경고
+- 저장/불러오기(전체/개별삭제), JSON 내보내기/가져오기
+- 엑셀/PDF 생성 파일명/다운로드, 공유 모달 안내/폴백
+- 모바일(<=390px): Step2/4 표 스크롤, 첫 열 sticky, 숫자입력 편의
+- 초기화 후 상태/데이터 정리
+*/
 
 
 </script>
