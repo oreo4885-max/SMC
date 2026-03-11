@@ -468,7 +468,9 @@
         .icon-btn:active { transform: scale(0.9); }
 
         .menu-toggle-btn { display: none; background:#1f2937; }
-        @media (max-width: 900px) {
+        .menu-close-btn { display:none; background:#374151; }
+        .mobile-landscape-hint { display:none; margin:8px 0 12px; padding:8px 10px; border-radius:8px; border:1px solid #ffe8a3; background:#fff8db; color:#7a5a00; font-size:12px; font-weight:700; }
+        @media (max-width: 900px), (orientation: landscape) and (max-height: 520px) {
             .right-step-float { display:none !important; }
             .btn-group {
                 bottom: 12px;
@@ -478,9 +480,21 @@
                 gap: 6px;
             }
             .menu-toggle-btn { display:flex; justify-content:center; }
+            .mobile-landscape-hint { display:block; }
             .btn-group.mobile-collapsed .action-btn,
             .btn-group.mobile-collapsed input[type="file"] { display:none; }
             .btn-group.mobile-expanded .action-btn { display:flex; }
+            .btn-group.mobile-expanded .menu-close-btn { display:flex; justify-content:center; }
+        }
+
+        @media (orientation: landscape) and (max-height: 520px) {
+            .btn-group {
+                width: min(320px, calc(100vw - 24px));
+                grid-template-columns: repeat(2, minmax(130px, 1fr));
+            }
+            .btn-group.mobile-expanded .menu-toggle-btn {
+                grid-column: 1 / -1;
+            }
         }
 
 
@@ -682,6 +696,8 @@
         display: block !important;
         visibility: visible !important;
         color: #333 !important;
+        page-break-inside: auto !important;
+        break-inside: auto !important;
     }
     textarea {
         width: 100% !important;
@@ -705,7 +721,7 @@
         break-inside: auto !important;
     }
     /* 불필요한 요소 제거 */
-    .btn-group, .icon-btn, #historyModal, #shareModal, .suneditor .se-resizing-bar {
+    .btn-group, .icon-btn, #historyModal, #shareModal, .sun-editor, .suneditor, .se-toolbar, .suneditor .se-resizing-bar {
         display: none !important;
         visibility: hidden !important;
     }
@@ -748,6 +764,7 @@
         <h1>STORE MANAGEMENT<br>CONSULTING REPORT</h1>
         <div style="font-size: 0.9em; opacity: 0.9; margin-top:5px;">점포 관리 컨설팅 리포트</div>
     </div>
+    <div class="mobile-landscape-hint">해당 컨설팅 리포트는 가로모드에서 최적화되어 있습니다.</div>
 
     <div class="status-strip">
         <div>
@@ -902,7 +919,7 @@
                                     <td class="bg-gray" id="s2_1_curr_pure">0</td>
                                 </tr>
                                 <tr class="bg-gray">
-                                    <td>증감</td>
+                                    <td>증감/증감율</td>
                                     <td id="s2_1_diff_total">0</td>
                                     <td id="s2_1_diff_ext">0</td><td id="s2_1_diff_del">0</td><td id="s2_1_diff_grp">0</td><td id="s2_1_diff_pure">0</td>
                                 </tr>
@@ -935,7 +952,7 @@
                                         <td class="bg-gray" id="s2_1_m_curr_pure">0</td>
                                     </tr>
                                     <tr class="bg-gray">
-                                        <td>증감</td>
+                                        <td>증감/증감율</td>
                                         <td id="s2_1_m_diff_total">0</td>
                                         <td id="s2_1_m_diff_ext">0</td><td id="s2_1_m_diff_del">0</td><td id="s2_1_m_diff_grp">0</td><td id="s2_1_m_diff_pure">0</td>
                                     </tr>
@@ -965,7 +982,7 @@
                                     <script>for(let i=1;i<=8;i++) document.write(`<td><div style="display:flex; gap:6px; align-items:center;"><input type="text" name="s2_2_c_${i}" class="comma-input" style="flex:1;" oninput="calcS2_2()"><span id="s2_2_c_ratio_${i}" style="font-size:12px; color:#2d7a2d; min-width:52px; text-align:right;">0.0%</span></div></td>`);</script>
                                 </tr>
                                 <tr class="bg-gray" id="blockDiffRow">
-                                    <td>증감</td><script>for(let i=1;i<=8;i++) document.write(`<td>0</td>`);</script>
+                                    <td>증감/증감율</td><script>for(let i=1;i<=8;i++) document.write(`<td>0</td>`);</script>
                                 </tr>
                             </tbody>
                         </table>
@@ -992,7 +1009,7 @@
                                         <script>for(let i=1;i<=8;i++) document.write(`<td><div style="display:flex; gap:6px; align-items:center;"><input type="text" name="s2_2_m_c_${i}" class="comma-input" style="flex:1;" oninput="calcS2_2()"><span id="s2_2_m_c_ratio_${i}" style="font-size:12px; color:#2d7a2d; min-width:52px; text-align:right;">0.0%</span></div></td>`);</script>
                                     </tr>
                                     <tr class="bg-gray" id="blockDiffRowMonthly">
-                                        <td>증감</td><script>for(let i=1;i<=8;i++) document.write(`<td>0</td>`);</script>
+                                        <td>증감/증감율</td><script>for(let i=1;i<=8;i++) document.write(`<td>0</td>`);</script>
                                     </tr>
                                 </tbody>
                             </table>
@@ -1111,8 +1128,9 @@
         </tr>
     </tbody>
 </table>
-                            <div class="checkbox-wrapper" style="margin:10px 0 6px;"><input type="checkbox" id="s4_1_prod_toggle" checked onchange="document.getElementById('s4_1_prod_area').style.display=this.checked?'block':'none';"><label for="s4_1_prod_toggle">생산및프로세싱 메이트 인건비 표 표시</label></div>
-                            <div id="s4_1_prod_area">
+                            <textarea name="s4_1_base_comment" placeholder="기본 인건비 비교 코멘트" style="margin-top:10px;"></textarea>
+                            <div class="checkbox-wrapper" style="margin:10px 0 6px;"><input type="checkbox" id="s4_1_prod_toggle" onchange="document.getElementById('s4_1_prod_area').style.display=this.checked?'block':'none';"><label for="s4_1_prod_toggle">생산 및 프로세싱 인건비</label></div>
+                            <div id="s4_1_prod_area" style="display:none;">
 <table class="data-table">
     <thead>
         <tr>
@@ -1137,9 +1155,10 @@
         </tr>
     </tbody>
 </table>
+                            <textarea name="s4_1_prod_comment" placeholder="생산 및 프로세싱 인건비 코멘트" style="margin-top:10px;"></textarea>
                             </div>
-                            <div class="checkbox-wrapper" style="margin:10px 0 6px;"><input type="checkbox" id="s4_1_ext_toggle" checked onchange="document.getElementById('s4_1_ext_area').style.display=this.checked?'block':'none';"><label for="s4_1_ext_toggle">외부채널운영 메이트 인건비 표 표시</label></div>
-                            <div id="s4_1_ext_area">
+                            <div class="checkbox-wrapper" style="margin:10px 0 6px;"><input type="checkbox" id="s4_1_ext_toggle" onchange="document.getElementById('s4_1_ext_area').style.display=this.checked?'block':'none';"><label for="s4_1_ext_toggle">외부채널 운영 인건비</label></div>
+                            <div id="s4_1_ext_area" style="display:none;">
 <table class="data-table">
     <thead>
         <tr>
@@ -1164,13 +1183,14 @@
         </tr>
     </tbody>
 </table>
+                            <textarea name="s4_1_ext_comment" placeholder="외부채널 운영 인건비 코멘트" style="margin-top:10px;"></textarea>
                             </div>
                                                         <div class="option-wrapper">
                                 <span style="font-weight:bold; font-size:0.9em; margin-right:10px;">52시간 미초과 준수 여부 :</span>
                                 <label class="radio-label"><input type="radio" name="s4_overtime" value="예"> 예</label>
                                 <label class="radio-label"><input type="radio" name="s4_overtime" value="아니오"> 아니오</label>
                             </div>
-                            <textarea name="s4_1_comment" placeholder="인건비 분석 및 운영 적정성 코멘트"></textarea>
+                            <textarea name="s4_1_comment" placeholder="인건비 분석 및 운영 적정성 종합 코멘트"></textarea>
                         </div>
                         <div class="form-item">
                             <label class="item-title">2. 직원 면담 및 SHIFT 점검</label>
@@ -1303,6 +1323,9 @@
 <div class="btn-group" id="actionBtnGroup" role="group" aria-label="주요 작업 메뉴">
     <button type="button" class="icon-btn menu-toggle-btn" id="btnMenuToggle" onclick="toggleMobileActionMenu()" aria-expanded="false" aria-controls="actionBtnGroup" aria-label="작업 메뉴 열기">
         ☰<span>메뉴</span>
+    </button>
+    <button type="button" class="icon-btn menu-close-btn" id="btnMenuClose" onclick="collapseMobileActionMenu(true)">
+        ✕<span>닫기</span>
     </button>
     <button type="button" class="icon-btn action-btn" id="btnSaveTemp" onclick="saveTempData()">
         🗂️<span>리포트저장</span>
@@ -1545,7 +1568,8 @@ function setupMobileTableWrap() {
 
 
 function isMobileViewport() {
-    return window.matchMedia('(max-width: 900px)').matches;
+    return window.matchMedia('(max-width: 900px)').matches
+        || (window.matchMedia('(orientation: landscape)').matches && window.innerHeight <= 520);
 }
 
 function setMobileActionTabState(expanded) {
@@ -1617,7 +1641,7 @@ function getReportPolicy() {
     };
 }
 
-function estimateRowHeight(text, colWidth, minH = 24, maxH = 420) {
+function estimateRowHeight(text, colWidth, minH = 24, maxH = 1200) {
     const raw = String(text || '').replace(/\r/g, '');
     const parts = raw.split('\n');
     const approxPerLine = Math.max(8, Math.floor(colWidth * 1.3));
@@ -1747,28 +1771,21 @@ function toggleStoreMode() {
             const currPure = currT - currE - currD - currG;
 
             const setText = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
+            const setHtml = (id, val) => { const el = document.getElementById(id); if (el) el.innerHTML = val; };
             setText(ids.lastPure, lastPure.toLocaleString());
             setText(ids.currPure, currPure.toLocaleString());
 
-            const diffT = currT - lastT;
-            const perT = lastT ? ((diffT / lastT) * 100).toFixed(1) : 0;
-            setText(ids.diffTotal, `${diffT.toLocaleString()} (${perT}%)`);
+            const fmtDiffBlock = (curr, last) => {
+                const diff = curr - last;
+                const diffRate = last ? (diff / last) * 100 : 0;
+                return `${diff.toLocaleString()} (${diffRate.toFixed(1)}%)`;
+            };
 
-            const diffE = currE - lastE;
-            const perE = lastE ? ((diffE / lastE) * 100).toFixed(1) : 0;
-            setText(ids.diffExt, `${diffE.toLocaleString()} (${perE}%)`);
-
-            const diffD = currD - lastD;
-            const perD = lastD ? ((diffD / lastD) * 100).toFixed(1) : 0;
-            setText(ids.diffDel, `${diffD.toLocaleString()} (${perD}%)`);
-
-            const diffG = currG - lastG;
-            const perG = lastG ? ((diffG / lastG) * 100).toFixed(1) : 0;
-            setText(ids.diffGrp, `${diffG.toLocaleString()} (${perG}%)`);
-
-            const diffP = currPure - lastPure;
-            const perP = lastPure ? ((diffP / lastPure) * 100).toFixed(1) : 0;
-            setText(ids.diffPure, `${diffP.toLocaleString()} (${perP}%)`);
+            setHtml(ids.diffTotal, fmtDiffBlock(currT, lastT));
+            setHtml(ids.diffExt, fmtDiffBlock(currE, lastE));
+            setHtml(ids.diffDel, fmtDiffBlock(currD, lastD));
+            setHtml(ids.diffGrp, fmtDiffBlock(currG, lastG));
+            setHtml(ids.diffPure, fmtDiffBlock(currPure, lastPure));
         };
 
         calcSalesPair('s2_1', {
@@ -1839,8 +1856,10 @@ function buildPromoRowHtml(idx) {
                 const diff = curr - last;
                 const lastRatio = lastTotal ? ((last / lastTotal) * 100) : 0;
                 const currRatio = currTotal ? ((curr / currTotal) * 100) : 0;
-                const per = (currRatio - lastRatio).toFixed(1);
-                row.cells[i].innerHTML = `${diff.toLocaleString()}<br>(${per}%)`;
+                const diffRate = last ? (diff / last) * 100 : 0;
+                const shareDiff = currRatio - lastRatio;
+                const shareRate = lastRatio ? ((shareDiff / lastRatio) * 100) : 0;
+                row.cells[i].innerHTML = `${diff.toLocaleString()} (${diffRate.toFixed(1)}%)<br>비중 ${shareDiff >= 0 ? '+' : ''}${shareDiff.toFixed(1)}%p<br>비중증감율 ${shareRate >= 0 ? '+' : ''}${shareRate.toFixed(1)}%`;
                 const lr = document.getElementById(`${ratioLastPrefix}_${i}`);
                 const cr = document.getElementById(`${ratioCurrPrefix}_${i}`);
                 if (lr) lr.innerText = `${lastRatio.toFixed(1)}%`;
@@ -2584,8 +2603,7 @@ async function saveAsExcel() {
         ws.getCell(`C${textRow.number}`).alignment = { vertical: 'top', horizontal: 'left', wrapText: true };
         ws.getCell(`A${textRow.number}`).alignment = { vertical: 'middle', horizontal: 'center' };
         ws.getCell(`B${textRow.number}`).alignment = { vertical: 'middle', horizontal: 'center' };
-        ws.getCell(`C${textRow.number}`).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFBEA' } };
-        ws.getRow(textRow.number).height = estimateRowHeight(outText, 96, 64, 480);
+        ws.getRow(textRow.number).height = estimateRowHeight(outText, 96, 64, 1400);
 
         ws.eachRow((row, rno) => {
             if (rno < 2) return;
@@ -2636,8 +2654,8 @@ async function saveAsExcel() {
 
     const shouldSkipLeft = (name) => {
         if (!name) return true;
-        if (/^s2_1_/.test(name)) return true;
-        if (/^s2_1_m_/.test(name)) return true;
+        if (/^s2_1_(last|curr)_(total|ext|del|grp)$/.test(name)) return true;
+        if (/^s2_1_m_(last|curr)_(total|ext|del|grp)$/.test(name)) return true;
         if (/^s2_2_[lc]_\d+$/.test(name)) return true;
         if (/^s2_2_m_[lc]_\d+$/.test(name)) return true;
         if (/^s2_2_(last|curr)_total$/.test(name)) return true;
@@ -2649,6 +2667,21 @@ async function saveAsExcel() {
         if (/^s3_(last|curr|res)_\d+$/.test(name)) return true;
         if (/^interview_/.test(name)) return true;
         if (['s4_interview_yn','s4_2_comment'].includes(name)) return true;
+        if (['s4_1_prod_toggle','s4_1_ext_toggle'].includes(name)) return true;
+        return false;
+    };
+
+    const isElementExcludedByPolicy = (el, policy) => {
+        if (!el) return true;
+        if (policy.isOutsideActivity) {
+            if (!el.closest('#outsideArea') && !['inspection_date','inspection_store_name','store_type','branch_name','sc_name'].includes(el.name || '')) return true;
+        }
+        if (policy.isFranchise && el.closest('#step4_1_block')) return true;
+        if (!policy.showS21Monthly && el.closest('#s2_1_monthly_area')) return true;
+        if (!policy.showS22Monthly && el.closest('#s2_2_monthly_area')) return true;
+        if (!document.getElementById('s4_1_prod_toggle')?.checked && el.closest('#s4_1_prod_area')) return true;
+        if (!document.getElementById('s4_1_ext_toggle')?.checked && el.closest('#s4_1_ext_area')) return true;
+        if (el.closest('.section-hidden')) return true;
         return false;
     };
 
@@ -2658,6 +2691,7 @@ async function saveAsExcel() {
     controls.forEach((el) => {
         const name = el.name || el.id;
         if (!name || el.type === 'file' || el.classList.contains('section-hide-toggle')) return;
+        if (isElementExcludedByPolicy(el, policy)) return;
 
         if (/^s3_acc_type_\d+$/.test(name) && !firstAccountType) {
             const av = sanitizeValue(name, el.value);
@@ -2745,11 +2779,25 @@ async function saveAsExcel() {
                 ws.getCell(`B${rIdx}`).value = sanitizeExcelText(row.item);
 
                 if (row.kind === 'memo') {
-                    ws.getCell(`C${rIdx}`).value = sanitizeExcelText(row.value || '-');
-                    ws.mergeCells(`C${rIdx}:D${rIdx}`);
-                    ws.getCell(`C${rIdx}`).alignment = { vertical: 'top', horizontal: 'left', wrapText: true };
-                    ws.getCell(`C${rIdx}`).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFBEA' } };
-                    ws.getRow(rIdx).height = estimateRowHeight(row.value, 84, 36, 420);
+                    const memoText = sanitizeExcelText(row.value || '-');
+                    const targetHeight = estimateRowHeight(memoText, 84, 36, 1400);
+                    const chunkHeight = 30;
+                    const neededRows = Math.max(1, Math.ceil(targetHeight / chunkHeight));
+                    const memoStart = rIdx;
+                    const memoEnd = rIdx + neededRows - 1;
+
+                    ws.getCell(`C${memoStart}`).value = memoText;
+                    ws.mergeCells(`C${memoStart}:D${memoEnd}`);
+                    ws.getCell(`C${memoStart}`).alignment = { vertical: 'top', horizontal: 'left', wrapText: true };
+
+                    for (let mr = memoStart; mr <= memoEnd; mr++) {
+                        ws.getRow(mr).height = chunkHeight;
+                        ['A','B','C','D'].forEach((col) => {
+                            const cell = ws.getCell(`${col}${mr}`);
+                            if (!cell.border) cell.border = { top:{style:'thin'}, left:{style:'thin'}, right:{style:'thin'}, bottom:{style:'thin'} };
+                        });
+                    }
+                    rIdx = memoEnd;
                 } else {
                     ws.getCell(`C${rIdx}`).value = sanitizeExcelText(row.detail);
                     ws.getCell(`C${rIdx}`).alignment = { vertical: 'top', horizontal: 'left', wrapText: true };
@@ -2789,7 +2837,7 @@ async function saveAsExcel() {
             ['A','B','C','D'].forEach(col => {
                 const cell = ws.getCell(`${col}${rIdx}`);
                 cell.border = { top:{style:'thin'}, left:{style:'thin'}, right:{style:'thin'}, bottom:{style:'thin'} };
-                if (col !== 'C') cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF2DCDB' } };
+                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF2DCDB' } };
             });
             rIdx++;
         }
@@ -2886,15 +2934,24 @@ async function saveAsExcel() {
     const lastGrp = toNum(getValue('s2_1_last_grp'));
     const currGrp = toNum(getValue('s2_1_curr_grp'));
     const diffTotal = currTotal - lastTotal;
+    const lastPure = lastTotal - lastExt - lastDel - lastGrp;
+    const currPure = currTotal - currExt - currDel - currGrp;
+    const makeMetricRow = (label, lastVal, currVal) => {
+        const diff = currVal - lastVal;
+        const diffRate = lastVal ? (diff / lastVal) : 0;
+        return [label, lastVal, currVal, diff, diffRate];
+    };
 
     tRow = addTable(wsData, tRow, '전년/금년 비교표 - 1. 매출 실적 분석',
-        ['구분','매출','외부채널','배달','단체','증감','증감율'],
+        ['항목','전년','금년','증감','증감율'],
         [
-            ['전년', lastTotal, lastExt, lastDel, lastGrp, '', ''],
-            ['금년', currTotal, currExt, currDel, currGrp, '', ''],
-            ['증감', diffTotal, currExt-lastExt, currDel-lastDel, currGrp-lastGrp, diffTotal, lastTotal ? diffTotal/lastTotal : 0],
+            makeMetricRow('매출', lastTotal, currTotal),
+            makeMetricRow('외부채널', lastExt, currExt),
+            makeMetricRow('배달', lastDel, currDel),
+            makeMetricRow('단체', lastGrp, currGrp),
+            makeMetricRow('순수래점', lastPure, currPure),
         ],
-        { numberCols:[1,2,3,4,5], percentCols:[6] }
+        { numberCols:[1,2,3], percentCols:[4] }
     );
 
     const cats = [
@@ -2904,27 +2961,37 @@ async function saveAsExcel() {
     const blockRows = cats.map(([nm,l,c]) => {
         const lv = toNum(getValue(l));
         const cv = toNum(getValue(c));
-        return [nm, lv, cv, cv-lv, lv ? (cv-lv)/lv : 0];
+        const diff = cv - lv;
+        const diffRate = lv ? (diff / lv) : 0;
+        const lastShare = lastTotal ? (lv / lastTotal) : 0;
+        const currShare = currTotal ? (cv / currTotal) : 0;
+        const shareDiff = currShare - lastShare;
+        const shareRate = lastShare ? (shareDiff / lastShare) : 0;
+        return [nm, lv, cv, diff, diffRate, shareDiff, shareRate];
     });
     const sumLast = blockRows.reduce((a,r)=>a+r[1],0);
     const sumCurr = blockRows.reduce((a,r)=>a+r[2],0);
-    blockRows.push(['합계', sumLast, sumCurr, sumCurr-sumLast, sumLast ? (sumCurr-sumLast)/sumLast : 0]);
-    tRow = addTable(wsData, tRow, '전년/금년 비교표 - 2. 블럭별 매출 분석', ['항목','전년','금년','증감','증감율'], blockRows, { numberCols:[1,2,3], percentCols:[4] });
+    blockRows.push(['합계', sumLast, sumCurr, sumCurr-sumLast, sumLast ? (sumCurr-sumLast)/sumLast : 0, 0, 0]);
+    tRow = addTable(wsData, tRow, '전년/금년 비교표 - 2. 블럭별 매출 분석', ['항목','전년','금년','증감','증감율','비중증감(%p)','비중증감율'], blockRows, { numberCols:[1,2,3], percentCols:[4,5,6] });
 
 
     const mLastTotal = toNum(getValue('s2_1_m_last_total')), mCurrTotal = toNum(getValue('s2_1_m_curr_total'));
     const mLastExt = toNum(getValue('s2_1_m_last_ext')), mCurrExt = toNum(getValue('s2_1_m_curr_ext'));
     const mLastDel = toNum(getValue('s2_1_m_last_del')), mCurrDel = toNum(getValue('s2_1_m_curr_del'));
     const mLastGrp = toNum(getValue('s2_1_m_last_grp')), mCurrGrp = toNum(getValue('s2_1_m_curr_grp'));
+    const mLastPure = mLastTotal - mLastExt - mLastDel - mLastGrp;
+    const mCurrPure = mCurrTotal - mCurrExt - mCurrDel - mCurrGrp;
     if (policy.showS21Monthly) {
         tRow = addTable(wsData, tRow, '전월/당월 비교표 - 1. 매출 실적 분석',
-            ['구분','매출','외부채널','배달','단체','순수래점','증감율'],
+            ['항목','전월','당월','증감','증감율'],
             [
-                ['전월', mLastTotal, mLastExt, mLastDel, mLastGrp, mLastTotal - mLastExt - mLastDel - mLastGrp, ''],
-                ['당월', mCurrTotal, mCurrExt, mCurrDel, mCurrGrp, mCurrTotal - mCurrExt - mCurrDel - mCurrGrp, ''],
-                ['증감', mCurrTotal - mLastTotal, mCurrExt - mLastExt, mCurrDel - mLastDel, mCurrGrp - mLastGrp, (mCurrTotal - mCurrExt - mCurrDel - mCurrGrp) - (mLastTotal - mLastExt - mLastDel - mLastGrp), mLastTotal ? (mCurrTotal - mLastTotal) / mLastTotal : 0],
+                makeMetricRow('매출', mLastTotal, mCurrTotal),
+                makeMetricRow('외부채널', mLastExt, mCurrExt),
+                makeMetricRow('배달', mLastDel, mCurrDel),
+                makeMetricRow('단체', mLastGrp, mCurrGrp),
+                makeMetricRow('순수래점', mLastPure, mCurrPure),
             ],
-            { numberCols:[1,2,3,4,5], percentCols:[6] }
+            { numberCols:[1,2,3], percentCols:[4] }
         );
     }
 
@@ -2935,13 +3002,19 @@ async function saveAsExcel() {
     const mBlockRows = mCats.map(([nm,l,c]) => {
         const lv = toNum(getValue(l));
         const cv = toNum(getValue(c));
-        return [nm, lv, cv, cv-lv, lv ? (cv-lv)/lv : 0];
+        const diff = cv - lv;
+        const diffRate = lv ? (diff / lv) : 0;
+        const lastShare = mLastTotal ? (lv / mLastTotal) : 0;
+        const currShare = mCurrTotal ? (cv / mCurrTotal) : 0;
+        const shareDiff = currShare - lastShare;
+        const shareRate = lastShare ? (shareDiff / lastShare) : 0;
+        return [nm, lv, cv, diff, diffRate, shareDiff, shareRate];
     });
     const mSumLast = mBlockRows.reduce((a,r)=>a+r[1],0);
     const mSumCurr = mBlockRows.reduce((a,r)=>a+r[2],0);
-    mBlockRows.push(['합계', mSumLast, mSumCurr, mSumCurr-mSumLast, mSumLast ? (mSumCurr-mSumLast)/mSumLast : 0]);
+    mBlockRows.push(['합계', mSumLast, mSumCurr, mSumCurr-mSumLast, mSumLast ? (mSumCurr-mSumLast)/mSumLast : 0, 0, 0]);
     if (policy.showS22Monthly) {
-        tRow = addTable(wsData, tRow, '전월/당월 비교표 - 2. 블럭별 매출 분석', ['항목','전월','당월','증감','증감율'], mBlockRows, { numberCols:[1,2,3], percentCols:[4] });
+        tRow = addTable(wsData, tRow, '전월/당월 비교표 - 2. 블럭별 매출 분석', ['항목','전월','당월','증감','증감율','비중증감(%p)','비중증감율'], mBlockRows, { numberCols:[1,2,3], percentCols:[4,5,6] });
     }
 
     if (!policy.isFranchise) {
@@ -2959,31 +3032,35 @@ async function saveAsExcel() {
     );
 
 
-    const lcp = toNum(getValue('s4_1p_last_cost')), ccp = toNum(getValue('s4_1p_curr_cost'));
-    const ltp = toNum(getValue('s4_1p_last_time')), ctp = toNum(getValue('s4_1p_curr_time'));
-    tRow = addTable(wsData, tRow, '동일형태점포/컨설팅점포 비교표 - 생산및프로세싱 메이트 인건비',
-        ['구분','메이트 인건비(천원)','사용 시간(H)','증감','증감율'],
-        [
-            ['동일형태점포', lcp, ltp, '', ''],
-            ['컨설팅점포', ccp, ctp, '', ''],
-            ['증감(인건비)', ccp-lcp, '', ccp-lcp, lcp ? (ccp-lcp)/lcp : 0],
-            ['증감(시간)', '', ctp-ltp, ctp-ltp, ltp ? (ctp-ltp)/ltp : 0],
-        ],
-        { numberCols:[1,2,3], percentCols:[4] }
-    );
+    if (document.getElementById('s4_1_prod_toggle')?.checked) {
+        const lcp = toNum(getValue('s4_1p_last_cost')), ccp = toNum(getValue('s4_1p_curr_cost'));
+        const ltp = toNum(getValue('s4_1p_last_time')), ctp = toNum(getValue('s4_1p_curr_time'));
+        tRow = addTable(wsData, tRow, '동일형태점포/컨설팅점포 비교표 - 생산및프로세싱 메이트 인건비',
+            ['구분','메이트 인건비(천원)','사용 시간(H)','증감','증감율'],
+            [
+                ['동일형태점포', lcp, ltp, '', ''],
+                ['컨설팅점포', ccp, ctp, '', ''],
+                ['증감(인건비)', ccp-lcp, '', ccp-lcp, lcp ? (ccp-lcp)/lcp : 0],
+                ['증감(시간)', '', ctp-ltp, ctp-ltp, ltp ? (ctp-ltp)/ltp : 0],
+            ],
+            { numberCols:[1,2,3], percentCols:[4] }
+        );
+    }
 
-    const lce = toNum(getValue('s4_1e_last_cost')), cce = toNum(getValue('s4_1e_curr_cost'));
-    const lte = toNum(getValue('s4_1e_last_time')), cte = toNum(getValue('s4_1e_curr_time'));
-    tRow = addTable(wsData, tRow, '동일형태점포/컨설팅점포 비교표 - 외부채널운영 메이트 인건비',
-        ['구분','메이트 인건비(천원)','사용 시간(H)','증감','증감율'],
-        [
-            ['동일형태점포', lce, lte, '', ''],
-            ['컨설팅점포', cce, cte, '', ''],
-            ['증감(인건비)', cce-lce, '', cce-lce, lce ? (cce-lce)/lce : 0],
-            ['증감(시간)', '', cte-lte, cte-lte, lte ? (cte-lte)/lte : 0],
-        ],
-        { numberCols:[1,2,3], percentCols:[4] }
-    );
+    if (document.getElementById('s4_1_ext_toggle')?.checked) {
+        const lce = toNum(getValue('s4_1e_last_cost')), cce = toNum(getValue('s4_1e_curr_cost'));
+        const lte = toNum(getValue('s4_1e_last_time')), cte = toNum(getValue('s4_1e_curr_time'));
+        tRow = addTable(wsData, tRow, '동일형태점포/컨설팅점포 비교표 - 외부채널운영 메이트 인건비',
+            ['구분','메이트 인건비(천원)','사용 시간(H)','증감','증감율'],
+            [
+                ['동일형태점포', lce, lte, '', ''],
+                ['컨설팅점포', cce, cte, '', ''],
+                ['증감(인건비)', cce-lce, '', cce-lce, lce ? (cce-lce)/lce : 0],
+                ['증감(시간)', '', cte-lte, cte-lte, lte ? (cte-lte)/lte : 0],
+            ],
+            { numberCols:[1,2,3], percentCols:[4] }
+        );
+    }
 
     }
 
@@ -3045,10 +3122,19 @@ async function saveAsPDF() {
     const container = document.querySelector('.container');
     const btnGroup = document.querySelector('.btn-group');
     const body = document.body;
-    const sections = document.querySelectorAll('.step-section, #outsideArea');
+    const sections = document.querySelectorAll('.step-section, #outsideArea, #s2_1_monthly_area, #s2_2_monthly_area, #s4_1_prod_area, #s4_1_ext_area');
+    const policy = getReportPolicy();
 
     sections.forEach(section => {
-        if (section.classList.contains('section-hidden')) {
+        const sid = section.id || '';
+        const hiddenByPolicy = (sid === 'outsideArea' && !policy.isOutsideActivity)
+            || (sid !== 'outsideArea' && policy.isOutsideActivity && sid.startsWith('step'))
+            || (sid === 'step4_1_block' && policy.isFranchise)
+            || (sid === 's2_1_monthly_area' && !policy.showS21Monthly)
+            || (sid === 's2_2_monthly_area' && !policy.showS22Monthly)
+            || (sid === 's4_1_prod_area' && !document.getElementById('s4_1_prod_toggle')?.checked)
+            || (sid === 's4_1_ext_area' && !document.getElementById('s4_1_ext_toggle')?.checked);
+        if (hiddenByPolicy || section.classList.contains('section-hidden') || section.style.display === 'none') {
             section.classList.add('no-print');
         } else {
             section.classList.remove('no-print');
@@ -3067,18 +3153,23 @@ async function saveAsPDF() {
     if (btnGroup) btnGroup.style.display = 'none';
 
     const replacements = [];
-    const activeTextareas = document.querySelectorAll('.step-section:not(.no-print) textarea, #outsideArea:not(.no-print) textarea');
+    const activeTextareas = Array.from(document.querySelectorAll('.step-section:not(.no-print) textarea, #outsideArea:not(.no-print) textarea'))
+        .filter((ta) => ta && ta.offsetParent !== null && ta.name !== 'outside_comment_html');
 
     if (editorInstance && document.getElementById('outsideArea').style.display !== 'none') {
         const outsideHost = document.getElementById('outsideEditor');
         if (outsideHost) {
+            const hostDisplay = outsideHost.style.display || '';
             const div = document.createElement('div');
-            div.innerHTML = editorInstance.getContents();
+            const tmp = document.createElement('div');
+            tmp.innerHTML = sanitizeOutsideHtml(editorInstance.getContents());
+            const normalized = (tmp.textContent || '').replace(/\r/g, '').replace(/\n{3,}/g, '\n\n').trim();
+            div.textContent = normalized;
             div.className = 'pdf-text-replacement';
-            div.style.cssText = `width:100%; min-height:120px; padding:10px; box-sizing:border-box; border:1px solid #eee; border-radius:8px; background:#fff; page-break-inside:avoid; break-inside:avoid;`;
+            div.style.cssText = `width:100%; min-height:120px; padding:10px; box-sizing:border-box; border:1px solid #eee; border-radius:8px; background:#fff; white-space:pre-wrap; line-height:1.7; page-break-inside:auto; break-inside:auto;`;
             outsideHost.parentNode.insertBefore(div, outsideHost.nextSibling);
             outsideHost.style.display = 'none';
-            replacements.push({ div, ta: outsideHost, isEditor: true });
+            replacements.push({ div, ta: outsideHost, display: hostDisplay });
         }
     }
 
@@ -3091,9 +3182,9 @@ async function saveAsPDF() {
             border:1px solid #eee; border-radius:8px; background:#fdfdfd;
             white-space:pre-wrap; word-break:break-word; font-size:14px;
             line-height:1.7; color:#000; margin-bottom:10px;
-            page-break-inside:avoid; break-inside:avoid;
+            page-break-inside:auto; break-inside:auto;
         `;
-        replacements.push({ div, ta });
+        replacements.push({ div, ta, display: ta.style.display || '' });
         ta.parentNode.insertBefore(div, ta);
         ta.style.display = 'none';
     });
@@ -3126,7 +3217,7 @@ async function saveAsPDF() {
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
         pagebreak: {
             mode: ['css'],
-                        avoid: ['.step-header', '.data-table', '.pdf-text-replacement']
+            avoid: ['.step-header', '.data-table thead']
         }
     };
 
@@ -3136,8 +3227,8 @@ async function saveAsPDF() {
         console.error("PDF 생성 실패:", error);
         alert("PDF 생성 중 오류가 발생했습니다.");
     } finally {
-        replacements.forEach(({ div, ta }) => {
-            ta.style.display = 'block';
+        replacements.forEach(({ div, ta, display }) => {
+            ta.style.display = display;
             div.remove();
         });
         formItems.forEach(fi => {
