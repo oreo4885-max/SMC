@@ -2457,10 +2457,18 @@ function htmlToPlainTextPreserveLines(html = '') {
         .replace(/\r/g, '')
         .replace(/[ \t]+\n/g, '\n')
         .replace(/\n[ \t]+/g, '\n')
-        .replace(/\n{3,}/g, '\n\n')
         .trim();
 
     return text;
+}
+
+function sanitizeExcelText(value = '', options = {}) {
+    const { preserveLineBreaks = false } = options;
+    let text = String(value ?? '').replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, '');
+    if (preserveLineBreaks) {
+        return text.replace(/\r/g, '').trim();
+    }
+    return text.replace(/\r/g, '').trim();
 }
 
     function getCurrentFormSnapshot() {
@@ -2751,7 +2759,6 @@ async function saveAsExcel() {
     const radioHandled = new Set();
 
     const clean = (v = '') => String(v).replace(/\s+/g, ' ').trim();
-    const sanitizeExcelText = (v = '') => String(v).replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, '').trim();
     const isNumericLike = (v = '') => /^-?\d[\d,]*(\.\d+)?$/.test(String(v).trim());
     const toNum = (v = '') => Number(String(v || 0).replace(/,/g, '')) || 0;
     const getValue = (name) => document.getElementsByName(name)[0]?.value ?? '';
@@ -2848,7 +2855,7 @@ async function saveAsExcel() {
     const sanitizeValue = (name, value) => {
         const raw = String(value || '').trim();
         if (/_html$/i.test(name || '')) {
-            return sanitizeExcelText(htmlToPlainTextPreserveLines(raw));
+            return sanitizeExcelText(htmlToPlainTextPreserveLines(raw), { preserveLineBreaks: true });
         }
         if (!raw) return '';
         if (raw.includes('for(let') || raw.includes('document.write')) {
@@ -3095,7 +3102,7 @@ async function saveAsExcel() {
                 ws.getCell(`B${rIdx}`).value = sanitizeExcelText(row.item);
 
                 if (row.kind === 'memo') {
-                    const memoText = sanitizeExcelText(row.value || '-');
+                    const memoText = sanitizeExcelText(row.value || '-', { preserveLineBreaks: true });
                     const targetHeight = estimateRowHeight(memoText, 84, 36, 1400);
                     const chunkHeight = 30;
                     const neededRows = Math.max(1, Math.ceil(targetHeight / chunkHeight));
@@ -3564,6 +3571,98 @@ async function saveAsPDF() {
 }
 
 /* ===================== [share] ===================== */
+function getShareFormState() {
+    return {
+        toEmail: document.getElementById('shareEmail')?.value || '',
+        subject: document.getElementById('shareSubject')?.value || '컨설팅 리포트',
+        message: document.getElementById('shareMessage')?.value || '',
+        fileInput: document.getElementById('shareAttachFiles')
+    };
+}
+
+function setShareFallbackMessage(message = '') {
+    const fallback = document.getElementById('shareFallbackHint');
+    if (fallback) fallback.textContent = message;
+}
+
+async function copyTextToClipboard(text) {
+    const value = String(text || '');
+    if (!value) return false;
+
+    try {
+        if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(value);
+            return true;
+        }
+    } catch (_) {}
+
+    try {
+        const ta = document.createElement('textarea');
+        ta.value = value;
+        ta.setAttribute('readonly', '');
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        ta.style.left = '-9999px';
+        document.body.appendChild(ta);
+        ta.select();
+        ta.setSelectionRange(0, ta.value.length);
+        const ok = document.execCommand('copy');
+        document.body.removeChild(ta);
+        return !!ok;
+    } catch (_) {
+        return false;
+    }
+}
+
+function downloadFilesFromInput(fileInput) {
+    const names = [];
+    if (!(fileInput?.files) || !fileInput.files.length) return names;
+
+    Array.from(fileInput.files).forEach((file) => {
+        names.push(file.name);
+        const url = URL.createObjectURL(file);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = file.name;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 2000);
+    });
+
+    return names;
+}
+
+function buildMailtoUrl(toEmail, subject, body = '') {
+    const params = new URLSearchParams();
+    if (subject) params.set('subject', subject);
+    if (body) params.set('body', body);
+    const qs = params.toString();
+    return `mailto:${encodeURIComponent(toEmail || '')}${qs ? `?${qs}` : ''}`;
+}
+
+function buildOutlookComposeUrl(toEmail, subject, body = '') {
+    const params = new URLSearchParams();
+    if (toEmail) params.set('to', toEmail);
+    if (subject) params.set('subject', subject);
+    if (body) params.set('body', body);
+    return `https://outlook.office.com/mail/deeplink/compose?${params.toString()}`;
+}
+
+function shouldInlineOutlookBody(toEmail, subject, message) {
+    return buildOutlookComposeUrl(toEmail, subject, message).length <= 1500;
+}
+
+function buildShareManualGuide({ copied, attachmentNames = [], channelLabel }) {
+    const lines = [];
+    lines.push(`${channelLabel} 자동 연결이 제한되어 수동 마무리 방식으로 전환했습니다.`);
+    lines.push(copied ? '본문은 클립보드에 복사되었습니다. 붙여넣기 해주세요.' : '본문 자동 복사에 실패했습니다. 메시지 박스 내용을 수동으로 복사해 주세요.');
+    if (attachmentNames.length) {
+        lines.push(`첨부 파일은 다운로드했습니다: ${attachmentNames.join(', ')}`);
+    }
+    return lines.join(' ');
+}
+
 // 공유 모달 열기 - 파일 첨부 지원
 function openShareModal() {
     if (!ensureCommonRequired('공유/발송')) return;
@@ -3613,8 +3712,7 @@ ${solution.substring(0, 220)}
 
     document.getElementById('shareSubject').value = subjectText;
     document.getElementById('shareMessage').value = defaultMsg;
-    const fallback = document.getElementById('shareFallbackHint');
-    if (fallback) fallback.textContent = navigator.share ? '' : '현재 브라우저는 앱 공유를 지원하지 않습니다. Outlook 365 버튼을 사용해 주세요.';
+    setShareFallbackMessage(navigator.share ? '' : '현재 브라우저는 앱 공유를 지원하지 않습니다. Outlook 365 버튼을 사용해 주세요.');
     openModal('shareModal');
 }
 
@@ -3625,15 +3723,13 @@ function closeShareModal() {
 // 네이티브 공유 (모바일 공유시트 - 파일 첨부 포함)
 async function doNativeShare() {
     if (!ensureCommonRequired('공유/발송')) return;
-    const title = document.getElementById('shareSubject').value || '컨설팅 리포트';
-    const text = document.getElementById('shareMessage').value;
-    const fileInput = document.getElementById('shareAttachFiles');
+    const { subject: title, message: text, fileInput } = getShareFormState();
+    const filesArray = Array.from(fileInput?.files || []);
 
     if (navigator.share) {
         try {
             const shareData = { title, text };
-            if (fileInput.files && fileInput.files.length > 0 && navigator.canShare) {
-                const filesArray = Array.from(fileInput.files);
+            if (filesArray.length > 0 && navigator.canShare) {
                 const testShare = { title, text, files: filesArray };
                 if (navigator.canShare(testShare)) {
                     shareData.files = filesArray;
@@ -3642,52 +3738,66 @@ async function doNativeShare() {
             await navigator.share(shareData);
             closeShareModal();
         } catch (err) {
-            if (err.name !== 'AbortError') {
-                alert('공유 중 오류가 발생했습니다: ' + err.message);
+            if (err.name === 'AbortError') return;
+
+            if (filesArray.length) {
+                try {
+                    await navigator.share({ title, text });
+                    closeShareModal();
+                    return;
+                } catch (retryErr) {
+                    if (retryErr.name === 'AbortError') return;
+                    err = retryErr;
+                }
             }
+
+            const copied = await copyTextToClipboard(text);
+            const message = buildShareManualGuide({
+                copied,
+                attachmentNames: [],
+                channelLabel: '앱 공유'
+            });
+            setShareFallbackMessage(message);
+            alert(`앱으로 공유를 진행하지 못했습니다.\n사유: ${err.message || '브라우저 권한 제한'}\n\n${message}`);
         }
     } else {
-        const fallback = document.getElementById('shareFallbackHint');
-        if (fallback) fallback.textContent = '현재 브라우저는 앱 공유를 지원하지 않습니다. Outlook 365 버튼을 사용해 주세요.';
+        setShareFallbackMessage('현재 브라우저는 앱 공유를 지원하지 않습니다. Outlook 365 버튼을 사용해 주세요.');
         alert('이 브라우저는 앱 공유를 지원하지 않습니다.\nOutlook 365 버튼을 이용해 주세요.');
     }
 }
 
-// 이메일 발송 - Outlook 365 오류 방지를 위해 mailto 기반으로 실행
-function doEmailShare(type) {
+// 이메일 발송 - 긴 본문은 URL 대신 클립보드 붙여넣기 방식으로 폴백
+async function doEmailShare(type) {
     if (!ensureCommonRequired('공유/발송')) return;
-    const toEmail = document.getElementById('shareEmail').value || '';
-    const subject = document.getElementById('shareSubject').value;
-    const message = document.getElementById('shareMessage').value;
-    const fileInput = document.getElementById('shareAttachFiles');
-
-    if (fileInput.files && fileInput.files.length > 0) {
-        Array.from(fileInput.files).forEach(file => {
-            const url = URL.createObjectURL(file);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = file.name;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            setTimeout(() => URL.revokeObjectURL(url), 2000);
-        });
-        const names = Array.from(fileInput.files).map((f) => f.name).join(', ');
-        setTimeout(() => alert(`📎 파일이 다운로드되었습니다.\n생성/다운로드 파일명: ${names || '-'}\n1) 파일 생성 2) 다운로드 확인 3) 메일 앱에서 첨부`), 300);
-    }
-
-    const encTo = encodeURIComponent(toEmail);
-    const encSubject = encodeURIComponent(subject);
-    const encBody = encodeURIComponent(message);
-    const mailtoUrl = `mailto:${encTo}?subject=${encSubject}&body=${encBody}`;
+    const { toEmail, subject, message, fileInput } = getShareFormState();
+    const attachmentNames = downloadFilesFromInput(fileInput);
 
     if (type === 'outlook365') {
-        const outlookComposeUrl = `https://outlook.office.com/mail/deeplink/compose?to=${encTo}&subject=${encSubject}&body=${encBody}`;
+        const includeBody = shouldInlineOutlookBody(toEmail, subject, message);
+        const outlookComposeUrl = buildOutlookComposeUrl(toEmail, subject, includeBody ? message : '');
         const opened = window.open(outlookComposeUrl, '_blank', 'noopener');
-        // 브라우저 정책 등으로 새 창이 차단되면 mailto 폴백
-        if (!opened) window.location.href = mailtoUrl;
+        if (!opened) {
+            window.location.href = buildMailtoUrl(toEmail, subject, includeBody ? message : '');
+        }
+
+        let copied = false;
+        if (!includeBody) {
+            copied = await copyTextToClipboard(message);
+            const fallbackText = buildShareManualGuide({
+                copied,
+                attachmentNames,
+                channelLabel: 'Outlook 365'
+            });
+            setShareFallbackMessage(`본문이 길어 제목만 자동 입력했습니다. ${fallbackText}`);
+            setTimeout(() => alert(`Outlook 365 본문이 길어서 자동 입력을 줄였습니다.\n제목/받는 사람만 열고, 본문은 붙여넣기 방식으로 안내합니다.\n\n${fallbackText}`), 250);
+        } else if (attachmentNames.length) {
+            setShareFallbackMessage(`첨부 파일은 다운로드했습니다: ${attachmentNames.join(', ')}. Outlook 창에서 첨부해 주세요.`);
+            setTimeout(() => alert(`첨부 파일을 다운로드했습니다.\n파일명: ${attachmentNames.join(', ')}\nOutlook 작성 창에서 파일을 첨부해 주세요.`), 250);
+        } else {
+            setShareFallbackMessage('');
+        }
     } else {
-        window.location.href = mailtoUrl;
+        window.location.href = buildMailtoUrl(toEmail, subject, message);
     }
 
     closeShareModal();
