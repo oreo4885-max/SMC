@@ -748,7 +748,7 @@
     <div class="modal-content">
         <div class="modal-header">
             <span>가장 최근 점검 기록</span>
-            <span style="cursor:pointer" onclick="closeHistory()">✖</span>
+            <span style="cursor:pointer" data-action="close-history-modal">✖</span>
         </div>
         <div class="modal-body" id="modalContent">
             점포명을 입력하고 조회 버튼을 눌러주세요.
@@ -791,7 +791,7 @@
                     </div>
                     <div class="input-box">
                         <label>🏷️ 점포 유형</label>
-                        <select id="storeTypeSelect" name="store_type" onchange="toggleStoreMode()">
+                        <select id="storeTypeSelect" name="store_type">
                             <option value="">유형 선택</option>
                             <option value="제조출고점">제조출고점</option>
                             <option value="제조영업점">제조영업점</option>
@@ -845,7 +845,7 @@
                 <div class="file-input-group">
                     <div class="file-input-item">
                         <span>📷 사진 삽입:</span>
-                        <input type="file" name="file_s1_3_file" accept="image/*" capture="environment" multiple data-max-files="3" onchange="limitFiles(this); previewImage(this, 'preview_s1_3')">
+                        <input type="file" name="file_s1_3_file" accept="image/*" capture="environment" multiple data-max-files="3" data-preview-target="preview_s1_3">
                     </div>
                 </div>
                 <div id="preview_s1_3" class="img-preview-container"></div>
@@ -859,7 +859,7 @@
                 <div class="file-input-group">
                     <div class="file-input-item">
                         <span>📷 사진 삽입:</span>
-                        <input type="file" name="file_s1_4_file" accept="image/*" capture="environment" multiple data-max-files="3" onchange="limitFiles(this); previewImage(this, 'preview_s1_4')">
+                        <input type="file" name="file_s1_4_file" accept="image/*" capture="environment" multiple data-max-files="3" data-preview-target="preview_s1_4">
                     </div>
                 </div>
                 <div id="preview_s1_4" class="img-preview-container"></div>
@@ -873,7 +873,7 @@
                 <div class="file-input-group">
                     <div class="file-input-item">
                         <span>📷 사진 삽입:</span>
-                        <input type="file" name="file_s1_6_file" accept="image/*" capture="environment" multiple data-max-files="3" onchange="limitFiles(this); previewImage(this, 'preview_s1_6')">
+                        <input type="file" name="file_s1_6_file" accept="image/*" capture="environment" multiple data-max-files="3" data-preview-target="preview_s1_6">
                     </div>
                 </div>
                 <div id="preview_s1_6" class="img-preview-container"></div>
@@ -881,7 +881,7 @@
         </div>
     </div>
 </div>
-                                       <div class="step-section">
+                                       <div class="step-section" id="step2Section">
                 <div class="step-header">Step 2. 매출 관련<label style="margin-left: auto; font-size: 0.75em; color: white; cursor: pointer; display:flex; align-items:center; gap:4px; white-space:nowrap;">
         <input type="checkbox" class="section-hide-toggle" style="width:15px; height:15px; accent-color: #f39c12;"> 섹션 숨김
     </label></div>
@@ -904,18 +904,18 @@
                             <tbody>
                                 <tr>
                                     <td>전년</td>
-                                    <td><input type="text" name="s2_1_last_total" class="comma-input" oninput="calcS2_1()"></td>
-                                    <td><input type="text" name="s2_1_last_ext" class="comma-input" oninput="calcS2_1()"></td>
-                                    <td><input type="text" name="s2_1_last_del" class="comma-input" oninput="calcS2_1()"></td>
-                                    <td><input type="text" name="s2_1_last_grp" class="comma-input" oninput="calcS2_1()"></td>
+                                    <td><input type="text" name="s2_1_last_total" class="comma-input"></td>
+                                    <td><input type="text" name="s2_1_last_ext" class="comma-input"></td>
+                                    <td><input type="text" name="s2_1_last_del" class="comma-input"></td>
+                                    <td><input type="text" name="s2_1_last_grp" class="comma-input"></td>
                                     <td class="bg-gray" id="s2_1_last_pure">0</td>
                                 </tr>
                                 <tr>
                                     <td>금년</td>
-                                    <td><input type="text" name="s2_1_curr_total" class="comma-input" oninput="calcS2_1()"></td>
-                                    <td><input type="text" name="s2_1_curr_ext" class="comma-input" oninput="calcS2_1()"></td>
-                                    <td><input type="text" name="s2_1_curr_del" class="comma-input" oninput="calcS2_1()"></td>
-                                    <td><input type="text" name="s2_1_curr_grp" class="comma-input" oninput="calcS2_1()"></td>
+                                    <td><input type="text" name="s2_1_curr_total" class="comma-input"></td>
+                                    <td><input type="text" name="s2_1_curr_ext" class="comma-input"></td>
+                                    <td><input type="text" name="s2_1_curr_del" class="comma-input"></td>
+                                    <td><input type="text" name="s2_1_curr_grp" class="comma-input"></td>
                                     <td class="bg-gray" id="s2_1_curr_pure">0</td>
                                 </tr>
                                 <tr class="bg-gray">
@@ -926,7 +926,7 @@
                             </tbody>
                         </table>
                         <div class="checkbox-wrapper" style="margin:10px 0 6px;">
-                            <input type="checkbox" id="s2_1_monthly_toggle" name="s2_1_monthly_toggle" onchange="toggleS2MonthlyTables()">
+                            <input type="checkbox" id="s2_1_monthly_toggle" name="s2_1_monthly_toggle">
                             <label for="s2_1_monthly_toggle">전월 비교표 표시</label>
                         </div>
                         <div id="s2_1_monthly_area" class="hidden-area" style="margin-top:8px;">
@@ -937,18 +937,18 @@
                                 <tbody>
                                     <tr>
                                         <td>전월</td>
-                                        <td><input type="text" name="s2_1_m_last_total" class="comma-input" oninput="calcS2_1()"></td>
-                                        <td><input type="text" name="s2_1_m_last_ext" class="comma-input" oninput="calcS2_1()"></td>
-                                        <td><input type="text" name="s2_1_m_last_del" class="comma-input" oninput="calcS2_1()"></td>
-                                        <td><input type="text" name="s2_1_m_last_grp" class="comma-input" oninput="calcS2_1()"></td>
+                                        <td><input type="text" name="s2_1_m_last_total" class="comma-input"></td>
+                                        <td><input type="text" name="s2_1_m_last_ext" class="comma-input"></td>
+                                        <td><input type="text" name="s2_1_m_last_del" class="comma-input"></td>
+                                        <td><input type="text" name="s2_1_m_last_grp" class="comma-input"></td>
                                         <td class="bg-gray" id="s2_1_m_last_pure">0</td>
                                     </tr>
                                     <tr>
                                         <td>당월</td>
-                                        <td><input type="text" name="s2_1_m_curr_total" class="comma-input" oninput="calcS2_1()"></td>
-                                        <td><input type="text" name="s2_1_m_curr_ext" class="comma-input" oninput="calcS2_1()"></td>
-                                        <td><input type="text" name="s2_1_m_curr_del" class="comma-input" oninput="calcS2_1()"></td>
-                                        <td><input type="text" name="s2_1_m_curr_grp" class="comma-input" oninput="calcS2_1()"></td>
+                                        <td><input type="text" name="s2_1_m_curr_total" class="comma-input"></td>
+                                        <td><input type="text" name="s2_1_m_curr_ext" class="comma-input"></td>
+                                        <td><input type="text" name="s2_1_m_curr_del" class="comma-input"></td>
+                                        <td><input type="text" name="s2_1_m_curr_grp" class="comma-input"></td>
                                         <td class="bg-gray" id="s2_1_m_curr_pure">0</td>
                                     </tr>
                                     <tr class="bg-gray">
@@ -965,53 +965,29 @@
                     <div class="form-item">
                         <label class="item-title">2. 블럭별 매출 분석</label>
                         <div class="input-group-row" style="margin:10px 0;">
-                            <div class="input-box"><label>전년매출(천원)</label><input type="text" class="comma-input" name="s2_2_last_total" oninput="calcS2_2()"></div>
-                            <div class="input-box"><label>금년매출(천원)</label><input type="text" class="comma-input" name="s2_2_curr_total" oninput="calcS2_2()"></div>
+                            <div class="input-box"><label>전년매출(천원)</label><input type="text" class="comma-input" name="s2_2_last_total"></div>
+                            <div class="input-box"><label>금년매출(천원)</label><input type="text" class="comma-input" name="s2_2_curr_total"></div>
                         </div>
                         <table class="data-table" id="blockAnalysisTable">
                             <thead>
                                 <tr><th>구분</th><th>더즌</th><th>싱글</th><th>세트</th><th>커피</th><th>프로즌</th><th>판매용품</th><th>베이크드</th><th>기타</th></tr>
                             </thead>
-                            <tbody>
-                                <tr>
-                                    <td>전년</td>
-                                    <script>for(let i=1;i<=8;i++) document.write(`<td><div style="display:flex; gap:6px; align-items:center;"><input type="text" name="s2_2_l_${i}" class="comma-input" style="flex:1;" oninput="calcS2_2()"><span id="s2_2_l_ratio_${i}" style="font-size:12px; color:#2d7a2d; min-width:52px; text-align:right;">0.0%</span></div></td>`);</script>
-                                </tr>
-                                <tr>
-                                    <td>금년</td>
-                                    <script>for(let i=1;i<=8;i++) document.write(`<td><div style="display:flex; gap:6px; align-items:center;"><input type="text" name="s2_2_c_${i}" class="comma-input" style="flex:1;" oninput="calcS2_2()"><span id="s2_2_c_ratio_${i}" style="font-size:12px; color:#2d7a2d; min-width:52px; text-align:right;">0.0%</span></div></td>`);</script>
-                                </tr>
-                                <tr class="bg-gray" id="blockDiffRow">
-                                    <td>증감/증감율</td><script>for(let i=1;i<=8;i++) document.write(`<td>0</td>`);</script>
-                                </tr>
-                            </tbody>
+                            <tbody id="blockAnalysisTableBody"></tbody>
                         </table>
                         <div class="checkbox-wrapper" style="margin:10px 0 6px;">
-                            <input type="checkbox" id="s2_2_monthly_toggle" name="s2_2_monthly_toggle" onchange="toggleS2MonthlyTables()">
+                            <input type="checkbox" id="s2_2_monthly_toggle" name="s2_2_monthly_toggle">
                             <label for="s2_2_monthly_toggle">전월 비교표 표시</label>
                         </div>
                         <div id="s2_2_monthly_area" class="hidden-area" style="margin-top:8px;">
                             <div class="input-group-row" style="margin:10px 0;">
-                                <div class="input-box"><label>전월매출(천원)</label><input type="text" class="comma-input" name="s2_2_m_last_total" oninput="calcS2_2()"></div>
-                                <div class="input-box"><label>당월매출(천원)</label><input type="text" class="comma-input" name="s2_2_m_curr_total" oninput="calcS2_2()"></div>
+                                <div class="input-box"><label>전월매출(천원)</label><input type="text" class="comma-input" name="s2_2_m_last_total"></div>
+                                <div class="input-box"><label>당월매출(천원)</label><input type="text" class="comma-input" name="s2_2_m_curr_total"></div>
                             </div>
                             <table class="data-table" id="blockAnalysisTableMonthly">
                                 <thead>
                                     <tr><th>구분</th><th>더즌</th><th>싱글</th><th>세트</th><th>커피</th><th>프로즌</th><th>판매용품</th><th>베이크드</th><th>기타</th></tr>
                                 </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>전월</td>
-                                        <script>for(let i=1;i<=8;i++) document.write(`<td><div style="display:flex; gap:6px; align-items:center;"><input type="text" name="s2_2_m_l_${i}" class="comma-input" style="flex:1;" oninput="calcS2_2()"><span id="s2_2_m_l_ratio_${i}" style="font-size:12px; color:#2d7a2d; min-width:52px; text-align:right;">0.0%</span></div></td>`);</script>
-                                    </tr>
-                                    <tr>
-                                        <td>당월</td>
-                                        <script>for(let i=1;i<=8;i++) document.write(`<td><div style="display:flex; gap:6px; align-items:center;"><input type="text" name="s2_2_m_c_${i}" class="comma-input" style="flex:1;" oninput="calcS2_2()"><span id="s2_2_m_c_ratio_${i}" style="font-size:12px; color:#2d7a2d; min-width:52px; text-align:right;">0.0%</span></div></td>`);</script>
-                                    </tr>
-                                    <tr class="bg-gray" id="blockDiffRowMonthly">
-                                        <td>증감/증감율</td><script>for(let i=1;i<=8;i++) document.write(`<td>0</td>`);</script>
-                                    </tr>
-                                </tbody>
+                                <tbody id="blockAnalysisTableMonthlyBody"></tbody>
                             </table>
                         </div>
                         <textarea name="s2_2_comment" placeholder="증감 원인 및 상세 분석"></textarea>
@@ -1033,19 +1009,16 @@
                                     <td>
                                         <select name="s2_3_og_time">
                                             <option value="미발생">미발생</option>
-                                            <script>for(let i=12; i<=21; i++) document.write(`<option value="${i}:00">${i}:00</option>`);</script>
                                         </select>
                                     </td>
                                     <td>
                                         <select name="as_t1">
                                             <option value="미발생">미발생</option>
-                                            <script>for(let i=12; i<=21; i++) document.write(`<option value="${i}:00">${i}:00</option>`);</script>
                                         </select>
                                     </td>
                                     <td>
                                         <select name="s2_3_del_time">
                                             <option value="미발생">미발생</option>
-                                            <script>for(let i=12; i<=21; i++) document.write(`<option value="${i}:00">${i}:00</option>`);</script>
                                         </select>
                                     </td>
                                     <td><input type="number" name="s2_3_waste_rate" step="0.1" style="width:90%;"></td>
@@ -1061,7 +1034,7 @@
                             <thead><tr><th>판촉명</th><th>점포매출</th><th>판촉매출</th><th>매출구성비(%)</th><th>삭제</th></tr></thead>
                             <tbody id="promoTableBody"></tbody>
                         </table>
-                        <button type="button" onclick="addPromoRow()" style="padding: 10px; background: var(--brand-blue); color: white; border: none; border-radius: 5px; cursor: pointer; margin: 8px 0 12px;">+ 판촉 추가하기</button>
+                        <button type="button" id="addPromoRowBtn" style="padding: 10px; background: var(--brand-blue); color: white; border: none; border-radius: 5px; cursor: pointer; margin: 8px 0 12px;">+ 판촉 추가하기</button>
                         <textarea name="s2_4_comment" placeholder="판촉 성과 및 향후 운영 계획"></textarea>
                     </div>
 
@@ -1083,7 +1056,7 @@
                         <div class="form-item">
                             <label class="item-title">1. 계정과목별 분석 (최근 확인된 점포 손익계산서 기준)</label>
                             <div id="accountTableContainer"></div>
-                            <button type="button" onclick="addAccountTable()" style="padding: 10px; background: var(--brand-blue); color: white; border: none; border-radius: 5px; cursor: pointer; margin-bottom: 15px;">+ 계정과목 선택하여 추가</button>
+                            <button type="button" id="addAccountTableBtn" style="padding: 10px; background: var(--brand-blue); color: white; border: none; border-radius: 5px; cursor: pointer; margin-bottom: 15px;">+ 계정과목 선택하여 추가</button>
                             <textarea name="s3_1_comment" placeholder="손익 부진점 운영현황 및 활성화/절감 방안"></textarea>
                         </div>
                         <div class="form-item"><label class="item-title">2. 손익 분석 (영업이익 적자 원인)</label><textarea name="s3_2_comment"></textarea></div>
@@ -1116,20 +1089,20 @@
     <tbody>
         <tr>
             <td>동일형태점포</td>
-            <td><input type="text" name="s4_1_last_cost" class="comma-input" oninput="calcS4_1()"></td>
+            <td><input type="text" name="s4_1_last_cost" class="comma-input"></td>
             <td rowspan="2" id="s4_1_cost_diff" class="bg-gray">0<br>(0%)</td>
-            <td><input type="text" name="s4_1_last_time" class="comma-input" oninput="calcS4_1()"></td>
+            <td><input type="text" name="s4_1_last_time" class="comma-input"></td>
             <td rowspan="2" id="s4_1_time_diff" class="bg-gray">0<br>(0%)</td>
         </tr>
         <tr>
             <td>컨설팅점포</td>
-            <td><input type="text" name="s4_1_curr_cost" class="comma-input" oninput="calcS4_1()"></td>
-            <td><input type="text" name="s4_1_curr_time" class="comma-input" oninput="calcS4_1()"></td>
+            <td><input type="text" name="s4_1_curr_cost" class="comma-input"></td>
+            <td><input type="text" name="s4_1_curr_time" class="comma-input"></td>
         </tr>
     </tbody>
 </table>
                             <textarea name="s4_1_base_comment" placeholder="기본 인건비 비교 코멘트" style="margin-top:10px;"></textarea>
-                            <div class="checkbox-wrapper" style="margin:10px 0 6px;"><input type="checkbox" id="s4_1_prod_toggle" onchange="document.getElementById('s4_1_prod_area').style.display=this.checked?'block':'none';"><label for="s4_1_prod_toggle">생산 및 프로세싱 인건비</label></div>
+                            <div class="checkbox-wrapper" style="margin:10px 0 6px;"><input type="checkbox" id="s4_1_prod_toggle"><label for="s4_1_prod_toggle">생산 및 프로세싱 인건비</label></div>
                             <div id="s4_1_prod_area" style="display:none;">
 <table class="data-table">
     <thead>
@@ -1143,21 +1116,21 @@
     <tbody>
         <tr>
             <td>동일형태점포</td>
-            <td><input type="text" name="s4_1p_last_cost" class="comma-input" oninput="calcS4_1()"></td>
+            <td><input type="text" name="s4_1p_last_cost" class="comma-input"></td>
             <td rowspan="2" id="s4_1p_cost_diff" class="bg-gray">0<br>(0%)</td>
-            <td><input type="text" name="s4_1p_last_time" class="comma-input" oninput="calcS4_1()"></td>
+            <td><input type="text" name="s4_1p_last_time" class="comma-input"></td>
             <td rowspan="2" id="s4_1p_time_diff" class="bg-gray">0<br>(0%)</td>
         </tr>
         <tr>
             <td>컨설팅점포</td>
-            <td><input type="text" name="s4_1p_curr_cost" class="comma-input" oninput="calcS4_1()"></td>
-            <td><input type="text" name="s4_1p_curr_time" class="comma-input" oninput="calcS4_1()"></td>
+            <td><input type="text" name="s4_1p_curr_cost" class="comma-input"></td>
+            <td><input type="text" name="s4_1p_curr_time" class="comma-input"></td>
         </tr>
     </tbody>
 </table>
                             <textarea name="s4_1_prod_comment" placeholder="생산 및 프로세싱 인건비 코멘트" style="margin-top:10px;"></textarea>
                             </div>
-                            <div class="checkbox-wrapper" style="margin:10px 0 6px;"><input type="checkbox" id="s4_1_ext_toggle" onchange="document.getElementById('s4_1_ext_area').style.display=this.checked?'block':'none';"><label for="s4_1_ext_toggle">외부채널 운영 인건비</label></div>
+                            <div class="checkbox-wrapper" style="margin:10px 0 6px;"><input type="checkbox" id="s4_1_ext_toggle"><label for="s4_1_ext_toggle">외부채널 운영 인건비</label></div>
                             <div id="s4_1_ext_area" style="display:none;">
 <table class="data-table">
     <thead>
@@ -1171,15 +1144,15 @@
     <tbody>
         <tr>
             <td>동일형태점포</td>
-            <td><input type="text" name="s4_1e_last_cost" class="comma-input" oninput="calcS4_1()"></td>
+            <td><input type="text" name="s4_1e_last_cost" class="comma-input"></td>
             <td rowspan="2" id="s4_1e_cost_diff" class="bg-gray">0<br>(0%)</td>
-            <td><input type="text" name="s4_1e_last_time" class="comma-input" oninput="calcS4_1()"></td>
+            <td><input type="text" name="s4_1e_last_time" class="comma-input"></td>
             <td rowspan="2" id="s4_1e_time_diff" class="bg-gray">0<br>(0%)</td>
         </tr>
         <tr>
             <td>컨설팅점포</td>
-            <td><input type="text" name="s4_1e_curr_cost" class="comma-input" oninput="calcS4_1()"></td>
-            <td><input type="text" name="s4_1e_curr_time" class="comma-input" oninput="calcS4_1()"></td>
+            <td><input type="text" name="s4_1e_curr_cost" class="comma-input"></td>
+            <td><input type="text" name="s4_1e_curr_time" class="comma-input"></td>
         </tr>
     </tbody>
 </table>
@@ -1204,7 +1177,7 @@
                                 </div>
                                 <div class="file-upload-box">
                                     <div class="file-input-group">
-                                        <div class="file-input-item"><span>파일 선택:</span><input type="file" name="file_interview_file" accept="image/*" capture="environment" multiple data-max-files="3" onchange="limitFiles(this)"></div>
+                                        <div class="file-input-item"><span>파일 선택:</span><input type="file" name="file_interview_file" accept="image/*" capture="environment" multiple data-max-files="3"></div>
                                     </div>
                                 </div>
                             </div>
@@ -1240,7 +1213,7 @@
                             <label class="item-title">2. 제조출고 영업점 기기 상태 및 수리 확인</label>
                             <div class="file-upload-box">
                                 <div class="file-input-group">
-                                    <div class="file-input-item"><span>파일 선택:</span><input type="file" name="file_s5_machine_file" accept="image/*" capture="environment" multiple data-max-files="3" onchange="limitFiles(this)"></div>
+                                    <div class="file-input-item"><span>파일 선택:</span><input type="file" name="file_s5_machine_file" accept="image/*" capture="environment" multiple data-max-files="3"></div>
                                 </div>
                             </div>
                             <textarea name="s5_2_comment" style="margin-top:10px;"></textarea>
@@ -1264,7 +1237,7 @@
     <div class="share-modal-content">
         <div class="share-modal-header">
             <span>📤 공유 / 발송</span>
-            <span style="cursor:pointer; font-size:1.1em;" onclick="closeShareModal()">✖</span>
+            <span style="cursor:pointer; font-size:1.1em;" data-action="close-share-modal">✖</span>
         </div>
         <div class="share-modal-body">
             <label>받는 사람 (이메일)</label>
@@ -1283,13 +1256,13 @@
 
             <div style="font-size:0.8em; font-weight:bold; color:var(--brand-choco); margin-bottom:6px;">📬 메일 발송 방법 선택</div>
             <div class="share-btn-row">
-                <button class="btn-share-email" style="background:#0078d4;" onclick="doEmailShare('outlook365')">
+                <button class="btn-share-email" style="background:#0078d4;" data-action="share-outlook365">
                     <span style="font-size:1.1em;">📧</span><br><small>Outlook 365</small>
                 </button>
-                <button class="btn-share-native" onclick="doNativeShare()">📱 앱으로 공유</button>
+                <button class="btn-share-native" data-action="share-native">📱 앱으로 공유</button>
             </div>
             <div class="share-btn-row" style="margin-top:8px;">
-                <button class="btn-share-cancel" onclick="closeShareModal()">취소</button>
+                <button class="btn-share-cancel" data-action="close-share-modal">취소</button>
             </div>
         </div>
     </div>
@@ -1299,7 +1272,7 @@
     <div class="share-modal-content">
         <div class="share-modal-header">
             <span>🕘 이전 컨설팅 불러오기</span>
-            <span style="cursor:pointer; font-size:1.1em;" onclick="closePrevConsultingModal()">✖</span>
+            <span style="cursor:pointer; font-size:1.1em;" data-action="close-prev-modal">✖</span>
         </div>
         <div class="share-modal-body">
             <div class="sub-desc" style="display:block; margin-bottom:8px;">기본은 담당 SC 기준으로 조회되며, 조회 날짜를 지정해 필터링할 수 있습니다.</div>
@@ -1308,48 +1281,48 @@
                     <label for="prevConsultingDateFilter" style="font-size:12px; color:#666;">조회 날짜(선택)</label>
                     <input type="date" id="prevConsultingDateFilter">
                 </div>
-                <button type="button" class="btn-share-email" style="background:#2d7a2d;" onclick="applyPrevConsultingFilter()">조회</button>
-                <button type="button" class="btn-share-cancel" style="background:#b94a48; color:#fff;" onclick="clearPrevConsultingAll()">전체 삭제</button>
+                <button type="button" class="btn-share-email" style="background:#2d7a2d;" data-action="filter-prev-consulting">조회</button>
+                <button type="button" class="btn-share-cancel" style="background:#b94a48; color:#fff;" data-action="clear-prev-consulting">전체 삭제</button>
             </div>
             <div id="prevConsultingList"></div>
             <div id="prevConsultingPagination" style="display:flex; justify-content:center; align-items:center; gap:8px; margin-top:12px;"></div>
             <div class="share-btn-row" style="margin-top:8px;">
-                <button class="btn-share-cancel" onclick="closePrevConsultingModal()">닫기</button>
+                <button class="btn-share-cancel" data-action="close-prev-modal">닫기</button>
             </div>
         </div>
     </div>
 </div>
 
 <div class="btn-group" id="actionBtnGroup" role="group" aria-label="주요 작업 메뉴">
-    <button type="button" class="icon-btn menu-toggle-btn" id="btnMenuToggle" onclick="toggleMobileActionMenu()" aria-expanded="false" aria-controls="actionBtnGroup" aria-label="작업 메뉴 열기">
+    <button type="button" class="icon-btn menu-toggle-btn" id="btnMenuToggle" data-action="toggle-mobile-menu" aria-expanded="false" aria-controls="actionBtnGroup" aria-label="작업 메뉴 열기">
         ☰<span>메뉴</span>
     </button>
-    <button type="button" class="icon-btn menu-close-btn" id="btnMenuClose" onclick="collapseMobileActionMenu(true)">
+    <button type="button" class="icon-btn menu-close-btn" id="btnMenuClose" data-action="close-mobile-menu">
         ✕<span>닫기</span>
     </button>
-    <button type="button" class="icon-btn action-btn" id="btnSaveTemp" onclick="saveTempData()">
+    <button type="button" class="icon-btn action-btn" id="btnSaveTemp" data-action="save-temp">
         🗂️<span>리포트저장</span>
     </button>
-    <button type="button" class="icon-btn action-btn" id="btnLoadPrev" onclick="openPrevConsultingModal()">
+    <button type="button" class="icon-btn action-btn" id="btnLoadPrev" data-action="open-prev-modal">
         🕘<span>리포트불러오기</span>
     </button>
-    <button type="button" class="icon-btn action-btn" id="btnExcel" onclick="saveAsExcel()">
+    <button type="button" class="icon-btn action-btn" id="btnExcel" data-action="save-excel">
         📈<span>엑셀저장</span>
     </button>
-    <button type="button" class="icon-btn action-btn" id="btnPdf" onclick="saveAsPDF()">
+    <button type="button" class="icon-btn action-btn" id="btnPdf" data-action="save-pdf">
         🧾<span>PDF저장</span>
     </button>
-    <button type="button" class="icon-btn action-btn" id="btnShare" onclick="openShareModal()">
+    <button type="button" class="icon-btn action-btn" id="btnShare" data-action="open-share-modal">
         📨<span>공유/발송</span>
     </button>
-    <button type="button" class="icon-btn action-btn" id="btnJsonSave" onclick="exportTransferJson()">
+    <button type="button" class="icon-btn action-btn" id="btnJsonSave" data-action="save-json">
         💾<span>작업파일저장</span>
     </button>
-    <button type="button" class="icon-btn action-btn" id="btnJsonLoad" onclick="triggerImportTransferJson()">
+    <button type="button" class="icon-btn action-btn" id="btnJsonLoad" data-action="load-json">
         📂<span>작업파일불러오기</span>
     </button>
-    <input type="file" id="transferJsonInput" accept="application/json,.json" style="display:none;" onchange="importTransferJson(this)">
-    <button type="button" class="icon-btn btn-reset action-btn" id="btnReset" onclick="resetForm()">
+    <input type="file" id="transferJsonInput" accept="application/json,.json" style="display:none;">
+    <button type="button" class="icon-btn btn-reset action-btn" id="btnReset" data-action="reset-form">
         ♻️<span>초기화</span>
     </button>
 </div>
@@ -1554,6 +1527,76 @@ function bindNumericMobileInputs() {
     });
 }
 
+function buildBlockAnalysisCells(prefix) {
+    let html = '';
+    for (let i = 1; i <= 8; i++) {
+        html += `<td><div style="display:flex; gap:6px; align-items:center;"><input type="text" name="${prefix}_${i}" class="comma-input" style="flex:1;"><span id="${prefix}_ratio_${i}" style="font-size:12px; color:#2d7a2d; min-width:52px; text-align:right;">0.0%</span></div></td>`;
+    }
+    return html;
+}
+
+function buildBlockDiffCells() {
+    let html = '';
+    for (let i = 1; i <= 8; i++) {
+        html += '<td>0</td>';
+    }
+    return html;
+}
+
+function renderBlockAnalysisTables() {
+    const tableBody = document.getElementById('blockAnalysisTableBody');
+    if (tableBody) {
+        tableBody.innerHTML = `
+            <tr>
+                <td>전년</td>
+                ${buildBlockAnalysisCells('s2_2_l')}
+            </tr>
+            <tr>
+                <td>금년</td>
+                ${buildBlockAnalysisCells('s2_2_c')}
+            </tr>
+            <tr class="bg-gray" id="blockDiffRow">
+                <td>증감/증감율</td>
+                ${buildBlockDiffCells()}
+            </tr>
+        `;
+    }
+
+    const monthlyBody = document.getElementById('blockAnalysisTableMonthlyBody');
+    if (monthlyBody) {
+        monthlyBody.innerHTML = `
+            <tr>
+                <td>전월</td>
+                ${buildBlockAnalysisCells('s2_2_m_l')}
+            </tr>
+            <tr>
+                <td>당월</td>
+                ${buildBlockAnalysisCells('s2_2_m_c')}
+            </tr>
+            <tr class="bg-gray" id="blockDiffRowMonthly">
+                <td>증감/증감율</td>
+                ${buildBlockDiffCells()}
+            </tr>
+        `;
+    }
+}
+
+function renderTimeOptions() {
+    const names = ['s2_3_og_time', 'as_t1', 's2_3_del_time'];
+    names.forEach((name) => {
+        const select = document.querySelector(`select[name="${name}"]`);
+        if (!select) return;
+        for (let i = 12; i <= 21; i++) {
+            const value = `${i}:00`;
+            if (Array.from(select.options).some((opt) => opt.value === value)) continue;
+            const option = document.createElement('option');
+            option.value = value;
+            option.textContent = value;
+            select.appendChild(option);
+        }
+    });
+}
+
 function setupMobileTableWrap() {
     ['#step2Section .data-table', '#step4Section .data-table'].forEach((sel) => {
         document.querySelectorAll(sel).forEach((table) => {
@@ -1601,6 +1644,218 @@ function syncMobileActionMenu() {
         toggle.setAttribute('aria-label', expanded ? '작업 메뉴 닫기' : '작업 메뉴 열기');
     }
     setMobileActionTabState(expanded);
+}
+
+function bindChangeById(id, handler) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('change', handler);
+}
+
+function bindStep2Interactions() {
+    const step2 = document.getElementById('step2Section');
+    if (!step2) return;
+
+    step2.addEventListener('input', (e) => {
+        const target = e.target;
+        if (!(target instanceof HTMLInputElement)) return;
+        const name = target.name || '';
+        if (name.startsWith('s2_1_')) {
+            calcS2_1();
+            return;
+        }
+        if (name.startsWith('s2_2_')) {
+            calcS2_2();
+            return;
+        }
+        if (name.startsWith('s2_4_store_') || name.startsWith('s2_4_promo_')) {
+            calcPromoRatios();
+        }
+    });
+
+    step2.addEventListener('change', (e) => {
+        const target = e.target;
+        if (!(target instanceof HTMLInputElement || target instanceof HTMLSelectElement)) return;
+        if (target.id === 's2_1_monthly_toggle' || target.id === 's2_2_monthly_toggle') {
+            toggleS2MonthlyTables();
+        }
+    });
+
+    step2.addEventListener('click', (e) => {
+        const target = e.target.closest('button');
+        if (!target) return;
+        if (target.id === 'addPromoRowBtn') {
+            addPromoRow();
+            return;
+        }
+        const removeIdx = target.dataset.promoRemove;
+        if (removeIdx) {
+            removePromoRow(Number(removeIdx));
+        }
+    });
+}
+
+function setBlockVisibility(targetId, visible) {
+    const el = document.getElementById(targetId);
+    if (!el) return;
+    el.style.display = visible ? 'block' : 'none';
+}
+
+function bindStep4Interactions() {
+    const step4 = document.getElementById('step4Section');
+    if (!step4) return;
+
+    step4.addEventListener('input', (e) => {
+        const target = e.target;
+        if (!(target instanceof HTMLInputElement)) return;
+        const name = target.name || '';
+        if (name.startsWith('s4_1') || name.startsWith('s4_1p_') || name.startsWith('s4_1e_')) {
+            calcS4_1();
+        }
+    });
+
+    step4.addEventListener('change', (e) => {
+        const target = e.target;
+        if (!(target instanceof HTMLInputElement)) return;
+        if (target.id === 's4_1_prod_toggle') {
+            setBlockVisibility('s4_1_prod_area', target.checked);
+            return;
+        }
+        if (target.id === 's4_1_ext_toggle') {
+            setBlockVisibility('s4_1_ext_area', target.checked);
+        }
+    });
+}
+
+function bindUploadInteractions() {
+    const form = document.getElementById('inspectionForm');
+    if (!form) return;
+
+    form.addEventListener('change', (e) => {
+        const target = e.target;
+        if (!(target instanceof HTMLInputElement)) return;
+        if (target.type !== 'file') return;
+        limitFiles(target);
+        const previewId = target.dataset.previewTarget;
+        if (previewId) previewImage(target, previewId);
+    });
+
+    const transferInput = document.getElementById('transferJsonInput');
+    if (transferInput instanceof HTMLInputElement) {
+        transferInput.addEventListener('change', () => importTransferJson(transferInput));
+    }
+}
+
+function bindAccountTableInteractions() {
+    const container = document.getElementById('accountTableContainer');
+    if (!container) return;
+
+    const addBtn = document.getElementById('addAccountTableBtn');
+    if (addBtn) {
+        addBtn.addEventListener('click', () => addAccountTable());
+    }
+
+    container.addEventListener('input', (e) => {
+        const target = e.target;
+        if (!(target instanceof HTMLInputElement)) return;
+        const match = (target.id || '').match(/^s3_(last|curr)_(\d+)$/);
+        if (!match) return;
+        calcS3(Number(match[2]));
+    });
+
+    container.addEventListener('click', (e) => {
+        const target = e.target.closest('[data-account-remove]');
+        if (!target) return;
+        const block = target.closest('[data-account-block]');
+        if (block) block.remove();
+    });
+}
+
+function bindHistoryModalInteractions() {
+    const modal = document.getElementById('historyModal');
+    if (!modal) return;
+
+    modal.addEventListener('click', (e) => {
+        const target = e.target.closest('[data-action]');
+        if (!target) return;
+        if (target.dataset.action === 'close-history-modal') {
+            closeHistory();
+        }
+    });
+}
+
+function setModalOpen(modalId, open) {
+    const modal = document.getElementById(modalId);
+    if (!modal) return;
+    if (open) modal.classList.add('open');
+    else modal.classList.remove('open');
+}
+
+function openModal(modalId) {
+    setModalOpen(modalId, true);
+}
+
+function closeModal(modalId) {
+    setModalOpen(modalId, false);
+}
+
+function bindActionButtons() {
+    const actionGroup = document.getElementById('actionBtnGroup');
+    if (!actionGroup) return;
+
+    actionGroup.addEventListener('click', (e) => {
+        const target = e.target.closest('[data-action]');
+        if (!target) return;
+        const action = target.dataset.action;
+        if (action === 'toggle-mobile-menu') {
+            toggleMobileActionMenu();
+            return;
+        }
+        if (action === 'close-mobile-menu') {
+            collapseMobileActionMenu(true);
+            return;
+        }
+        if (action === 'save-temp') return void saveTempData();
+        if (action === 'open-prev-modal') return void openPrevConsultingModal();
+        if (action === 'save-excel') return void saveAsExcel();
+        if (action === 'save-pdf') return void saveAsPDF();
+        if (action === 'open-share-modal') return void openShareModal();
+        if (action === 'save-json') return void exportTransferJson();
+        if (action === 'load-json') return void triggerImportTransferJson();
+        if (action === 'reset-form') return void resetForm();
+    });
+}
+
+function bindShareModalInteractions() {
+    const shareModal = document.getElementById('shareModal');
+    if (!shareModal) return;
+
+    shareModal.addEventListener('click', (e) => {
+        const target = e.target.closest('[data-action]');
+        if (!target) return;
+        const action = target.dataset.action;
+        if (action === 'close-share-modal') return void closeShareModal();
+        if (action === 'share-outlook365') return void doEmailShare('outlook365');
+        if (action === 'share-native') return void doNativeShare();
+    });
+}
+
+function bindPrevConsultingModalInteractions() {
+    const modal = document.getElementById('prevConsultingModal');
+    if (!modal) return;
+
+    modal.addEventListener('click', (e) => {
+        const target = e.target.closest('[data-action]');
+        if (!target) return;
+        const action = target.dataset.action;
+        if (action === 'close-prev-modal') return void closePrevConsultingModal();
+        if (action === 'filter-prev-consulting') return void applyPrevConsultingFilter();
+        if (action === 'clear-prev-consulting') return void clearPrevConsultingAll();
+        if (action === 'apply-latest-popup') return void applyLatestConsultingFromPopup();
+        if (action === 'apply-prev-consulting') return void applyPrevConsulting(Number(target.dataset.prevIdx));
+        if (action === 'delete-prev-consulting') return void deletePrevConsulting(Number(target.dataset.prevIdx));
+        if (action === 'prev-consulting-page') return void movePrevConsultingPage(Number(target.dataset.direction || 0));
+    });
 }
 
 function toggleMobileActionMenu() {
@@ -1663,6 +1918,10 @@ function ensureOutsideEditor(initialHtml = '') {
     const hostId = 'outsideEditor';
     const hiddenOutside = document.getElementById('outsideCommentHtml');
     if (!hiddenOutside) return null;
+    const hasExplicitInitial = arguments.length > 0;
+    const resolvedInitial = sanitizeOutsideHtml(
+        hasExplicitInitial ? initialHtml : (hiddenOutside.value || '')
+    );
 
     if (!editorInstance && typeof SUNEDITOR !== 'undefined') {
         editorInstance = SUNEDITOR.create(hostId, {
@@ -1677,8 +1936,7 @@ function ensureOutsideEditor(initialHtml = '') {
                 markDirty(true);
             }
         });
-        const initial = sanitizeOutsideHtml(initialHtml || hiddenOutside.value || '');
-        if (initial) editorInstance.setContents(initial);
+        editorInstance.setContents(resolvedInitial);
         editorInstance.onChange = function () {
             syncOutsideEditorToHidden();
             markDirty(true);
@@ -1687,7 +1945,7 @@ function ensureOutsideEditor(initialHtml = '') {
         requestAnimationFrame(() => {
             try { editorInstance.refresh(); } catch (_) {}
         });
-        if (initialHtml) editorInstance.setContents(sanitizeOutsideHtml(initialHtml));
+        editorInstance.setContents(resolvedInitial);
     }
     syncOutsideEditorToHidden();
     return editorInstance;
@@ -1802,10 +2060,10 @@ function toggleStoreMode() {
 function buildPromoRowHtml(idx) {
         return `<tr data-idx="${idx}">
             <td><input type="text" name="s2_4_name_${idx}" placeholder="판촉명"></td>
-            <td><input type="text" class="comma-input" name="s2_4_store_${idx}" oninput="calcPromoRatios()"></td>
-            <td><input type="text" class="comma-input" name="s2_4_promo_${idx}" oninput="calcPromoRatios()"></td>
+            <td><input type="text" class="comma-input" name="s2_4_store_${idx}"></td>
+            <td><input type="text" class="comma-input" name="s2_4_promo_${idx}"></td>
             <td><input type="text" name="s2_4_ratio_${idx}" readonly style="background:#f5f7f8;"></td>
-            <td><button type="button" class="btn-share-cancel" style="padding:6px 8px;" onclick="removePromoRow(${idx})">삭제</button></td>
+            <td><button type="button" class="btn-share-cancel promo-remove-btn" data-promo-remove="${idx}" style="padding:6px 8px;">삭제</button></td>
         </tr>`;
     }
 
@@ -1877,10 +2135,10 @@ function buildPromoRowHtml(idx) {
         accCount++;
         const container = document.getElementById("accountTableContainer");
         const tableHtml = `
-            <div style="margin-bottom:20px; border:1px solid var(--brand-blue); padding:15px; border-radius:10px; background:#fff;">
+            <div data-account-block="${accCount}" style="margin-bottom:20px; border:1px solid var(--brand-blue); padding:15px; border-radius:10px; background:#fff;">
                 <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
                     <strong style="color:var(--brand-blue)">■ 계정과목 분석 (#${accCount})</strong>
-                    <span style="cursor:pointer; font-size:12px; border:1px solid #ff0000; padding:2px 6px; border-radius:4px; color:#ff0000;" onclick="this.parentElement.parentElement.remove()">항목삭제</span>
+                    <span data-account-remove="${accCount}" style="cursor:pointer; font-size:12px; border:1px solid #ff0000; padding:2px 6px; border-radius:4px; color:#ff0000;">항목삭제</span>
                 </div>
                 <table class="data-table">
                     <tr><th>계정과목 선택</th><th>전년실적</th><th>금년실적</th><th>증감</th><th>증감율</th></tr>
@@ -1892,8 +2150,8 @@ function buildPromoRowHtml(idx) {
                                 <option>수도광열비</option><option>소모품비</option>
                             </select>
                         </td>
-                        <td><input type="text" class="comma-input" id="s3_last_${accCount}" name="s3_last_${accCount}" oninput="calcS3(${accCount})"></td>
-                        <td><input type="text" class="comma-input" id="s3_curr_${accCount}" name="s3_curr_${accCount}" oninput="calcS3(${accCount})"></td>
+                        <td><input type="text" class="comma-input" id="s3_last_${accCount}" name="s3_last_${accCount}"></td>
+                        <td><input type="text" class="comma-input" id="s3_curr_${accCount}" name="s3_curr_${accCount}"></td>
                         <td id="s3_diff_${accCount}" class="bg-gray">0</td>
                         <td id="s3_res_${accCount}" class="bg-gray">0%</td>
                     </tr>
@@ -1991,12 +2249,12 @@ function renderLatestConsultingPopup(item) {
             <div><b>인건비 적정성</b><br>${safeSnippet(s.labor, 160, '-')}</div>
             <div><b>최종 솔루션</b><br>${safeSnippet(s.solution, 180, '-')}</div>
             <div class="share-btn-row" style="margin-top:10px;">
-              <button type="button" class="btn-share-email" style="background:#2d7a2d;" onclick="applyLatestConsultingFromPopup()">이 내용 불러오기</button>
-              <button type="button" class="btn-share-cancel" onclick="closePrevConsultingModal()">닫기</button>
+              <button type="button" class="btn-share-email" style="background:#2d7a2d;" data-action="apply-latest-popup">이 내용 불러오기</button>
+              <button type="button" class="btn-share-cancel" data-action="close-prev-modal">닫기</button>
             </div>
         </div>`;
     window.__latestConsultingItem = item;
-    document.getElementById('prevConsultingModal').classList.add('open');
+    openModal('prevConsultingModal');
 }
 
 function tryParseJson(value) {
@@ -2121,10 +2379,16 @@ function applyLatestConsultingFromPopup() {
         el.style.height = `${Math.max(el.scrollHeight, 90)}px`;
     }
 
+    function bindAutoGrowTextarea(ta) {
+        if (!ta || ta.dataset.autogrowBound === 'true') return;
+        ta.addEventListener('input', () => autoGrowTextarea(ta));
+        ta.dataset.autogrowBound = 'true';
+    }
+
     function initAutoGrowTextareas() {
         document.querySelectorAll('textarea').forEach((ta) => {
             autoGrowTextarea(ta);
-            ta.addEventListener('input', () => autoGrowTextarea(ta));
+            bindAutoGrowTextarea(ta);
         });
     }
 
@@ -2176,6 +2440,29 @@ function sanitizeOutsideHtml(html = '') {
     return wrap.innerHTML;
 }
 
+function htmlToPlainTextPreserveLines(html = '') {
+    const wrap = document.createElement('div');
+    wrap.innerHTML = html || '';
+
+    wrap.querySelectorAll('br').forEach((node) => node.replaceWith('\n'));
+    wrap.querySelectorAll('p, div, li, ul, ol, h1, h2, h3, h4, h5, h6, blockquote').forEach((node) => {
+        if (node.lastChild && node.lastChild.nodeType === Node.TEXT_NODE) {
+            node.appendChild(document.createTextNode('\n'));
+        } else {
+            node.append('\n');
+        }
+    });
+
+    const text = (wrap.textContent || '')
+        .replace(/\r/g, '')
+        .replace(/[ \t]+\n/g, '\n')
+        .replace(/\n[ \t]+/g, '\n')
+        .replace(/\n{3,}/g, '\n\n')
+        .trim();
+
+    return text;
+}
+
     function getCurrentFormSnapshot() {
         const form = document.getElementById('inspectionForm');
         const data = {};
@@ -2184,7 +2471,7 @@ function sanitizeOutsideHtml(html = '') {
         controls.forEach((el) => {
             const name = el.name;
             if (!name) return;
-            if (el.type === 'file' || el.type === 'button' || el.type === 'submit' || el.type === 'reset') return;
+            if (el.type === 'file' || el.type === 'button' || el.type === 'submit' || el.type === 'reset' || el.type === 'hidden') return;
             if (el.classList.contains('section-hide-toggle')) return;
 
             if (el.type === 'radio') {
@@ -2198,9 +2485,12 @@ function sanitizeOutsideHtml(html = '') {
         });
 
         const hiddenOutside = document.getElementById('outsideCommentHtml');
-        data.outside_comment_html = editorInstance
-            ? sanitizeOutsideHtml(editorInstance.getContents())
-            : sanitizeOutsideHtml(hiddenOutside?.value || '');
+        const isOutsideActivity = (document.getElementById('storeTypeSelect')?.value || '') === '외부활동(미점검)';
+        data.outside_comment_html = isOutsideActivity
+            ? (editorInstance
+                ? sanitizeOutsideHtml(editorInstance.getContents())
+                : sanitizeOutsideHtml(hiddenOutside?.value || ''))
+            : '';
         return data;
     }
 
@@ -2261,98 +2551,125 @@ function buildRightStepFloat() {
     });
 }
 
-window.onload = function() {
-        buildRightStepFloat();
+function initCommaInputFormatting() {
+    document.addEventListener('input', function(e) {
+        if (e.target.classList.contains('comma-input')) {
+            let value = e.target.value.replace(/[^0-9-]/g, '');
+            e.target.value = value.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+    });
+}
 
-        // 실시간 콤마 적용 이벤트
-        document.addEventListener('input', function(e) {
-            if (e.target.classList.contains('comma-input')) {
-                let value = e.target.value.replace(/[^0-9-]/g, '');
-                e.target.value = value.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+function initSelectBindings() {
+    bindChangeById("branchSelect", function() {
+        const scSelect = document.getElementById("scSelect");
+        if (!scSelect) return;
+        scSelect.innerHTML = '<option value="">SC 선택</option>'; 
+        if (this.value && scList[this.value]) {
+            scList[this.value].forEach(sc => {
+                const option = document.createElement("option");
+                option.value = sc;
+                option.textContent = sc;
+                scSelect.appendChild(option);
+            });
+        }
+    });
+
+    bindChangeById("storeTypeSelect", function() {
+        toggleStoreMode();
+    });
+
+    bindChangeById("interview_check", function() {
+        const area = document.getElementById("interview_area");
+        if (!area) return;
+        area.style.display = this.checked ? "block" : "none";
+    });
+}
+
+function initSectionHideToggles() {
+    document.querySelectorAll('.section-hide-toggle').forEach(function(cb) {
+        cb.addEventListener('change', function() {
+            const section = this.closest('.step-section');
+            if (!section) return;
+            if (this.checked) {
+                section.classList.add('section-hidden');
+            } else {
+                section.classList.remove('section-hidden');
             }
         });
+    });
+}
 
-        // 지점 선택 이벤트
-        document.getElementById("branchSelect").addEventListener("change", function() {
-            const scSelect = document.getElementById("scSelect");
-            scSelect.innerHTML = '<option value="">SC 선택</option>'; 
-            if (this.value && scList[this.value]) {
-                scList[this.value].forEach(sc => {
-                    const option = document.createElement("option");
-                    option.value = sc; option.textContent = sc;
-                    scSelect.appendChild(option);
-                });
-            }
-        });
+function initInteractionBindings() {
+    initAutoGrowTextareas();
+    bindStep2Interactions();
+    bindStep4Interactions();
+    bindUploadInteractions();
+    bindAccountTableInteractions();
+    bindActionButtons();
+    bindShareModalInteractions();
+    bindPrevConsultingModalInteractions();
+    bindHistoryModalInteractions();
+    bindNumericMobileInputs();
+    setupMobileTableWrap();
+}
 
+function initFormState() {
+    ensurePromoRows();
+    toggleS2MonthlyTables();
+    loadTempData();
+    if (document.getElementById('storeTypeSelect')?.value === '외부활동(미점검)') {
+        ensureOutsideEditor(document.getElementById('outsideCommentHtml')?.value || '');
+    }
 
-        // 직원 면담 체크박스 연동 (정상화)
-        document.getElementById("interview_check").addEventListener("change", function() {
-            document.getElementById("interview_area").style.display = this.checked ? "block" : "none";
-        });
-
-        // 섹션 숨김 토글 이벤트 바인딩
-        document.querySelectorAll('.section-hide-toggle').forEach(function(cb) {
-            cb.addEventListener('change', function() {
-                const section = this.closest('.step-section');
-                if (section) {
-                    if (this.checked) {
-                        section.classList.add('section-hidden');
-                    } else {
-                        section.classList.remove('section-hidden');
-                    }
+    markDirty(false);
+    const formEl = document.getElementById('inspectionForm');
+    if (formEl) {
+        ['input', 'change'].forEach((evt) => {
+            formEl.addEventListener(evt, (e) => {
+                if (e.target && e.target.type !== 'file') {
+                    markDirty(true);
+                    showValidationAlert([]);
                 }
             });
         });
-        
-        // 텍스트박스 자동 확장
-        initAutoGrowTextareas();
-        bindNumericMobileInputs();
-        setupMobileTableWrap();
+    }
+}
 
-        // 판촉행 기본 생성
-        ensurePromoRows();
-        toggleS2MonthlyTables();
+function initWindowBehaviors() {
+    window.addEventListener('beforeunload', function (e) {
+        if (!isDirty) return;
+        e.preventDefault();
+        e.returnValue = '';
+    });
 
-        // 임시저장 데이터 로드
-        loadTempData();
-        if (document.getElementById('storeTypeSelect')?.value === '외부활동(미점검)') {
-            ensureOutsideEditor(document.getElementById('outsideCommentHtml')?.value || '');
-        }
-
-        // 저장 상태/변경감지
-        markDirty(false);
-        const formEl = document.getElementById('inspectionForm');
-        if (formEl) {
-            ['input', 'change'].forEach((evt) => {
-                formEl.addEventListener(evt, (e) => {
-                    if (e.target && e.target.type !== 'file') {
-                        markDirty(true);
-                        showValidationAlert([]);
-                    }
-                });
-            });
-        }
-
-        window.addEventListener('beforeunload', function (e) {
-            if (!isDirty) return;
-            e.preventDefault();
-            e.returnValue = '';
+    const actionGroup = document.getElementById('actionBtnGroup');
+    if (actionGroup) {
+        actionGroup.addEventListener('click', (e) => {
+            const target = e.target.closest('.action-btn');
+            if (target && isMobileViewport()) setTimeout(() => collapseMobileActionMenu(false), 120);
         });
-        const actionGroup = document.getElementById('actionBtnGroup');
-        if (actionGroup) {
-            actionGroup.addEventListener('click', (e) => {
-                const target = e.target.closest('.action-btn');
-                if (target && isMobileViewport()) setTimeout(() => collapseMobileActionMenu(false), 120);
-            });
-        }
-        window.addEventListener('resize', syncMobileActionMenu);
-        window.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') collapseMobileActionMenu(true);
-        });
-        syncMobileActionMenu();
-        renderSaveStatus();
-    };
+    }
+
+    window.addEventListener('resize', syncMobileActionMenu);
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') collapseMobileActionMenu(true);
+    });
+}
+
+window.onload = function() {
+    buildRightStepFloat();
+    renderBlockAnalysisTables();
+    renderTimeOptions();
+    initCommaInputFormatting();
+    initSelectBindings();
+    initSectionHideToggles();
+    initInteractionBindings();
+    initFormState();
+    initWindowBehaviors();
+    syncMobileActionMenu();
+    renderSaveStatus();
+};
 
     /* ===================== [storage] ===================== */
     // 임시저장 로직
@@ -2531,9 +2848,7 @@ async function saveAsExcel() {
     const sanitizeValue = (name, value) => {
         const raw = String(value || '').trim();
         if (/_html$/i.test(name || '')) {
-            const div = document.createElement('div');
-            div.innerHTML = raw;
-            return sanitizeExcelText((div.textContent || '').replace(/\s+/g, ' ').trim());
+            return sanitizeExcelText(htmlToPlainTextPreserveLines(raw));
         }
         if (!raw) return '';
         if (raw.includes('for(let') || raw.includes('document.write')) {
@@ -2654,6 +2969,7 @@ async function saveAsExcel() {
 
     const shouldSkipLeft = (name) => {
         if (!name) return true;
+        if (name === 'outside_comment_html') return true;
         if (/^s2_1_(last|curr)_(total|ext|del|grp)$/.test(name)) return true;
         if (/^s2_1_m_(last|curr)_(total|ext|del|grp)$/.test(name)) return true;
         if (/^s2_2_[lc]_\d+$/.test(name)) return true;
@@ -2690,7 +3006,7 @@ async function saveAsExcel() {
 
     controls.forEach((el) => {
         const name = el.name || el.id;
-        if (!name || el.type === 'file' || el.classList.contains('section-hide-toggle')) return;
+        if (!name || el.type === 'file' || el.type === 'hidden' || el.classList.contains('section-hide-toggle')) return;
         if (isElementExcludedByPolicy(el, policy)) return;
 
         if (/^s3_acc_type_\d+$/.test(name) && !firstAccountType) {
@@ -3114,9 +3430,12 @@ ${error?.message || error}`);
     }
 }
 
-
-
-    function resetForm() { if(confirm("초기화 하시겠습니까?")) { localStorage.removeItem('temp_report_data'); location.reload(); } }
+    function resetForm() {
+        if (!confirm("초기화 하시겠습니까?")) return;
+        localStorage.removeItem('temp_report_data');
+        localStorage.removeItem('temp_report_saved_at');
+        location.reload();
+    }
 async function saveAsPDF() {
     if (!ensureCommonRequired('PDF저장')) return;
     const container = document.querySelector('.container');
@@ -3296,11 +3615,11 @@ ${solution.substring(0, 220)}
     document.getElementById('shareMessage').value = defaultMsg;
     const fallback = document.getElementById('shareFallbackHint');
     if (fallback) fallback.textContent = navigator.share ? '' : '현재 브라우저는 앱 공유를 지원하지 않습니다. Outlook 365 버튼을 사용해 주세요.';
-    document.getElementById('shareModal').classList.add('open');
+    openModal('shareModal');
 }
 
 function closeShareModal() {
-    document.getElementById('shareModal').classList.remove('open');
+    closeModal('shareModal');
 }
 
 // 네이티브 공유 (모바일 공유시트 - 파일 첨부 포함)
@@ -3410,8 +3729,8 @@ function renderPrevConsultingList(filtered) {
                     <div>${safeHeader(item.inspection_date, item.store_name, item.store_type, item.sc_name)}</div>
                     <div style="margin-top:auto; font-size:12px; color:#666; padding-top:8px;">최종솔루션 요약: ${safeSnippet(finalSolutionSummary(item), 70, '-')}</div>
                     <div style="display:flex; gap:6px; margin-top:8px;">
-                        <button type="button" class="btn-share-email" style="flex:1; background:#2d7a2d;" onclick="applyPrevConsulting(${globalIdx})">이 내용 불러오기</button>
-                        <button type="button" class="btn-share-cancel" style="flex:0 0 88px;" onclick="deletePrevConsulting(${globalIdx})">삭제</button>
+                        <button type="button" class="btn-share-email" style="flex:1; background:#2d7a2d;" data-action="apply-prev-consulting" data-prev-idx="${globalIdx}">이 내용 불러오기</button>
+                        <button type="button" class="btn-share-cancel" style="flex:0 0 88px;" data-action="delete-prev-consulting" data-prev-idx="${globalIdx}">삭제</button>
                     </div>
                 </div>
                 `;
@@ -3421,9 +3740,9 @@ function renderPrevConsultingList(filtered) {
 
     if (pagerEl) {
         pagerEl.innerHTML = `
-            <button type="button" class="btn-share-cancel" style="padding:6px 10px;" onclick="movePrevConsultingPage(-1)" ${currentPage <= 1 ? 'disabled' : ''}>이전</button>
+            <button type="button" class="btn-share-cancel" style="padding:6px 10px;" data-action="prev-consulting-page" data-direction="-1" ${currentPage <= 1 ? 'disabled' : ''}>이전</button>
             <span style="font-size:12px; color:#555; min-width:110px; text-align:center;">${currentPage} / ${totalPages} 페이지</span>
-            <button type="button" class="btn-share-cancel" style="padding:6px 10px;" onclick="movePrevConsultingPage(1)" ${currentPage >= totalPages ? 'disabled' : ''}>다음</button>
+            <button type="button" class="btn-share-cancel" style="padding:6px 10px;" data-action="prev-consulting-page" data-direction="1" ${currentPage >= totalPages ? 'disabled' : ''}>다음</button>
         `;
     }
 
@@ -3459,11 +3778,15 @@ function openPrevConsultingModal() {
     const dateFilter = document.getElementById('prevConsultingDateFilter');
     if (dateFilter) dateFilter.value = '';
     applyPrevConsultingFilter();
-    document.getElementById('prevConsultingModal').classList.add('open');
+    openModal('prevConsultingModal');
 }
 
 function closePrevConsultingModal() {
-    document.getElementById('prevConsultingModal').classList.remove('open');
+    closeModal('prevConsultingModal');
+}
+
+function closeHistory() {
+    closeModal('historyModal');
 }
 
 
@@ -3551,6 +3874,17 @@ function applyPrevConsulting(idx) {
 - 엑셀/PDF 생성 파일명/다운로드, 공유 모달 안내/폴백
 - 모바일(<=390px): Step2/4 표 스크롤, 첫 열 sticky, 숫자입력 편의
 - 초기화 후 상태/데이터 정리
+
+[현재 구조 기준 권장 수동 테스트]
+- Step 1 이미지 업로드: 3장 제한, 미리보기 표시, 재선택 시 미리보기 갱신
+- Step 2 계산: 매출 실적/블럭별 분석/판촉 구성비 입력 시 즉시 계산 반영
+- Step 2 월간 토글: 전월 비교표 표시/숨김, 값 유지 여부
+- Step 3 계정과목: 항목 추가, 전년/금년 입력 시 증감/증감율 계산, 항목삭제 동작
+- Step 4 인건비: 기본/생산/외부채널 입력 시 비용·시간 증감 계산, 토글 표시/숨김
+- 이전 컨설팅: 조회/페이지 이동/불러오기/개별삭제/전체삭제
+- 공유/발송: 공유 모달 열기/닫기, Outlook 365 버튼, 앱 공유 폴백 문구
+- 작업파일(JSON): 저장 후 재불러오기, 스키마 마이그레이션 오류 없이 복원되는지
+- 모바일 액션 메뉴: 열기/닫기/버튼 클릭 후 자동 접힘
 */
 
 
