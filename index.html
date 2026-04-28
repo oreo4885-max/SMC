@@ -1256,8 +1256,9 @@
 
             <div style="font-size:0.8em; font-weight:bold; color:var(--brand-choco); margin-bottom:6px;">📬 메일 발송 방법 선택</div>
             <div class="share-btn-row">
+                <button class="btn-share-cancel" type="button" data-action="share-copy-message">본문 복사</button>
                 <button class="btn-share-email" style="background:#0078d4;" data-action="share-outlook365">
-                    <span style="font-size:1.1em;">📧</span><br><small>Outlook 365</small>
+                    <span style="font-size:1.1em;">📧</span><br><small>Outlook 열기</small>
                 </button>
                 <button class="btn-share-native" data-action="share-native">📱 앱으로 공유</button>
             </div>
@@ -1835,6 +1836,7 @@ function bindShareModalInteractions() {
         if (!target) return;
         const action = target.dataset.action;
         if (action === 'close-share-modal') return void closeShareModal();
+        if (action === 'share-copy-message') return void copyShareMessageManually();
         if (action === 'share-outlook365') return void doEmailShare('outlook365');
         if (action === 'share-native') return void doNativeShare();
     });
@@ -3614,6 +3616,23 @@ async function copyTextToClipboard(text) {
     }
 }
 
+async function copyShareMessageManually() {
+    const text = document.getElementById('shareMessage')?.value || '';
+    if (!text) {
+        setShareFallbackMessage('복사할 본문이 없습니다. 메시지 내용을 먼저 확인해 주세요.');
+        return;
+    }
+
+    const copied = await copyTextToClipboard(text);
+    if (copied) {
+        setShareFallbackMessage('본문을 클립보드에 복사했습니다. Outlook 본문에서 Ctrl+V로 붙여넣어 주세요.');
+        setTimeout(() => alert('본문을 클립보드에 복사했습니다.\nOutlook 본문에서 Ctrl+V로 붙여넣어 주세요.'), 50);
+    } else {
+        setShareFallbackMessage('브라우저가 자동 복사를 허용하지 않았습니다. 메시지 박스 내용을 직접 복사해 주세요.');
+        setTimeout(() => alert('브라우저가 자동 복사를 허용하지 않았습니다.\n메시지 박스 내용을 직접 복사해 주세요.'), 50);
+    }
+}
+
 function downloadFilesFromInput(fileInput) {
     const names = [];
     if (!(fileInput?.files) || !fileInput.files.length) return names;
@@ -3634,19 +3653,19 @@ function downloadFilesFromInput(fileInput) {
 }
 
 function buildMailtoUrl(toEmail, subject, body = '') {
-    const params = new URLSearchParams();
-    if (subject) params.set('subject', subject);
-    if (body) params.set('body', body);
-    const qs = params.toString();
+    const queryParts = [];
+    if (subject) queryParts.push(`subject=${encodeURIComponent(subject)}`);
+    if (body) queryParts.push(`body=${encodeURIComponent(body)}`);
+    const qs = queryParts.join('&');
     return `mailto:${encodeURIComponent(toEmail || '')}${qs ? `?${qs}` : ''}`;
 }
 
 function buildOutlookComposeUrl(toEmail, subject, body = '') {
-    const params = new URLSearchParams();
-    if (toEmail) params.set('to', toEmail);
-    if (subject) params.set('subject', subject);
-    if (body) params.set('body', body);
-    return `https://outlook.office.com/mail/deeplink/compose?${params.toString()}`;
+    const queryParts = [];
+    if (toEmail) queryParts.push(`to=${encodeURIComponent(toEmail)}`);
+    if (subject) queryParts.push(`subject=${encodeURIComponent(subject)}`);
+    if (body) queryParts.push(`body=${encodeURIComponent(body)}`);
+    return `https://outlook.office.com/mail/deeplink/compose?${queryParts.join('&')}`;
 }
 
 function shouldInlineOutlookBody(toEmail, subject, message) {
@@ -3774,15 +3793,13 @@ async function doEmailShare(type) {
 
     if (type === 'outlook365') {
         const includeBody = shouldInlineOutlookBody(toEmail, subject, message);
+        const copied = message ? await copyTextToClipboard(message) : false;
         const outlookComposeUrl = buildOutlookComposeUrl(toEmail, subject, includeBody ? message : '');
         const opened = window.open(outlookComposeUrl, '_blank', 'noopener');
         if (!opened) {
             window.location.href = buildMailtoUrl(toEmail, subject, includeBody ? message : '');
         }
-
-        let copied = false;
         if (!includeBody) {
-            copied = await copyTextToClipboard(message);
             const fallbackText = buildShareManualGuide({
                 copied,
                 attachmentNames,
@@ -3793,6 +3810,10 @@ async function doEmailShare(type) {
         } else if (attachmentNames.length) {
             setShareFallbackMessage(`첨부 파일은 다운로드했습니다: ${attachmentNames.join(', ')}. Outlook 창에서 첨부해 주세요.`);
             setTimeout(() => alert(`첨부 파일을 다운로드했습니다.\n파일명: ${attachmentNames.join(', ')}\nOutlook 작성 창에서 파일을 첨부해 주세요.`), 250);
+        } else if (message && copied) {
+            setShareFallbackMessage('Outlook 365 작성창을 열었습니다. 본문은 클립보드에도 복사해 두었습니다. 자동 입력이 누락되면 붙여넣어 주세요.');
+        } else if (message) {
+            setShareFallbackMessage('Outlook 365 작성창을 열었습니다. 본문 자동 입력이 누락되면 메시지 박스 내용을 직접 복사해 붙여넣어 주세요.');
         } else {
             setShareFallbackMessage('');
         }
