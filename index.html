@@ -2773,6 +2773,35 @@ async function saveAsExcel() {
         reader.readAsDataURL(file);
     });
 
+    const getImageExtensionFromDataUrl = (dataUrl = '') => {
+        const match = String(dataUrl).match(/^data:image\/(png|jpeg|jpg|gif);base64,/i);
+        if (!match) return '';
+        return match[1].toLowerCase() === 'jpg' ? 'jpeg' : match[1].toLowerCase();
+    };
+
+    const collectOutsideEditorImageEntries = () => {
+        const entries = [];
+        const hiddenOutside = document.getElementById('outsideCommentHtml');
+        const outsideHtml = hiddenOutside?.value || '';
+        if (!outsideHtml) return entries;
+
+        const wrap = document.createElement('div');
+        wrap.innerHTML = outsideHtml;
+        Array.from(wrap.querySelectorAll('img')).forEach((img, idx) => {
+            const src = img.getAttribute('src') || '';
+            const ext = getImageExtensionFromDataUrl(src);
+            if (!ext) return;
+            entries.push({
+                dataUrl: src,
+                extension: ext,
+                location: 'Out Step > 컨설팅 이후 사진',
+                field: `outside_editor_image_${idx + 1}`,
+                filename: `outstep_photo_${idx + 1}.${ext === 'jpeg' ? 'jpg' : ext}`
+            });
+        });
+        return entries;
+    };
+
     const collectImageEntries = () => {
         const entries = [];
         const fileInputs = Array.from(document.querySelectorAll('#inspectionForm input[type="file"]'));
@@ -2791,6 +2820,7 @@ async function saveAsExcel() {
                 });
             });
         });
+        entries.push(...collectOutsideEditorImageEntries());
         return entries;
     };
 
@@ -2823,9 +2853,9 @@ async function saveAsExcel() {
             wsImg.getCell(`B${row}`).value = it.field;
             wsImg.getCell(`C${row}`).value = it.filename;
 
-            const dataUrl = await toDataUrl(it.file);
-            const extMatch = String(it.file.type || '').match(/image\/(png|jpeg|jpg|gif|webp)/i);
-            const ext = extMatch ? (extMatch[1].toLowerCase() === 'jpg' ? 'jpeg' : extMatch[1].toLowerCase()) : 'png';
+            const dataUrl = it.dataUrl || await toDataUrl(it.file);
+            const extMatch = String(it.file?.type || '').match(/image\/(png|jpeg|jpg|gif|webp)/i);
+            const ext = it.extension || (extMatch ? (extMatch[1].toLowerCase() === 'jpg' ? 'jpeg' : extMatch[1].toLowerCase()) : 'png');
             const imageId = workbook.addImage({ base64: dataUrl, extension: ext });
 
             const img = new Image();
